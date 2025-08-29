@@ -34,6 +34,18 @@ async function autocomplete(inputEl, listEl){
 function requiredFields(){
   return ['name','phone','pickup','dropoff','date','time'];
 }
+
+function validateForEstimate(){
+  const data = Object.fromEntries(new FormData(qs('#booking-form')).entries());
+  const missing = [];
+  ['pickup','dropoff','date','time'].forEach(k=>{ if(!data[k] || String(data[k]).trim()===''){ missing.push(k); } });
+  const wantWait = (data.roundtrip==='Oui' && data.waitopt==='Oui');
+  const waitHours = parseInt(data.wait_hours||'0',10);
+  if(wantWait){
+    if(!(waitHours>=1 && waitHours<=4)) missing.push('wait_hours');
+  }
+  return {ok: missing.length===0, missing, data};
+}
 function validateAll(){
   const data = Object.fromEntries(new FormData(qs('#booking-form')).entries());
   const missing = [];
@@ -133,21 +145,47 @@ function isNight(timeStr){
   return (H>=19) || (H<7);
 }
 
+
+async function computeEstimate(data){
+  const pickup = data.pickup.trim();
+  const dropoff = data.dropoff.trim();
+  const time = data.time.trim();
+  const isRound = (data.roundtrip==='Oui');
+  const isNightTarif = isNight(time);
+  const A = await geocode(pickup);
+  const B = await geocode(dropoff);
+  const km_oneway = await routeDistanceKm(A,B);
+  const km_total = isRound ? (km_oneway*2) : km_oneway;
+  let tarif_value = TARIF_C; let tarif_type='C';
+  if(isRound){ tarif_value = isNightTarif?TARIF_B:TARIF_A; tarif_type = isNightTarif?'B':'A'; }
+  else { tarif_value = isNightTarif?TARIF_D:TARIF_C; tarif_type = isNightTarif?'D':'C'; }
+  const attente_on = (data.waitopt==='Oui' && isRound);
+  const h_attente = attente_on ? parseInt(data.wait_hours||'1',10) : 0;
+  const attente_cost = h_attente * ATTENTE_HORAIRE;
+  const price = km_total*tarif_value + PRISE_EN_CHARGE + attente_cost;
+  return {price, km: km_total, tarif_type, tarif_value, h_attente, attente_cost};
+}
+
 async function estimatePrice(){
+
   const out = qs('#estimate');
-  const v = validateAll();
+  const hint = qs('#estimate-hint');
+  const v = validateForEstimate();
   if(!v.ok){
-    const missingLabels = v.missing.map(labelFor).join(', ');
-    out.innerHTML = '<span style="color:#b91c1c; font-weight:700">Champs manquants :</span> ' + missingLabels + '.';
+    const map = {pickup:'Lieu de départ', dropoff:'Destination', date:'Date', time:'Heure', wait_hours:'Durée d’attente (heures)'};
+    const missingLabels = v.missing.map(k=>map[k]||k).join(', ');
+    out.textContent = 'Champs manquants: ' + missingLabels;
+    if(hint) hint.style.color = '#b91c1c';
     return;
   }
+  if(hint) hint.style.color = '#6b7280';
   const pickup = v.data.pickup.trim();
   const dropoff = v.data.dropoff.trim();
   const time = v.data.time.trim();
   const roundSel = qs('#roundtrip');
   const waitSel = qs('#waitopt');
   const waitHoursSel = qs('#wait_hours');
-  out.textContent='Calcul en cours…';
+  out.textContent='Calcul…';
   try{
     const A = await geocode(pickup);
     const B = await geocode(dropoff);
@@ -155,22 +193,16 @@ async function estimatePrice(){
     const isNightTarif = isNight(time);
     const isRound = roundSel && roundSel.value==='Oui';
     const km_total = isRound ? (km_oneway*2) : km_oneway;
-    let tarif_type = 'C (jour)';
-    let tarif_value = TARIF_C;
-    if(isRound){
-      tarif_type = isNightTarif ? 'B (A/R nuit)' : 'A (A/R jour)';
-      tarif_value = isNightTarif ? TARIF_B : TARIF_A;
-    }else{
-      tarif_type = isNightTarif ? 'D (nuit)' : 'C (jour)';
-      tarif_value = isNightTarif ? TARIF_D : TARIF_C;
-    }
-    const attente_on = waitSel && waitSel.value==='Oui';
+    let tarif_value = TARIF_C; let tarif_type='C';
+    if(isRound){ tarif_value = isNightTarif?TARIF_B:TARIF_A; tarif_type = isNightTarif?'B':'A'; }
+    else { tarif_value = isNightTarif?TARIF_D:TARIF_C; tarif_type = isNightTarif?'D':'C'; }
+    const attente_on = (waitSel && waitSel.value==='Oui' && isRound);
     const h_attente = (waitHoursSel && attente_on) ? parseInt(waitHoursSel.value||'1',10) : 0;
     const attente_cost = h_attente * ATTENTE_HORAIRE;
     const price = km_total*tarif_value + PRISE_EN_CHARGE + attente_cost;
-    out.innerHTML = `<strong>${price.toFixed(2)} €</strong> (distance ${km_total.toFixed(1)} km — ${tarif_value.toFixed(2)} €/km, prise en charge ${PRISE_EN_CHARGE.toFixed(2)} €${attente_on?`, attente ${h_attente} h = ${attente_cost.toFixed(2)} €`:''})`;
+    out.textContent = price.toFixed(2) + ' €';
   }catch(e){
-    out.textContent = 'Impossible de calculer l’estimation : ' + e.message;
+    out.textContent = 'Erreur: ' + e.message;
   }
 }
 
@@ -188,10 +220,9 @@ onReady(()=>{
     
   });
 
-  form.addEventListener('submit', (e)=>{
+  form.addEventListener('submit', async (e)=>{
     e.preventDefault();
-    updateWaitHours(); // ensure correct initial state
-  const waitSel = qs('#waitopt'); if(waitSel){ waitSel.addEventListener('change', updateWaitHours); waitSel.addEventListener('input', updateWaitHours);}
+    updateWaitHours();
     const v = validateAll();
     const result = qs('#result');
     if(!v.ok){
@@ -201,32 +232,41 @@ onReady(()=>{
       result.scrollIntoView({behavior:'smooth'});
       return;
     }
-    const data = v.data;
-    const msg = 
+    try{
+      const est = await computeEstimate(v.data);
+      const msg = 
 `Nouvelle réservation TAXI
-Nom: ${data.name}
-Téléphone: ${data.phone}
-Trajet: ${data.pickup} → ${data.dropoff}
-Date: ${data.date} à ${data.time}
-Passagers: ${data.passengers || '1'}  |  Bagages: ${data.luggage || '0'}
-Siège enfant: ${data.childseat || 'Non'}
-Aller/retour: ${data.roundtrip || 'Non'}
-Attente (heures): ${data.wait_hours || '0'}
-Notes: ${data.notes || '—'}`;
+Nom: ${v.data.name}
+Téléphone: ${v.data.phone}
+Trajet: ${v.data.pickup} → ${v.data.dropoff}
+Date: ${v.data.date} à ${v.data.time}
+Passagers: ${v.data.passengers || '1'}  |  Bagages: ${v.data.luggage || '0'}
+Siège enfant: ${v.data.childseat || 'Non'}
+Aller/retour: ${v.data.roundtrip || 'Non'}
+Attente (heures): ${v.data.wait_hours || '0'}
+Distance estimée: ${est.km.toFixed(1)} km
+Tarif: ${est.tarif_type} (${est.tarif_value.toFixed(2)} €/km)
+Prix estimé: ${est.price.toFixed(2)} €
+Notes: ${v.data.notes || '—'}`;
 
-    const wa = "https://wa.me/590691280005/?text=" + encodeURIComponent(msg);
-    const subject = encodeURIComponent('Demande de réservation taxi');
-    const body = encodeURIComponent(msg);
-    const mail = "mailto:taxili@laposte.net?subject=" + subject + "&body=" + body;
+      const wa = "https://wa.me/590691280005/?text=" + encodeURIComponent(msg);
+      const subject = encodeURIComponent('Demande de réservation taxi');
+      const body = encodeURIComponent(msg);
+      const mail = "mailto:taxili@laposte.net?subject=" + subject + "&body=" + body;
 
-    result.className='success';
-    result.innerHTML = `<strong>Parfait !</strong> Choisissez un mode d'envoi : 
-      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-        <a class="btn btn-primary" href="${wa}" target="_blank" rel="noopener">Envoyer sur WhatsApp</a>
-        <a class="btn" href="${mail}">Envoyer par e-mail</a>
-      </div>
-      <p class="small">Astuce : vous pouvez aussi <strong>appeler</strong> directement au <a href="tel:+590691280005">0691 28 00 05</a>.</p>`;
-    result.scrollIntoView({behavior:'smooth'});
+      result.className='success';
+      result.innerHTML = `<strong>Parfait !</strong> Choisissez un mode d'envoi : 
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <a class="btn btn-primary" href="${wa}" target="_blank" rel="noopener">Envoyer sur WhatsApp</a>
+          <a class="btn" href="${mail}">Envoyer par e-mail</a>
+        </div>
+        <p class="small">Astuce : vous pouvez aussi <strong>appeler</strong> directement au <a href="tel:+590691280005">0691 28 00 05</a>.</p>`;
+      result.scrollIntoView({behavior:'smooth'});
+    }catch(err){
+      result.className='notice';
+      result.textContent='Impossible de finaliser la réservation : ' + err.message;
+      result.scrollIntoView({behavior:'smooth'});
+    }
   });
   });
 });

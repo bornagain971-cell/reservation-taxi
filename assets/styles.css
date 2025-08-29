@@ -55,3 +55,6 @@ label{font-weight:700;font-size:14px;margin-bottom:6px;display:block}
 .call-fab img{width:18px;height:18px}
 
 .row > div{padding-right:0}
+
+.estimate-wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.estimate-box{min-width:220px;padding:12px 14px;border:1px solid #e5e7eb;background:#fff;border-radius:10px;font-weight:800}
