@@ -1140,4 +1140,191 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var dateEl = document.querySelector('#date, input[name="date"], input[type="date"]');
+  var timeEl = document.querySelector('#time, input[name="time"], input[type="time"]');
+
+  function ensureErr(el, idSuffix, msg){
+    if(!el) return null;
+    var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+    var box = document.getElementById(id);
+    if(!box){
+      box = document.createElement('div');
+      box.id = id;
+      box.className = 'field-error';
+      box.style.color = '#c53030';
+      box.style.display = 'none';
+      box.textContent = msg;
+      if(el.parentNode){ el.parentNode.appendChild(box); }
+    }
+    return box;
+  }
+  var timeErr = ensureErr(timeEl, 'time', 'Merci de choisir une heure à partir de maintenant.');
+
+  function parseDate(val){
+    if(!val) return null;
+    var p = String(val).split('-'); if(p.length!==3) return null;
+    var y=+p[0], m=+p[1]-1, d=+p[2];
+    if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+    return new Date(y,m,d);
+  }
+  function parseTime(val){
+    if(!val) return null;
+    var p = String(val).split(':');
+    var h=+p[0], mi=+p[1]||0;
+    if(isNaN(h)||isNaN(mi)) return null;
+    return {h:h, m:mi};
+  }
+  function isToday(d){
+    var now = new Date();
+    return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+  }
+  function timeInPast(){
+    if(!timeEl) return false;
+    var t = parseTime(timeEl.value); if(!t) return false;
+    var d = parseDate(dateEl && dateEl.value);
+    if(d && isToday(d)){
+      var now = new Date();
+      var input = new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
+      return input < now;
+    }
+    return false;
+  }
+
+  function showTimeErr(){
+    if(!timeErr || !timeEl) return;
+    if(timeInPast()){
+      timeErr.style.display = 'block';
+      timeEl.classList.add('input-error');
+    }else{
+      timeErr.style.display = 'none';
+      timeEl.classList.remove('input-error');
+    }
+  }
+
+  // Guard function used on buttons
+  function guardTime(e){
+    showTimeErr();
+    if(timeInPast()){
+      e.preventDefault();
+      if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+      e.stopPropagation();
+      // Scroll to error
+      if(timeErr && timeErr.scrollIntoView){
+        setTimeout(function(){ timeErr.scrollIntoView({behavior:'smooth', block:'center'}); }, 10);
+      }
+      return false;
+    }
+  }
+
+  // Hook main "Réserver" button (various selectors tolerated)
+  var reserveBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm, button#reserveBtn');
+  if(reserveBtn){ reserveBtn.addEventListener('click', guardTime, true); }
+
+  // Hook WhatsApp / Mail buttons by common ids/data-action
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
+    var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
+    if(waBtn || mailBtn){
+      guardTime(e);
+    }
+  }, true);
+
+  // Live updates when user changes time/date
+  if(timeEl){ timeEl.addEventListener('change', showTimeErr); timeEl.addEventListener('input', showTimeErr); }
+  if(dateEl){ dateEl.addEventListener('change', showTimeErr); }
+
+  // Initial check (prefilled cases)
+  showTimeErr();
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var dateEl = document.querySelector('#date, input[name="date"], input[type="date"]');
+
+  function ensureErr(el, idSuffix, msg){
+    if(!el) return null;
+    var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+    var box = document.getElementById(id);
+    if(!box){
+      box = document.createElement('div');
+      box.id = id;
+      box.className = 'field-error';
+      box.style.color = '#c53030';
+      box.style.display = 'none';
+      box.textContent = msg;
+      if(el.parentNode){ el.parentNode.appendChild(box); }
+    } else {
+      box.textContent = msg;
+    }
+    return box;
+  }
+
+  function parseDate(val){
+    if(!val) return null;
+    var p = String(val).split('-'); if(p.length!==3) return null;
+    var y=+p[0], m=+p[1]-1, d=+p[2];
+    if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+    return new Date(y,m,d);
+  }
+
+  function isDateInPast(){
+    if(!dateEl) return false;
+    var d = parseDate(dateEl.value);
+    if(!d) return false;
+    var now = new Date();
+    // set to midnight to compare dates only
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var dd    = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    return dd < today;
+  }
+
+  var dateErr = ensureErr(dateEl, 'date', 'Merci de choisir une date valide (à partir d\'aujourd\'hui).');
+
+  function showDateErr(){
+    if(!dateErr || !dateEl) return;
+    if(isDateInPast()){
+      dateErr.style.display = 'block';
+      dateEl.classList.add('input-error');
+    }else{
+      dateErr.style.display = 'none';
+      dateEl.classList.remove('input-error');
+    }
+  }
+
+  // Hook buttons to block if date invalid (reuse same selectors as autres guards)
+  function guardDate(e){
+    showDateErr();
+    if(isDateInPast()){
+      e.preventDefault();
+      if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+      e.stopPropagation();
+      if(dateErr && dateErr.scrollIntoView){
+        setTimeout(function(){ dateErr.scrollIntoView({behavior:'smooth', block:'center'}); }, 10);
+      }
+      return false;
+    }
+  }
+
+  var reserveBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm, button#reserveBtn');
+  if(reserveBtn){ reserveBtn.addEventListener('click', guardDate, true); }
+
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
+    var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
+    if(waBtn || mailBtn){ guardDate(e); }
+  }, true);
+
+  if(dateEl){ dateEl.addEventListener('change', showDateErr); }
+  // initial state
+  showDateErr();
+});
+</script>
+
 </body>
