@@ -1,241 +1,183 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Taxi Li Réservation Guadeloupe</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{ --bg:#f7f7f7; --card:#ffffff; --ink:#111; --muted:#6b7280; --border:#e5e7eb; }
-  *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-  a{color:inherit;text-decoration:none}
-  header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--border)}
-  .wrap{max-width:1200px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:16px}
-  .logo{width:36px;height:36px;border-radius:8px;background:#000 url('assets/logo_taxi_li.png') center/70% no-repeat}
-  .titlebar{flex:1;text-align:center;line-height:1}
-  .titlebar .t1{font-weight:800}
-  .titlebar .t2{font-size:12px;color:var(--muted);margin-top:4px}
-  .actions{display:flex;gap:10px}
-  .btn{background:#111;color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
-
-  main{max-width:1200px;margin:18px auto;padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
-  @media (max-width:980px){ main{grid-template-columns:1fr} .titlebar{text-align:left} }
-
-  .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px}
-  h1{font-size:34px;line-height:1.12;margin:0 0 12px}
-  h3{margin:18px 0 10px}
-  .pills{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
-  .pill{background:#111;color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700}
-  .muted{color:var(--muted);font-size:12px}
-
-  label{font-weight:700;font-size:14px;display:block;margin:10px 0 6px}
-  input[type=text], input[type=tel], input[type=date], input[type=time], select, textarea{
-    width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;background:#fff;font:inherit;outline:none;
-  }
-  input:focus, select:focus, textarea:focus{border-color:#111;box-shadow:0 0 0 2px #1111}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .grid2 > div{min-width:0}
-  .form-actions{display:flex;align-items:center;gap:12px;margin-top:8px}
-  .priceBox{min-width:64px;text-align:center;border:1px dashed var(--border);padding:10px 14px;border-radius:12px;background:#fff}
-
-  table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}
-  th,td{padding:12px;border-bottom:1px solid var(--border)}
-  th{background:#fafafa;text-align:left}
-  tr:last-child td{border-bottom:0}
-
-  .gallery{position:relative;border:1px solid var(--border);border-radius:16px;overflow:hidden;background:#fff}
-  .gal-viewport{position:relative;width:100%;height:340px}
-  .gal-viewport img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
-  .gal-viewport img.active{display:block}
-  .dots{display:flex;gap:6px;justify-content:center;align-items:center;padding:10px}
-  .dot{width:8px;height:8px;border-radius:999px;background:#cfcfcf;cursor:pointer}
-  .dot.active{background:#111}
-  .caption{position:absolute;left:12px;bottom:12px;background:#000a;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px}
-  .err{color:#b00020;font-size:13px;margin-top:6px}
-  .ok{color:#087f5b;font-size:13px;margin-top:6px}
-  footer{max-width:1200px;margin:26px auto;padding:0 16px 40px;color:var(--muted);font-size:14px}
-  .small{font-size:12px;color:var(--muted)}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Taxi Li Réservation Guadeloupe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
-
-<header>
-  <div class="wrap">
-    <div class="logo" title="Taxi LI"></div>
-    <div class="titlebar">
-      <div class="t1">Taxi Li Réservation Guadeloupe</div>
-      <div class="t2">Le plaisir de vous conduire</div>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <img src="images/logo.png" alt="Taxi LI logo">
+        <div>
+          <h1>Taxi Li Réservation Guadeloupe</h1>
+          <small>Le plaisir de vous conduire</small>
+        </div>
+      </div>
+      <div class="top-actions">
+        <a class="btn-pill" href="tel:+590691280005">0691 28 00 05</a>
+        <a class="btn-pill" target="_blank" href="https://wa.me/590691280005">WhatsApp</a>
+        <a class="btn-pill" href="#form">Réserver</a>
+      </div>
     </div>
-    <div class="actions">
-      <a class="btn" href="tel:0691280005">0691 28 00 05</a>
-      <a class="btn" href="https://wa.me/590691280005" target="_blank" rel="noreferrer">WhatsApp</a>
-      <a class="btn" href="#form">Réserver</a>
+
+    <div class="grid">
+      <section class="card hero">
+        <h2>Réservez votre taxi en ligne<br/>simplement et rapidement</h2>
+        <p>Courses locales et longues distances. Tarifs clairs, confirmation instantanée sur WhatsApp ou e‑mail.</p>
+        <div class="chips">
+          <span class="chip">Disponibilité 24/7*</span>
+          <span class="chip">Paiement CB/espèces</span>
+          <span class="chip">Siège enfant sur demande</span>
+        </div>
+        <div class="note">* Selon planning — réponse rapide.</div>
+
+        <h3 class="section-title">Notre véhicule en images</h3>
+        <div class="gallery">
+          <div class="gallery-viewport"></div>
+          <div class="gallery-dots"></div>
+        </div>
+      </section>
+
+      <section class="card" id="form">
+        <div class="form-row">
+          <div>
+            <label>Nom et prénom *</label>
+            <input id="name" class="input" required />
+          </div>
+          <div>
+            <label>Téléphone *</label>
+            <input id="phone" class="input" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Lieu de départ *</label>
+            <input id="from" class="input" placeholder="Adresse, aéroport, hôtel…" />
+          </div>
+          <div>
+            <label>Destination *</label>
+            <input id="to" class="input" placeholder="Adresse, aéroport, hôtel…" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Date *</label>
+            <input id="date" class="input" type="date" />
+          </div>
+          <div>
+            <label>Heure *</label>
+            <input id="time" class="input" type="time" value="12:30" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Passagers</label>
+            <select id="passengers">
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+            </select>
+          </div>
+          <div>
+            <label>Bagages</label>
+            <select id="luggage">
+              <option>0</option><option>1</option><option>2</option><option>3</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Aller/retour</label>
+            <select id="roundtrip">
+              <option>Non</option><option>Oui</option>
+            </select>
+          </div>
+          <div>
+            <label>Attente pendant le trajet</label>
+            <select id="waitenroute">
+              <option>Non</option><option>Oui</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Durée d’attente (heures)</label>
+            <select id="waitHours">
+              <option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+            </select>
+          </div>
+          <div>
+            <label>Siège enfant</label>
+            <select id="childseat">
+              <option>Non</option><option>Oui</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div style="grid-column:1 / -1">
+            <label>Notes</label>
+            <textarea id="notes" class="input" placeholder=""></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div style="grid-column:1 / -1">
+            <div class="estimation-box">
+              <button id="estimateBtn" class="btn">Estimation du prix</button>
+              <div class="estimation-price" id="priceValue">—</div>
+            </div>
+            <div class="small-muted" style="margin-top:8px">
+              Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.<br/>
+              Le prix affiché est indicatif ; le prix exact est déterminé par le taximètre (compteur kilométrique). Pour plus d’informations, contactez‑nous.
+            </div>
+          </div>
+        </div>
+
+        <div class="actions" style="justify-content:center;margin-top:10px">
+          <button id="confirmBtn" class="btn">Obtenir la confirmation</button>
+        </div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:20px">
+      <h3>Tarifs & transparence</h3>
+      <p>Le prix final est déterminé par le <strong>taximètre (compteur kilométrique)</strong> selon le trajet réel (embouteillages, déviations, etc.).</p>
+      <table class="table">
+        <thead><tr><th>Élément</th><th>Montant</th></tr></thead>
+        <tbody>
+          <tr><td>Prise en charge</td><td>3,75 €</td></tr>
+          <tr><td>Tarif A (aller/retour de jour, au km)</td><td>1,03 €/km</td></tr>
+          <tr><td>Tarif B (aller/retour de nuit et jour férié, au km)</td><td>1,55 €/km</td></tr>
+          <tr><td>Tarif C (aller simple de jour, au km)</td><td>2,06 €/km</td></tr>
+          <tr><td>Tarif D (aller simple de nuit et jour férié, au km)</td><td>3,06 €/km</td></tr>
+          <tr><td>Heure d’attente pendant les courses (par heure)</td><td>25 €</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li>Facturation claire — pas de surprises.</li>
+        <li>Reçus sur demande (professionnels et particuliers).</li>
+        <li>Courtes et longues distances, aéroports, hôtels, rendez‑vous médicaux…</li>
+        <li>Paiement par carte, espèces ou lien de paiement sécurisé.</li>
+      </ul>
+      <div class="footer">Tarifs susceptibles d’évoluer, sous réserve de modifications préfectorales.</div>
+    </section>
+
+    <div class="site-footer">
+      © TAXI LI — Guadeloupe. Zone principale : Capesterre‑Belle‑Eau, Le Gosier, Goyave — déplacements dans toute la Guadeloupe.<br/>
+      <a href="mailto:taxili@laposte.net">taxili@laposte.net</a> · <a href="tel:+590691280005">0691 28 00 05</a>
     </div>
   </div>
-</header>
 
-<main>
-  <section class="card">
-    <h1>Réservez votre taxi en ligne<br/>simplement et rapidement</h1>
-    <p>Courses locales et longues distances. Tarifs clairs, confirmation instantanée sur WhatsApp ou e‑mail.</p>
-    <div class="pills">
-      <div class="pill">Disponibilité 24/7*</div>
-      <div class="pill">Paiement CB/espèces</div>
-      <div class="pill">Siège enfant sur demande</div>
-    </div>
-    <div class="muted">* Selon planning — réponse rapide.</div>
-
-    <h3>Notre véhicule en images</h3>
-    <div class="gallery" id="gallery">
-      <div class="gal-viewport" id="galViewport">
-        <img src="assets/img_v39_1.jpg" alt="Photo" class="active"><img src="assets/img_v39_2.jpg" alt="Photo"><img src="assets/img_v39_3.jpg" alt="Photo"><img src="assets/img_v39_4.jpg" alt="Photo"><img src="assets/img_v39_5.jpg" alt="Photo"><img src="assets/img_v39_6.jpg" alt="Photo"><img src="assets/logo.png" alt="Photo"><img src="assets/photo1.jpg" alt="Photo"><img src="assets/photo10.jpg" alt="Photo"><img src="assets/photo2.jpg" alt="Photo"><img src="assets/photo3.jpg" alt="Photo"><img src="assets/photo4.jpg" alt="Photo"><img src="assets/photo5.jpg" alt="Photo"><img src="assets/photo6.jpg" alt="Photo"><img src="assets/photo7.jpg" alt="Photo"><img src="assets/photo8.jpg" alt="Photo"><img src="assets/photo9.jpg" alt="Photo">
-      </div>
-      <div class="caption" id="galCaption">Photo</div>
-      <div class="dots" id="galDots"></div>
-    </div>
-  </section>
-
-  <section class="card" id="form">
-    <form id="resForm" novalidate>
-      <div class="grid2">
-        <div><label>Nom et prénom *</label><input type="text" id="name" required></div>
-        <div><label>Téléphone *</label><input type="tel" id="phone" required></div>
-      </div>
-      <div class="grid2">
-        <div><label>Lieu de départ *</label><input type="text" id="from" placeholder="Adresse, aéroport, hôtel…" required autocomplete="off"></div>
-        <div><label>Destination *</label><input type="text" id="to" placeholder="Adresse, aéroport, hôtel…" required autocomplete="off"></div>
-      </div>
-      <div class="grid2">
-        <div><label>Date *</label><input type="date" id="date" required></div>
-        <div><label>Heure *</label><input type="time" id="time" required></div>
-      </div>
-      <div class="grid2">
-        <div><label>Passagers</label><select id="pax"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
-        <div><label>Bagages</label><select id="bags"><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
-      </div>
-      <div class="grid2">
-        <div><label>Aller/retour</label><select id="round"><option>Non</option><option>Oui</option></select></div>
-        <div><label>Attente pendant le trajet</label><select id="wait"><option>Non</option><option>Oui</option></select></div>
-      </div>
-      <div class="grid2">
-        <div><label>Durée d’attente (heures)</label>
-          <select id="waitHours"><option value="0" selected>0</option><option value="1">1</option>
-            <option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
-        </div>
-        <div><label>Siège enfant</label><select id="kid"><option>Non</option><option>Oui</option></select></div>
-      </div>
-      <div><label>Notes</label><textarea id="notes" rows="3"></textarea></div>
-      <div class="form-actions">
-        <button type="button" class="btn" id="btnEstimate">Estimation du prix</button>
-        <div class="priceBox" id="priceBox">—</div>
-      </div>
-      <div class="muted">Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.<br>
-      Le prix affiché est indicatif ; le montant exact est déterminé par le taximètre (compteur kilométrique). Pour toute précision, contactez‑nous.</div>
-      <div style="margin-top:14px"><button type="submit" class="btn" style="width:100%">Obtenir la confirmation</button></div>
-      <div id="msg" class="err" style="display:none"></div>
-    </form>
-  </section>
-</main>
-
-<section class="card" style="max-width:1200px;margin:16px auto;padding:22px">
-  <h3 style="font-size:22px;margin-top:0">Tarifs & transparence</h3>
-  <p>Le prix final est déterminé par le <b>taximètre (compteur kilométrique)</b> selon le trajet réel (embouteillages, déviations, etc.).</p>
-  <table>
-    <thead><tr><th>Élément</th><th>Montant</th></tr></thead>
-    <tbody>
-      <tr><td>Prise en charge</td><td>3,75 €</td></tr>
-      <tr><td>Tarif A (aller/retour de jour, au km)</td><td>1,03 €/km</td></tr>
-      <tr><td>Tarif B (aller/retour de nuit et jour férié, au km)</td><td>1,55 €/km</td></tr>
-      <tr><td>Tarif C (aller simple de jour, au km)</td><td>2,06 €/km</td></tr>
-      <tr><td>Tarif D (aller simple de nuit et jour férié, au km)</td><td>3,06 €/km</td></tr>
-      <tr><td>Heure d’attente pendant les courses (par heure)</td><td>25 €</td></tr>
-    </tbody>
-  </table>
-  <ul>
-    <li>Facturation claire — pas de surprises.</li>
-    <li>Reçus sur demande (professionnels et particuliers).</li>
-    <li>Courtes et longues distances, aéroports, hôtels, rendez‑vous médicaux…</li>
-    <li>Paiement par carte, espèces ou lien de paiement sécurisé.</li>
-  </ul>
-  <div class="small">Tarifs susceptibles d’évoluer, sous réserve de modifications préfectorales.</div>
-</section>
-
-<footer>
-  © TAXI LI — Guadeloupe. Zone principale : Capesterre‑Belle‑Eau, Le Gosier, Goyave — déplacements dans toute la Guadeloupe. 
-  <a href="mailto:taxili@laposte.net">taxili@laposte.net</a> · <a href="tel:+590691280005">0691 28 00 05</a>
-</footer>
-
-<script>
-  // ===== Galerie (points uniquement) =====
-  const imgs = Array.from(document.querySelectorAll('#galViewport img'));
-  const dotsC = document.getElementById('galDots');
-  const caption = document.getElementById('galCaption');
-  function setSlide(i){ imgs.forEach((im,idx)=>im.classList.toggle('active', idx===i));
-    Array.from(dotsC.children).forEach((d,idx)=>d.classList.toggle('active', idx===i));
-    caption.textContent = imgs[i].getAttribute('alt') || imgs[i].getAttribute('src').split('/').pop();
-  }
-  imgs.forEach((_im,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='dot'+(i===0?' active':''); b.addEventListener('click',()=>setSlide(i)); dotsC.appendChild(b); });
-
-  // ===== Durée d'attente : verrouillage **si Aller/retour=Non ET Attente=Non** =====
-  const roundSel = document.getElementById('round');
-  const waitSel = document.getElementById('wait');
-  const waitHours = document.getElementById('waitHours');
-  function syncWait(){ const lock = (roundSel.value==='Non' && waitSel.value==='Non');
-    if(lock){ waitHours.value='0'; waitHours.disabled=true; }
-    else { const enable = (waitSel.value==='Oui'); waitHours.disabled = !enable; if(enable && waitHours.value==='0') waitHours.value='1'; }
-  }
-  roundSel.addEventListener('change', syncWait); waitSel.addEventListener('change', syncWait); syncWait();
-
-  // ===== Estimation Distance Matrix =====
-  const btnEst = document.getElementById('btnEstimate');
-  const priceBox = document.getElementById('priceBox');
-  const msg = document.getElementById('msg');
-  function estimate(){
-    msg.style.display='none'; msg.textContent='';
-    const from = document.getElementById('from').value.trim();
-    const to = document.getElementById('to').value.trim();
-    const date = document.getElementById('date').value;
-    const time = document.getElementById('time').value;
-    if(!from || !to || !date || !time){ msg.textContent='Veuillez renseigner départ, destination, date et heure.'; msg.style.display='block'; return; }
-    const svc = new google.maps.DistanceMatrixService();
-    svc.getDistanceMatrix({origins:[from],destinations:[to],travelMode:google.maps.TravelMode.DRIVING})
-    .then(res=>{ const elem = res.rows[0].elements[0]; if(elem.status!=='OK') throw new Error('itinéraire introuvable');
-      const km = elem.distance.value/1000;
-      const [H,M] = time.split(':').map(Number); const night = (H>=19||H<7);
-      const isRound = (roundSel.value==='Oui');
-      let perKm = 2.06; if(isRound) perKm = 1.03; if(night && !isRound) perKm = 3.06; if(night && isRound) perKm = 1.55;
-      const base = 3.75;
-      const waitH = parseInt(waitHours.value||'0',10); const waitCost = (waitSel.value==='Oui') ? waitH*25 : 0;
-      const distanceFactor = isRound ? km*2 : km;
-      const total = base + distanceFactor*perKm + waitCost;
-      priceBox.textContent = total.toFixed(2) + ' €';
-    })
-    .catch(e=>{ msg.textContent = 'Erreur d’estimation : ' + (e.message||''); msg.style.display='block'; });
-  }
-  document.getElementById('btnEstimate').addEventListener('click', estimate);
-
-  // ===== Submit minimal (Nom + Tel requis) =====
-  document.getElementById('resForm').addEventListener('submit', (ev)=>{
-    ev.preventDefault();
-    const name=document.getElementById('name').value.trim();
-    const phone=document.getElementById('phone').value.trim();
-    if(!name || !phone){ msg.textContent='Nom et téléphone sont obligatoires.'; msg.style.display='block'; return; }
-    msg.className='ok'; msg.textContent='Merci ! Nous vous confirmons sous peu.'; msg.style.display='block';
-  });
-</script>
-
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&libraries=places&callback=initAutocomplete"></script>
-<script>
-  function initAutocomplete(){
-    try{
-      const fromI=document.getElementById('from'); const toI=document.getElementById('to');
-      new google.maps.places.Autocomplete(fromI, { componentRestrictions:{ country:['gp','fr'] } });
-      new google.maps.places.Autocomplete(toI, { componentRestrictions:{ country:['gp','fr'] } });
-    }catch(e){}
-  }
-</script>
-
+  <script src="assets/js/app.js"></script>
 </body>
 </html>
