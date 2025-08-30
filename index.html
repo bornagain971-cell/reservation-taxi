@@ -5,17 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Taxi LI — Réservation Guadeloupe</title>
 <link rel="stylesheet" href="assets/styles.css">
+
+<style>
+.field-error{display:none;color:#c53030;font-size:.9rem;margin-top:6px}
+.input-error{border-color:#c53030 !important; outline-color:#c53030 !important;}
+</style>
+
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <div class="brand">
-        <img src="images/logo.png" alt="Taxi LI logo">
-        <div>
-          <h1>Taxi Li Réservation Guadeloupe</h1>
-          <div class="tagline">Le plaisir de vous conduire</div>
-        </div>
-      </div>
+      <div class="header-left"><img src="images/logo.png" alt="Taxi LI logo"></div>
+      <div class="header-center"><h1>Taxi Li Réservation Guadeloupe</h1><div class="tagline">Le plaisir de vous conduire</div></div>
       <div class="header-right">
         <a href="tel:+590691280005">0691 28 00 05</a>
         <a href="https://wa.me/590691280005" target="_blank">WhatsApp</a>
@@ -116,6 +117,7 @@
   </div>
 
 <script src="assets/app.js"></script>
+<script src="assets/wait_hours.patch.js"></script>
 <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&libraries=places&callback=initPlaces"></script>
 <script>
 // Dummy estimator just to keep layout identical; user can integrate real calc if needed.
@@ -123,5 +125,285 @@ document.getElementById('estimateBtn').addEventListener('click', ()=>{
   document.getElementById('estimateOut').textContent = '—';
 });
 </script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const dateInput = document.getElementById("date");
+  const timeInput = document.getElementById("time");
+  const now = new Date();
+
+  if (dateInput) {
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2,"0");
+    const dd = String(now.getDate()).padStart(2,"0");
+    dateInput.value = `${yyyy}-${mm}-${dd}`;
+  }
+
+  if (timeInput) {
+    const hh = String(now.getHours()).padStart(2,"0");
+    const mm2 = String(now.getMinutes()).padStart(2,"0");
+    timeInput.value = `${hh}:${mm2}`;
+  }
+});
+</script>
+
+
+<script>
+(function () {
+  const estimateBtn = document.querySelector('#estimateBtn, button[data-role="estimate"], .btn-estimate');
+  const depart = document.querySelector('#start, #depart, #origin, input[name="origin"], input[name="start"]');
+  const dest = document.querySelector('#end, #destination, #dest, input[name="destination"]');
+
+  if (!estimateBtn || !depart || !dest) return;
+
+  let errorEl = document.createElement('div');
+  errorEl.id = 'estimate-error';
+  errorEl.style.display = 'none';
+  errorEl.style.color = '#c53030';
+  errorEl.style.marginTop = '8px';
+  errorEl.style.fontSize = '0.9rem';
+  errorEl.setAttribute('aria-live', 'polite');
+
+  const priceBox = document.querySelector('#priceBox, .price-box, #estimatePriceBox') || estimateBtn.parentElement;
+  priceBox.appendChild(errorEl);
+
+  function clearError() {
+    errorEl.style.display = 'none';
+    errorEl.textContent = '';
+  }
+
+  function validate() {
+    const d = depart.value.trim();
+    const a = dest.value.trim();
+    if (!d || !a) {
+      errorEl.textContent = "Oups ! Pour obtenir votre estimation, indiquez d’abord le lieu de départ et la destination.";
+      errorEl.style.display = 'block';
+      return false;
+    }
+    clearError();
+    return true;
+  }
+
+  estimateBtn.addEventListener('click', function (e) {
+    if (!validate()) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+
+  depart.addEventListener('input', clearError);
+  dest.addEventListener('input', clearError);
+})();
+</script>
+
+
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=="loading"){fn();} else {document.addEventListener("DOMContentLoaded", fn);} }
+
+  ready(function(){
+    var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+    if(!confirmBtn) return;
+
+    // Helpers to find fields with tolerant selectors
+    var nameEl  = document.querySelector('#name, input[name="name"], #fullname, #fullName');
+    var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+    var depEl   = document.querySelector('#start, #depart, #origin, input[name="origin"], input[name="start"]');
+    var dstEl   = document.querySelector('#end, #destination, #dest, input[name="destination"]');
+
+    function getOrCreateError(el, idSuffix, msg){
+      if(!el) return null;
+      var id = el.id ? el.id + '-err' : ('field-' + idSuffix + '-err');
+      var err = document.getElementById(id);
+      if(!err){
+        err = document.createElement('div');
+        err.id = id;
+        err.className = 'field-error';
+        err.textContent = msg;
+        // insert right after the input
+        if(el.parentNode){
+          el.parentNode.appendChild(err);
+        } else {
+          el.insertAdjacentElement('afterend', err);
+        }
+      }else{
+        err.textContent = msg;
+      }
+      return err;
+    }
+
+    // Prepare error elements (created once)
+    var errName  = getOrCreateError(nameEl,  'name',  'Merci d’indiquer vos nom et prénom.');
+    var errPhone = getOrCreateError(phoneEl, 'phone', 'Merci de renseigner votre numéro de téléphone.');
+    var errDep   = getOrCreateError(depEl,   'start', 'Merci de préciser le lieu de départ.');
+    var errDst   = getOrCreateError(dstEl,   'end',   'Merci de préciser la destination.');
+
+    function show(el, err){
+      if(!el || !err) return;
+      err.style.display = 'block';
+      el.classList.add('input-error');
+    }
+    function hide(el, err){
+      if(!el || !err) return;
+      err.style.display = 'none';
+      el.classList.remove('input-error');
+    }
+    function isEmpty(el){
+      return !el || !String(el.value||'').trim();
+    }
+
+    // Validate on confirm click
+    confirmBtn.addEventListener('click', function(e){
+      var anyError = false;
+      if(isEmpty(nameEl)){ show(nameEl, errName); anyError = true; } else { hide(nameEl, errName); }
+      if(isEmpty(phoneEl)){ show(phoneEl, errPhone); anyError = true; } else { hide(phoneEl, errPhone); }
+      if(isEmpty(depEl)){ show(depEl, errDep); anyError = true; } else { hide(depEl, errDep); }
+      if(isEmpty(dstEl)){ show(dstEl, errDst); anyError = true; } else { hide(dstEl, errDst); }
+
+      if(anyError){
+        e.preventDefault();
+        e.stopPropagation();
+        // Focus the first invalid field
+        try{
+          (isEmpty(nameEl)&&nameEl || isEmpty(phoneEl)&&phoneEl || isEmpty(depEl)&&depEl || isEmpty(dstEl)&&dstEl).focus();
+        }catch(_){}
+        return false;
+      }
+      // else: proceed normally (no change to your flow)
+    });
+
+    // Clear per-field error on input
+    [nameEl, phoneEl, depEl, dstEl].forEach(function(el, idx){
+      if(!el) return;
+      el.addEventListener('input', function(){
+        if(el===nameEl) hide(nameEl, errName);
+        else if(el===phoneEl) hide(phoneEl, errPhone);
+        else if(el===depEl) hide(depEl, errDep);
+        else if(el===dstEl) hide(dstEl, errDst);
+      });
+    });
+  });
+})();
+</script>
+
+
+
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+  ready(function(){
+    var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+    if(!confirmBtn) return;
+
+    var nameEl  = document.querySelector('#name, input[name="name"], #fullname, #fullName');
+    var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+    var depEl   = document.querySelector('#start, #depart, #origin, input[name="origin"], input[name="start"]');
+    var dstEl   = document.querySelector('#end, #destination, #dest, input[name="destination"]');
+    var dateEl  = document.querySelector('#date, input[type="date"]');
+
+    function isEmpty(el){ return !el || !String(el.value||'').trim(); }
+
+    function ensureErr(el, idSuffix, msg){
+      if(!el) return null;
+      var id = el.id ? (el.id + '-err') : ('field-' + idSuffix + '-err');
+      var err = document.getElementById(id);
+      if(!err){
+        err = document.createElement('div');
+        err.id = id;
+        err.className = 'field-error';
+        err.textContent = msg;
+        if(el.parentNode){ el.parentNode.appendChild(err); }
+      } else {
+        err.textContent = msg;
+      }
+      return err;
+    }
+
+    var errName  = ensureErr(nameEl,  'name',  'Merci d’indiquer vos nom et prénom.');
+    var errPhone = ensureErr(phoneEl, 'phone', 'Merci de renseigner votre numéro de téléphone.');
+    var errDep   = ensureErr(depEl,   'start', 'Merci de préciser le lieu de départ.');
+    var errDst   = ensureErr(dstEl,   'end',   'Merci de préciser la destination.');
+    var errDate  = ensureErr(dateEl,  'date',  'Merci de sélectionner une date valide à partir d’aujourd’hui.');
+
+    function show(el, err){ if(el&&err){ err.style.display='block'; el.classList.add('input-error'); } }
+    function hide(el, err){ if(el&&err){ err.style.display='none'; el.classList.remove('input-error'); } }
+
+    function isPastDate(el){
+      if(!el || !el.value) return false; // no value: handled by native "required" if present; we focus on "inférieure à aujourd'hui"
+      var v = String(el.value).trim();
+      // Expecting YYYY-MM-DD
+      var parts = v.split('-');
+      if(parts.length !== 3) return true; // invalid format -> treat as invalid
+      var y = parseInt(parts[0],10), m = parseInt(parts[1],10)-1, d = parseInt(parts[2],10);
+      if(isNaN(y)||isNaN(m)||isNaN(d)) return true;
+      var chosen = new Date(y, m, d);
+      chosen.setHours(0,0,0,0);
+      var today = new Date();
+      today.setHours(0,0,0,0);
+      return chosen < today;
+    }
+
+    function validateRequired(){
+      var any=false;
+      if(isEmpty(nameEl)){ show(nameEl, errName); any=true; } else { hide(nameEl, errName); }
+      if(isEmpty(phoneEl)){ show(phoneEl, errPhone); any=true; } else { hide(phoneEl, errPhone); }
+      if(isEmpty(depEl)){ show(depEl, errDep); any=true; } else { hide(depEl, errDep); }
+      if(isEmpty(dstEl)){ show(dstEl, errDst); any=true; } else { hide(dstEl, errDst); }
+
+      // Date check: show error if date < today (even if filled)
+      if(dateEl){
+        if(isPastDate(dateEl)){ show(dateEl, errDate); any=true; } else { hide(dateEl, errDate); }
+      }
+      return !any;
+    }
+
+    // Clear per-field error as user types/changes
+    [nameEl, phoneEl, depEl, dstEl].forEach(function(el){
+      if(!el) return;
+      el.addEventListener('input', function(){
+        var err = document.getElementById(el.id ? (el.id + '-err') : '');
+        if(err){ err.style.display='none'; }
+        el.classList.remove('input-error');
+      });
+    });
+    if(dateEl){
+      dateEl.addEventListener('change', function(){
+        var id = dateEl.id ? (dateEl.id + '-err') : 'field-date-err';
+        var err = document.getElementById(id);
+        if(err){ err.style.display='none'; }
+        dateEl.classList.remove('input-error');
+      });
+    }
+
+    // Guard confirm
+    confirmBtn.addEventListener('click', function(e){
+      if(!validateRequired()){
+        e.preventDefault();
+        if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+        e.stopPropagation();
+        return false;
+      }
+    }, true);
+
+    // Also guard WA/Mail buttons if present
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
+      var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
+      if(waBtn || mailBtn){
+        if(!validateRequired()){
+          e.preventDefault();
+          if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+          e.stopPropagation();
+          return false;
+        }
+      }
+    }, true);
+  });
+})();
+</script>
+
+
 </body>
-</html>

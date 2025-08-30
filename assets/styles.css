@@ -39,3 +39,26 @@ textarea{min-height:110px;resize:vertical}
 .dot{width:8px;height:8px;border-radius:50%;background:#d0d0d0;cursor:pointer}
 .dot.active{background:#111}
 @media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+/* --- Center title/tagline between logo (left) and actions (right) --- */
+.header{display:flex;align-items:center;justify-content:space-between}
+.header-left{flex:0 0 auto;display:flex;align-items:center}
+.header-left img{width:36px;height:36px;border-radius:50%;object-fit:contain;background:#fff}
+.header-center{flex:1 1 auto;text-align:center}
+.header-center h1{margin:0;font-size:16px;font-weight:700}
+.header-center .tagline{font-size:12px;color:#666;margin-top:2px}
+/* keep existing .header-right styles */
+
+.site-footer{white-space:nowrap}
+
+
+/* --- Slider Photo Fix: show full images, white background --- */
+.slider, .gallery, .carousel {
+  background: #fff;
+}
+.slide img, .slider img, .gallery img, .carousel img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
