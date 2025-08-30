@@ -1,155 +1,92 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Taxi Li Réservation Guadeloupe</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taxi LI — Réservation Guadeloupe</title>
+<link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
   <div class="container">
-    <div class="topbar">
+    <div class="header">
       <div class="brand">
         <img src="images/logo.png" alt="Taxi LI logo">
         <div>
           <h1>Taxi Li Réservation Guadeloupe</h1>
-          <small>Le plaisir de vous conduire</small>
+          <div class="tagline">Le plaisir de vous conduire</div>
         </div>
       </div>
-      <div class="top-actions">
-        <a class="btn-pill" href="tel:+590691280005">0691 28 00 05</a>
-        <a class="btn-pill" target="_blank" href="https://wa.me/590691280005">WhatsApp</a>
-        <a class="btn-pill" href="#form">Réserver</a>
+      <div class="header-right">
+        <a href="tel:+590691280005">0691 28 00 05</a>
+        <a href="https://wa.me/590691280005" target="_blank">WhatsApp</a>
+        <a href="#form">Réserver</a>
       </div>
     </div>
 
     <div class="grid">
-      <section class="card hero">
-        <h2>Réservez votre taxi en ligne<br/>simplement et rapidement</h2>
+      <div class="card">
+        <h2>Réservez votre taxi en ligne simplement et rapidement</h2>
         <p>Courses locales et longues distances. Tarifs clairs, confirmation instantanée sur WhatsApp ou e‑mail.</p>
-        <div class="chips">
-          <span class="chip">Disponibilité 24/7*</span>
-          <span class="chip">Paiement CB/espèces</span>
-          <span class="chip">Siège enfant sur demande</span>
+        <div class="badges">
+          <div class="badge">Disponibilité 24/7*</div>
+          <div class="badge">Paiement CB/espèces</div>
+          <div class="badge">Siège enfant sur demande</div>
         </div>
-        <div class="note">* Selon planning — réponse rapide.</div>
+        <div class="small">* Selon planning — réponse rapide.</div>
 
-        <h3 class="section-title">Notre véhicule en images</h3>
         <div class="gallery">
-          <div class="gallery-viewport"></div>
-          <div class="gallery-dots"></div>
+          <h3 style="margin:16px 0 8px 0">Notre véhicule en images</h3>
+          <div class="slider">
+            <div id="slides"></div>
+          </div>
+          <div id="dots" class="dots"></div>
         </div>
-      </section>
+      </div>
 
-      <section class="card" id="form">
+      <div id="form" class="card">
         <div class="form-row">
-          <div>
-            <label>Nom et prénom *</label>
-            <input id="name" class="input" required />
-          </div>
-          <div>
-            <label>Téléphone *</label>
-            <input id="phone" class="input" required />
-          </div>
+          <div><label for="name">Nom et prénom *</label><input id="name" required></div>
+          <div><label for="phone">Téléphone *</label><input id="phone" required></div>
         </div>
-
         <div class="form-row">
-          <div>
-            <label>Lieu de départ *</label>
-            <input id="from" class="input" placeholder="Adresse, aéroport, hôtel…" />
-          </div>
-          <div>
-            <label>Destination *</label>
-            <input id="to" class="input" placeholder="Adresse, aéroport, hôtel…" />
-          </div>
+          <div><label for="start">Lieu de départ *</label><input id="start" placeholder="Adresse, aéroport, hôtel…" required></div>
+          <div><label for="end">Destination *</label><input id="end" placeholder="Adresse, aéroport, hôtel…" required></div>
         </div>
-
         <div class="form-row">
-          <div>
-            <label>Date *</label>
-            <input id="date" class="input" type="date" />
-          </div>
-          <div>
-            <label>Heure *</label>
-            <input id="time" class="input" type="time" value="12:30" />
-          </div>
+          <div><label for="date">Date *</label><input id="date" type="date" required></div>
+          <div><label for="time">Heure *</label><input id="time" type="time" required></div>
         </div>
-
         <div class="form-row">
-          <div>
-            <label>Passagers</label>
-            <select id="passengers">
-              <option>1</option><option>2</option><option>3</option><option>4</option>
-            </select>
-          </div>
-          <div>
-            <label>Bagages</label>
-            <select id="luggage">
-              <option>0</option><option>1</option><option>2</option><option>3</option>
-            </select>
-          </div>
+          <div><label for="pax">Passagers</label><select id="pax"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+          <div><label for="bags">Bagages</label><select id="bags"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
         </div>
-
         <div class="form-row">
-          <div>
-            <label>Aller/retour</label>
-            <select id="roundtrip">
-              <option>Non</option><option>Oui</option>
-            </select>
-          </div>
-          <div>
-            <label>Attente pendant le trajet</label>
-            <select id="waitenroute">
-              <option>Non</option><option>Oui</option>
-            </select>
-          </div>
+          <div><label for="roundtrip">Aller/retour</label><select id="roundtrip"><option>Non</option><option>Oui</option></select></div>
+          <div><label for="waitOnTrip">Attente pendant le trajet</label><select id="waitOnTrip"><option>Non</option><option>Oui</option></select></div>
         </div>
-
         <div class="form-row">
-          <div>
-            <label>Durée d’attente (heures)</label>
-            <select id="waitHours">
-              <option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
-            </select>
-          </div>
-          <div>
-            <label>Siège enfant</label>
-            <select id="childseat">
-              <option>Non</option><option>Oui</option>
-            </select>
-          </div>
+          <div><label for="waitHours">Durée d’attente (heures)</label><select id="waitHours"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
+          <div><label for="child">Siège enfant</label><select id="child"><option>Non</option><option>Oui</option></select></div>
         </div>
+        <div><label for="notes">Notes</label><textarea id="notes"></textarea></div>
 
-        <div class="form-row">
-          <div style="grid-column:1 / -1">
-            <label>Notes</label>
-            <textarea id="notes" class="input" placeholder=""></textarea>
+        <div class="card" style="margin-top:14px">
+          <div class="calc">
+            <button class="btn" id="estimateBtn" type="button">Estimation du prix</button>
+            <div class="result" id="estimateOut">—</div>
+          </div>
+          <div class="small" style="margin-top:10px">
+            Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.<br>
+            Le prix affiché est indicatif ; le prix exact est déterminé par le taximètre (compteur kilométrique). Pour plus d’informations, contactez‑nous.
+          </div>
+          <div id="confirmArea" style="margin-top:14px;text-align:center">
+            <button class="btn" id="confirmBtn" type="button">Obtenir la confirmation</button>
           </div>
         </div>
-
-        <div class="form-row">
-          <div style="grid-column:1 / -1">
-            <div class="estimation-box">
-              <button id="estimateBtn" class="btn">Estimation du prix</button>
-              <div class="estimation-price" id="priceValue">—</div>
-            </div>
-            <div class="small-muted" style="margin-top:8px">
-              Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.<br/>
-              Le prix affiché est indicatif ; le prix exact est déterminé par le taximètre (compteur kilométrique). Pour plus d’informations, contactez‑nous.
-            </div>
-          </div>
-        </div>
-
-        <div class="actions" style="justify-content:center;margin-top:10px">
-          <button id="confirmBtn" class="btn">Obtenir la confirmation</button>
-        </div>
-      </section>
+      </div>
     </div>
 
-    <section class="card" style="margin-top:20px">
+    <div class="card" style="margin-top:18px">
       <h3>Tarifs & transparence</h3>
       <p>Le prix final est déterminé par le <strong>taximètre (compteur kilométrique)</strong> selon le trajet réel (embouteillages, déviations, etc.).</p>
       <table class="table">
@@ -169,15 +106,22 @@
         <li>Courtes et longues distances, aéroports, hôtels, rendez‑vous médicaux…</li>
         <li>Paiement par carte, espèces ou lien de paiement sécurisé.</li>
       </ul>
-      <div class="footer">Tarifs susceptibles d’évoluer, sous réserve de modifications préfectorales.</div>
-    </section>
+      <div class="small">Tarifs susceptibles d’évoluer, sous réserve de modifications préfectorales.</div>
+    </div>
 
-    <div class="site-footer">
-      © TAXI LI — Guadeloupe. Zone principale : Capesterre‑Belle‑Eau, Le Gosier, Goyave — déplacements dans toute la Guadeloupe.<br/>
-      <a href="mailto:taxili@laposte.net">taxili@laposte.net</a> · <a href="tel:+590691280005">0691 28 00 05</a>
+    <div class="footer container" style="text-align:center;margin:24px auto">
+      © TAXI LI — Guadeloupe. Zone principale : Capesterre‑Belle‑Eau, Le Gosier, Goyave — déplacements dans toute la Guadeloupe.
+      &nbsp; <a href="mailto:taxili@laposte.net">taxili@laposte.net</a> — <a href="tel:+590691280005">0691 28 00 05</a>
     </div>
   </div>
 
-  <script src="assets/js/app.js"></script>
+<script src="assets/app.js"></script>
+<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&libraries=places&callback=initPlaces"></script>
+<script>
+// Dummy estimator just to keep layout identical; user can integrate real calc if needed.
+document.getElementById('estimateBtn').addEventListener('click', ()=>{
+  document.getElementById('estimateOut').textContent = '—';
+});
+</script>
 </body>
 </html>
