@@ -1,5 +1,12 @@
+Galerie photo — mode fichiers
+--------------------------------
+Vos images sont dans: /images/galerie/photo1.jpg ... photo7.jpg
 
+Pour remplacer/ajouter des photos:
+1) Déposez vos JPEG dans ce dossier.
+2) Renommez-les en photo1.jpg, photo2.jpg, etc.
+3) Commitez sur GitHub → Netlify redéploie.
+4) Videz le cache du navigateur (⌘⇧R).
 
-NOTE: Pour que l’auto-complétion d’adresses fonctionne, ouvrez le site via un petit serveur local (les navigateurs bloquent parfois les requêtes réseau depuis un fichier 'file://').
-- Sur Mac: ouvrez le dossier du site dans Terminal puis lancez: python3 -m http.server 8000
-- Ouvrez ensuite http://localhost:8000/site_reservation_taxi_WITH_ESTIMATE_v12/index.html
+Le slider ne dépend pas de Google Maps et utilise object-fit: contain
+pour éviter tout zoom ou recadrage.

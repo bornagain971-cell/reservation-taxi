@@ -3,20 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Taxi Réservation Guadeloupe – TAXI LI</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <style>
-    @font-face{font-family:Inter;src:local("Inter");}
-  </style>
-  <link rel="stylesheet" href="assets/styles.css">
+  <title>Taxi Li Réservation Guadeloupe – TAXI LI</title>
+  <link rel="stylesheet" href="assets/styles.css?v=44">
 </head>
 <body>
 <header class="topbar">
   <div class="brand">
     <img src="assets/logo.png" alt="Taxi LI" class="logo">
-    <div>
-      <div class="title">Taxi Réservation Guadeloupe</div>
-      <div class="subtitle">Capesterre-Belle-Eau</div>
+    <div class="title-wrap">
+      <div class="title">Taxi Li Réservation Guadeloupe</div>
+      <div class="tagline-header">Le plaisir de vous conduire</div>
     </div>
   </div>
   <nav class="actions">
@@ -37,6 +33,25 @@
         <span class="chip">Siège enfant sur demande</span>
       </div>
       <p class="muted">* Selon planning — réponse rapide.</p>
+
+      <div class="gallery slider">
+        <h3>Notre véhicule en images</h3>
+        <div class="slider-viewport">
+          <div class="slides">
+            <img src="images/galerie/photo1.jpg" alt="Photo 1">
+            <img src="images/galerie/photo2.jpg" alt="Photo 2">
+            <img src="images/galerie/photo3.jpg" alt="Photo 3">
+            <img src="images/galerie/photo4.jpg" alt="Photo 4">
+            <img src="images/galerie/photo5.jpg" alt="Photo 5">
+            <img src="images/galerie/photo6.jpg" alt="Photo 6">
+            <img src="images/galerie/photo7.jpg" alt="Photo 7">
+            <img src="images/galerie/photo8.jpg" alt="Photo 8">
+            <img src="images/galerie/photo9.jpg" alt="Photo 9">
+            <img src="images/galerie/photo10.jpg" alt="Photo 10">
+</div>
+        </div>
+        <div class="slider-dots" aria-label="Navigation des images"></div>
+      </div>
     </div>
 
     <div class="card" id="form">
@@ -133,7 +148,8 @@
             <button type="button" class="btn btn-primary" id="btn-estimate">Estimation du prix</button>
             <span id="estimate" class="estimate-box">—</span>
           </div>
-          <p class="muted" id="estimate-hint">Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.</p>
+          <p class="muted" id="estimate-hint">Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.
+            <br><em>Le prix affiché est indicatif ; le prix exact est déterminé par le taximètre (compteur kilométrique). Pour plus d’informations, contactez‑nous.</em></p>
         </div>
 
         <button class="btn btn-primary" type="submit">Obtenir la confirmation</button>
@@ -142,26 +158,31 @@
     </div>
   </section>
 
-  <section class="card">
+  <section class="card pricing">
     <h2>Tarifs & transparence</h2>
     <p>Le prix final est déterminé par le <strong>taximètre (compteur kilométrique)</strong> selon le trajet réel (embouteillages, déviations, etc.).</p>
-    <div class="table">
-      <div class="thead">
-        <div>Élément</div><div>Montant</div>
-      </div>
-      <div class="trow"><div>Prise en charge</div><div>3,75 €</div></div>
-      <div class="trow"><div>Tarif A (aller/retour de jour, au km)</div><div>1,03 €/km</div></div>
-      <div class="trow"><div>Tarif B (aller/retour de nuit et jour férié, au km)</div><div>1,55 €/km</div></div>
-      <div class="trow"><div>Tarif C (aller simple de jour, au km)</div><div>2,06 €/km</div></div>
-      <div class="trow"><div>Tarif D (aller simple de nuit et jour férié, au km)</div><div>3,06 €/km</div></div>
-      <div class="trow"><div>Heure d’attente pendant les courses (par heure)</div><div>25 €</div></div>
-    </div>
-    <ul class="bullets">
+
+    <table class="tarif-table">
+      <thead>
+        <tr><th>Élément</th><th>Montant</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Prise en charge</td><td>3,75 €</td></tr>
+        <tr><td>Tarif A (aller/retour de jour, au km)</td><td>1,03 €/km</td></tr>
+        <tr><td>Tarif B (aller/retour de nuit et jour férié, au km)</td><td>1,55 €/km</td></tr>
+        <tr><td>Tarif C (aller simple de jour, au km)</td><td>2,06 €/km</td></tr>
+        <tr><td>Tarif D (aller simple de nuit et jour férié, au km)</td><td>3,06 €/km</td></tr>
+        <tr><td>Heure d’attente pendant les courses (par heure)</td><td>25 €</td></tr>
+      </tbody>
+    </table>
+
+    <ul class="tarif-details">
       <li>Facturation claire — pas de surprises.</li>
       <li>Reçus sur demande (professionnels et particuliers).</li>
-      <li>Courtes et longues distances, aéroports, hôtels, rendez‑vous médicaux…</li>
+      <li>Courtes et longues distances, aéroports, hôtels, rendez-vous médicaux…</li>
       <li>Paiement par carte, espèces ou lien de paiement sécurisé.</li>
     </ul>
+    <p class="fine-print">Tarifs susceptibles d’évoluer, sous réserve de modifications préfectorales.</p>
   </section>
 </main>
 
@@ -172,8 +193,7 @@
   </div>
 </footer>
 
-<script src="assets/app.js"></script>
-<!-- Google Maps JS (Places + Directions) -->
+<script src="assets/app.js?v=39"></script>
 <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&libraries=places&callback=initPlaces"></script>
 </body>
 </html>
