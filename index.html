@@ -152,6 +152,13 @@ header, .topbar, .site-header { position: relative; z-index: 50; } /* header rem
 }
 </style>
 
+
+<style>
+/* Force show native date/time indicators */
+#date::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator { display: inline-block !important; opacity: 1 !important; }
+</style>
+
 </head>
 <body>
 <div id="tl-cal-root" class="tl-cal-overlay" aria-hidden="true"></div>
@@ -162,7 +169,7 @@ header, .topbar, .site-header { position: relative; z-index: 50; } /* header rem
       <div class="header-center"><h1>Taxi Li Réservation Guadeloupe</h1><div class="tagline">Le plaisir de vous conduire</div></div>
       <div class="header-right">
         <a href="tel:+590691280005">0691 28 00 05</a>
-        <a href="https://wa.me/590691280005" target="_blank">WhatsApp</a>
+        <a id="waButton" class="btn" href="https://wa.me/590691280005" target="_blank" rel="noopener">WhatsApp</a>
         <a href="#form">Réserver</a>
       </div>
     </div>
@@ -2161,6 +2168,273 @@ document.addEventListener('DOMContentLoaded', function(){
       }
     }
   });
+});
+</script>
+
+
+<link rel="stylesheet" href="assets/css/patch_whatsapp_frdate_integrated.css">
+<script src="assets/js/patch_whatsapp_frdate_integrated.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var dateEl = document.querySelector('#date, input[name="date"][type="date"], input[type="date"]');
+  if(dateEl){
+    try{
+      var now = new Date();
+      var yyyy = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0'), dd = String(now.getDate()).padStart(2,'0');
+      dateEl.setAttribute('min', yyyy + '-' + mm + '-' + dd);
+    }catch(e){}
+  }
+  // If a previous patch script changed the type to text, revert it
+  try{
+    if(dateEl && dateEl.type !== 'date'){ dateEl.type = 'date'; }
+  }catch(e){}
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  // --- Re-enable native date picker: kill custom overlays if present ---
+  try{
+    var dateEl = document.querySelector('#date') || document.querySelector('input[name="date"]');
+    if(dateEl){
+      try{ dateEl.type = 'date'; }catch(e){}
+      dateEl.removeAttribute('readonly');
+      if(dateEl.getAttribute('inputmode')==='none'){ dateEl.removeAttribute('inputmode'); }
+      // set min today
+      var now = new Date();
+      var yyyy = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0'), dd = String(now.getDate()).padStart(2,'0');
+      dateEl.setAttribute('min', yyyy + '-' + mm + '-' + dd);
+    }
+    // Remove known overlay roots if they exist
+    ['tl-cal-root','frdate-overlay','time-suggestions'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el && el.parentNode){ el.parentNode.removeChild(el); }
+    });
+  }catch(e){}
+
+  // --- WhatsApp header: make active immediately on load ---
+  try{
+    var WA = 'https://wa.me/590691280005';
+    function enableWA(){
+      var header = document.querySelector('header, .site-header, .topbar') || document;
+      var btn = null;
+      var nodes = header.querySelectorAll('a,button,[role="button"],.btn,.button');
+      nodes.forEach(function(n){
+        var t=(n.textContent||'').toLowerCase();
+        var a=(n.getAttribute('aria-label')||'').toLowerCase();
+        var c=(n.className||'').toLowerCase();
+        if(!btn && (/whats/.test(t) || /whats/.test(a) || /whats/.test(c))){ btn = n; }
+      });
+      if(btn){
+        try{ btn.removeAttribute('disabled'); btn.classList.remove('btn-disabled','is-disabled','disabled'); btn.removeAttribute('aria-disabled'); }catch(e){}
+        btn.style.pointerEvents='auto'; btn.style.opacity='';
+        if(btn.tagName.toLowerCase()==='a'){
+          btn.setAttribute('href', WA);
+          btn.setAttribute('target', '_blank');
+          btn.setAttribute('rel', 'noopener');
+        }
+        if(!btn._waForce){
+          btn.addEventListener('click', function(e){
+            // If something blocks default, force open
+            var opened=false;
+            try{
+              var href = btn.getAttribute('href') || WA;
+              var w = window.open(href, '_blank', 'noopener');
+              opened = !!w;
+            }catch(err){}
+            if(!opened){ e.preventDefault(); e.stopPropagation(); window.open(WA, '_blank', 'noopener'); }
+          }, true); // capture to run before other handlers
+          btn._waForce = true;
+        }
+      }
+    }
+    // Run immediately, after load, and a few times in case another script toggles states later
+    enableWA();
+    window.addEventListener('load', enableWA);
+    var tries = 0;
+    var iv = setInterval(function(){ enableWA(); tries++; if(tries>20) clearInterval(iv); }, 150);
+  }catch(e){}
+});
+</script>
+
+
+<script>
+// Hardened WhatsApp activator: enables & binds the header WhatsApp button on load & after SPA updates
+(function(){
+  var WA_URL = 'https://wa.me/590691280005';
+  function looksLikeWA(el){
+    if(!el) return false;
+    var t = (el.textContent||'').toLowerCase();
+    var id = (el.id||'').toLowerCase();
+    var cls = (el.className||'').toLowerCase();
+    var aria = (el.getAttribute && (el.getAttribute('aria-label')||'').toLowerCase()) || '';
+    return /whats/.test(t) || /whats/.test(id) || /whats/.test(cls) || /whats/.test(aria);
+  }
+  function enable(el){
+    try{ el.removeAttribute('disabled'); el.removeAttribute('aria-disabled'); }catch(e){}
+    try{ el.classList.remove('disabled','is-disabled','btn-disabled'); }catch(e){}
+    el.style.pointerEvents = 'auto';
+    el.style.opacity = '';
+    if(el.tagName.toLowerCase()==='a'){
+      el.setAttribute('href', WA_URL);
+      el.setAttribute('target','_blank'); el.setAttribute('rel','noopener');
+    }
+    if(!el._waBound){
+      el.addEventListener('click', function(ev){
+        // Force open even if other scripts try to intercept
+        try{ ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation(); }catch(e){}
+        try{ window.open(WA_URL, '_blank', 'noopener'); }catch(e){}
+        return false;
+      }, true); // capture: run before others
+      el._waBound = true;
+    }
+  }
+  function scan(){
+    var scope = document.querySelector('header, .site-header, .topbar') || document;
+    var nodes = scope.querySelectorAll('a,button,[role="button"],.btn,.button');
+    var found = null;
+    nodes.forEach(function(n){ if(!found && looksLikeWA(n)) found = n; });
+    if(found){ enable(found); return true; }
+    return false;
+  }
+  function keepTrying(){
+    var tries = 0;
+    var iv = setInterval(function(){
+      var ok = scan(); tries++;
+      if(ok && tries>3){ clearInterval(iv); }
+      if(tries>50){ clearInterval(iv); }
+    }, 150);
+    // Also MutationObserver if DOM changes later
+    var obs = new MutationObserver(function(){ scan(); });
+    obs.observe(document.documentElement, {childList:true, subtree:true});
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', keepTrying);
+  } else {
+    keepTrying();
+  }
+  window.addEventListener('load', scan);
+})();
+</script>
+
+
+<script>
+// Independent WhatsApp button: immune to other site scripts
+(function(){
+  var btn = document.getElementById('waTop');
+  var WA_URL = 'https://wa.me/590691280005';
+  if(!btn) return;
+  // ensure it's a link
+  btn.setAttribute('href', WA_URL);
+  btn.setAttribute('target','_blank');
+  btn.setAttribute('rel','noopener');
+  btn.removeAttribute('disabled');
+  btn.removeAttribute('aria-disabled');
+  btn.style.pointerEvents = 'auto';
+  btn.style.opacity = '';
+  // capture click early and force open
+  btn.addEventListener('click', function(e){
+    try {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    } catch(err){}
+    try { window.open(WA_URL, '_blank', 'noopener'); } catch(err){}
+    return false;
+  }, true); // capture
+})();
+</script>
+
+
+<script>
+// Minimal WA fix: make the button active on page load, without touching other logic
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('waButton');
+  if(!btn) return;
+  btn.setAttribute('href', 'https://wa.me/590691280005');
+  btn.setAttribute('target','_blank');
+  btn.setAttribute('rel','noopener');
+  btn.removeAttribute('disabled');
+  btn.removeAttribute('aria-disabled');
+  btn.classList.remove('disabled','is-disabled','btn-disabled');
+  btn.style.pointerEvents = 'auto';
+  btn.style.opacity = '';
+});
+</script>
+
+
+<script>
+// FORCE WhatsApp button to work on first click (capture phase) and keep it enabled
+(function(){
+  var WA_URL = 'https://wa.me/590691280005';
+  function prepare(btn){
+    if(!btn) return;
+    // ensure attributes and enabled state
+    btn.setAttribute('href', WA_URL);
+    btn.setAttribute('target','_blank');
+    btn.setAttribute('rel','noopener');
+    btn.removeAttribute('disabled');
+    btn.removeAttribute('aria-disabled');
+    btn.classList.remove('disabled','is-disabled','btn-disabled');
+    btn.style.pointerEvents='auto';
+    btn.style.opacity='';
+    if(btn._waBound) return;
+    // CAPTURE the click before any other listener and force open
+    btn.addEventListener('click', function(e){
+      try{ e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation) e.stopImmediatePropagation(); }catch(err){}
+      try{ window.open(WA_URL, '_blank', 'noopener'); }catch(err){}
+      return false;
+    }, true);
+    btn._waBound = true;
+  }
+  function scan(){
+    var btn = document.getElementById('waButton');
+    if(!btn){
+      // try to find any element that looks like WhatsApp in header
+      var header = document.querySelector('header,.site-header,.topbar') || document;
+      var nodes = header.querySelectorAll('a,button,[role="button"],.btn,.button');
+      for(var i=0;i<nodes.length;i++){
+        var n=nodes[i]; var t=(n.textContent||'').toLowerCase(), c=(n.className||'').toLowerCase();
+        if(/whats/.test(t) || /whats/.test(c)){ btn=n; break; }
+      }
+    }
+    prepare(btn);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', scan);
+  else scan();
+  window.addEventListener('load', scan);
+  // Retry a few times in case other scripts re-disable
+  var tries=0; var iv=setInterval(function(){ scan(); tries++; if(tries>30) clearInterval(iv); }, 150);
+  // Observe DOM changes (SPA/hydration)
+  var obs=new MutationObserver(scan); obs.observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+
+
+<script>
+// Keep header WhatsApp active regardless of global form validation lock
+document.addEventListener('DOMContentLoaded', function(){
+  var wa = document.getElementById('waButton');
+  if(!wa) return;
+  var WA_URL = 'https://wa.me/590691280005';
+  function free(){
+    try{
+      wa.setAttribute('href', WA_URL);
+      wa.setAttribute('target','_blank');
+      wa.setAttribute('rel','noopener');
+      wa.removeAttribute('disabled');
+      wa.removeAttribute('aria-disabled');
+      wa.classList.remove('btn-disabled','is-disabled','disabled');
+      wa.style.pointerEvents='auto';
+      wa.style.opacity='';
+    }catch(e){}
+  }
+  free();
+  document.addEventListener('input', free, true);
+  document.addEventListener('change', free, true);
+  document.addEventListener('click', function(){ setTimeout(free, 0); }, true);
 });
 </script>
 
