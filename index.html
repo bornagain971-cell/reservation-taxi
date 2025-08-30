@@ -1018,4 +1018,126 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+  if(phoneEl){
+    var errBox = document.getElementById('phone-err');
+    if(!errBox){
+      errBox = document.createElement('div');
+      errBox.id = 'phone-err';
+      errBox.className = 'field-error';
+      errBox.style.color = '#c53030';
+      errBox.style.display = 'none';
+      phoneEl.parentNode.appendChild(errBox);
+    }
+    function isInvalidPhone(val){
+      if(!val) return false;
+      // Allowed only digits, +, space, -
+      return /[^0-9+\-\s]/.test(val);
+    }
+    function validatePhone(){
+      var v = phoneEl.value || '';
+      if(isInvalidPhone(v)){
+        errBox.textContent = "Merci de renseigner un numéro de téléphone valide (chiffres, +, espaces et tirets uniquement).";
+        errBox.style.display = 'block';
+        phoneEl.classList.add('input-error');
+      } else {
+        errBox.style.display = 'none';
+        phoneEl.classList.remove('input-error');
+      }
+    }
+    phoneEl.addEventListener('input', validatePhone);
+  }
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  // Selectors (tolerant)
+  var nameEl  = document.querySelector('#name, input[name="name"], #fullname, input[name="fullname"]');
+  var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+  // Existing buttons
+  var btnReserve = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm, button#reserveBtn');
+  // WhatsApp / Mail buttons (common ids/classes used previously)
+  function getWA(el){ return el && (el.closest('#waBtn') || el.closest('[data-action="wa"]')); }
+  function getMail(el){ return el && (el.closest('#mailBtn') || el.closest('[data-action="mail"]')); }
+
+  // Ensure error boxes
+  function ensureErr(el, idSuffix, msg){
+    if(!el) return null;
+    var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+    var box = document.getElementById(id);
+    if(!box){
+      box = document.createElement('div');
+      box.id = id;
+      box.className = 'field-error';
+      box.style.display = 'none';
+      box.textContent = msg;
+      if(el.parentNode){ el.parentNode.appendChild(box); }
+    } else {
+      box.textContent = msg;
+    }
+    return box;
+  }
+
+  var nameErr  = ensureErr(nameEl,  'name',  'Merci de saisir un nom et prénom valides (lettres uniquement, sans chiffres ni symboles).');
+  var phoneErr = document.getElementById('phone-err') || ensureErr(phoneEl, 'phone', 'Merci de renseigner un numéro de téléphone valide (chiffres, +, espaces et tirets uniquement).');
+
+  // Validators
+  function invalidName(){
+    if(!nameEl) return false;
+    var v = (nameEl.value||'').trim();
+    if(!v) return false; // champ vide géré par "requis" ailleurs si présent
+    // Autoriser lettres (avec accents), espaces, tirets et apostrophes
+    return /[^A-Za-zÀ-ÖØ-öø-ÿ '\-]/.test(v);
+  }
+  function invalidPhone(){
+    if(!phoneEl) return false;
+    var v = (phoneEl.value||'').trim();
+    if(!v) return false;
+    // Autorisés: chiffres, +, espaces, tirets
+    return /[^0-9+\-\s]/.test(v);
+  }
+
+  function show(el, box){ if(el&&box){ box.style.display='block'; el.classList.add('input-error'); } }
+  function hide(el, box){ if(el&&box){ box.style.display='none'; el.classList.remove('input-error'); } }
+
+  function refreshErrors(){
+    if(invalidName()){ show(nameEl, nameErr); } else { hide(nameEl, nameErr); }
+    if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
+  }
+
+  // Live validation
+  if(nameEl){ nameEl.addEventListener('input', refreshErrors); }
+  if(phoneEl){ phoneEl.addEventListener('input', refreshErrors); }
+
+  // Blocking logic: prevent actions if any error visible
+  function hasVisibleErrors(){
+    var boxes = [nameErr, phoneErr].filter(Boolean);
+    return boxes.some(function(b){ return b && b.style && b.style.display !== 'none'; });
+  }
+  function guard(e){
+    refreshErrors();
+    if(hasVisibleErrors()){
+      e.preventDefault();
+      if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+      e.stopPropagation();
+      // Scroll to first visible error
+      var first = [nameErr, phoneErr].find(function(b){ return b && b.style.display!=='none'; });
+      if(first && first.scrollIntoView){ setTimeout(function(){ first.scrollIntoView({behavior:'smooth', block:'center'}); }, 10); }
+      return false;
+    }
+  }
+
+  if(btnReserve){ btnReserve.addEventListener('click', guard, true); }
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if(getWA(t) || getMail(t)){ guard(e); }
+  }, true);
+});
+</script>
+
 </body>
