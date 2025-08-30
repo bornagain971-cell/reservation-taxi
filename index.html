@@ -1,286 +1,135 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>Taxi LI — Réservation Guadeloupe</title>
-<link rel="stylesheet" href="assets/styles.css">
-
+<link href="assets/styles.css" rel="stylesheet"/>
 <style>
 .field-error{display:none;color:#c53030;font-size:.9rem;margin-top:6px}
 .input-error{border-color:#c53030 !important; outline-color:#c53030 !important;}
 </style>
-
-
 <style>
 textarea#notes::placeholder {
   text-align: center;
   white-space: pre-line;
 }
 </style>
-
-
-<style>
-/* Calendar icon button (non-intrusive) */
-.date-picker-wrap { position: relative; display: inline-flex; align-items: center; gap: 8px; }
-.date-picker-btn {
-  border: 1px solid #ddd;
-  background: #fff;
-  padding: 6px 8px;
-  line-height: 1;
-  border-radius: 6px;
-  cursor: pointer;
-  user-select: none;
-}
-.date-picker-btn:hover { background: #f5f5f5; }
+<style id="alpha-autoclean-css">
+.field-error{color:#c1121f;font-weight:700;margin-top:6px;font-size:0.95rem}
+.input-invalid{border-color:#c1121f !important;box-shadow:0 0 0 2px rgba(193,18,31,.1)}
 </style>
-
-
-<style>
-.btn-disabled, .is-disabled, button[disabled], .button[disabled]{
-  opacity: 0.6 !important;
-  cursor: not-allowed !important;
-  pointer-events: none !important;
-  filter: grayscale(20%);
-}
-</style>
-
-
-<style>
-/* --- Date input + calendar icon sizing & alignment --- */
-.date-picker-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  max-width: 100%;
-}
-.date-picker-wrap input[type="date"]{
-  flex: 1 1 auto;
-  height: 44px;
-  padding: 8px 12px;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-.date-picker-btn{
-  height: 44px;
-  min-width: 44px;
-  padding: 0 12px;
-  font-size: 20px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #ddd;
-  background: #fff;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.date-picker-btn:hover{ background:#f7f7f7; }
-</style>
-
-
-<style>
-/* Keep WhatsApp header link always clickable & visible */
-a.wa-keep{ opacity:1 !important; pointer-events:auto !important; filter:none !important; }
-</style>
-
-
-<style>
-/* Lightweight custom calendar overlay */
-.tl-cal-overlay{
-  position: absolute;
-  z-index: 9999;
-  background: #fff;
-  border: 1px solid #ddd;
-  box-shadow: 0 8px 24px rgba(0,0,0,.12);
-  border-radius: 10px;
-  padding: 10px;
-  width: 280px;
-  display: none;
-  font-family: inherit;
-}
-.tl-cal-header{
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 8px;
-}
-.tl-cal-header button{
-  border: none; background: transparent; cursor: pointer; font-size: 18px; padding: 4px 8px;
-}
-.tl-cal-grid{
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
-}
-.tl-cal-cell, .tl-cal-dow{
-  text-align: center; padding: 8px 0; border-radius: 6px; user-select: none;
-  font-size: 14px;
-}
-.tl-cal-dow{ font-weight: 600; opacity: .7; }
-.tl-cal-cell.tl-disabled{
-  color: #999; background: #f3f3f3; cursor: not-allowed;
-}
-.tl-cal-cell.tl-today{ outline: 1px solid #222; }
-.tl-cal-cell.tl-active{ background: #111; color: #fff; cursor: pointer; }
-@media (max-width: 480px){ .tl-cal-overlay{ width: 95vw; } }
-</style>
-
-
-<style>
-/* Hide native indicators to avoid double calendar/time on WebKit */
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator { display:none; opacity:0; }
-
-/* Overlays below header by z-index */
-#tl-cal-root, .tl-overlay, .time-suggestions { z-index: 30; position: absolute; }
-header, .topbar, .site-header { position: relative; z-index: 50; } /* header remains clickable */
-</style>
-
-
-<style>
-/* FR date input sizing */
-#date{
-  height: 44px !important;
-  padding: 8px 12px !important;
-  font-size: 16px !important;
-  box-sizing: border-box !important;
-}
-/* If there's a calendar icon/button next to it */
-.date-picker-btn{
-  height: 44px !important;
-  min-width: 44px !important;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 20px !important;
-}
-</style>
-
-
-<style>
-/* Force show native date/time indicators */
-#date::-webkit-calendar-picker-indicator,
-input[type="date"]::-webkit-calendar-picker-indicator { display: inline-block !important; opacity: 1 !important; }
-</style>
-
 </head>
 <body>
-<div id="tl-cal-root" class="tl-cal-overlay" aria-hidden="true"></div>
->
-  <div class="container">
-    <div class="header">
-      <div class="header-left"><img src="images/logo.png" alt="Taxi LI logo"></div>
-      <div class="header-center"><h1>Taxi Li Réservation Guadeloupe</h1><div class="tagline">Le plaisir de vous conduire</div></div>
-      <div class="header-right">
-        <a href="tel:+590691280005">0691 28 00 05</a>
-        <a id="waButton" class="btn" href="https://wa.me/590691280005" target="_blank" rel="noopener">WhatsApp</a>
-        <a href="#form">Réserver</a>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <h2>Réservez votre taxi en ligne simplement et rapidement</h2>
-        <p>Courses locales et longues distances. Tarifs clairs, confirmation instantanée sur WhatsApp ou e‑mail.</p>
-        <div class="badges">
-          <div class="badge">Disponibilité 24/7*</div>
-          <div class="badge">Paiement CB/espèces</div>
-          <div class="badge">Siège enfant sur demande</div>
-        </div>
-        <div class="small">* Selon planning — réponse rapide.</div>
-
-        <div class="gallery">
-          <h3 style="margin:16px 0 8px 0">Notre véhicule en images</h3>
-          <div class="slider">
-            <div id="slides"></div>
-          </div>
-          <div id="dots" class="dots"></div>
-        </div>
-      </div>
-
-      <div id="form" class="card">
-        <div class="form-row">
-          <div><label for="name">Nom et prénom *</label><input id="name" required></div>
-          <div><label for="phone">Téléphone *</label><input id="phone" required></div>
-        </div>
-        <div class="form-row">
-          <div><label for="start">Lieu de départ *</label><input id="start" placeholder="Adresse, aéroport, hôtel…" required></div>
-          <div><label for="end">Destination *</label><input id="end" placeholder="Adresse, aéroport, hôtel…" required></div>
-        </div>
-        <div class="form-row">
-          <div><label for="date">Date *</label><input id="date" type="date" required></div>
-          <div><label for="time">Heure *</label><input id="time" type="time" required></div>
-        </div>
-        <div class="form-row">
-          <div><label for="pax">Passagers</label><select id="pax"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
-          <div><label for="bags">Bagages</label><select id="bags"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
-        </div>
-        <div class="form-row">
-          <div><label for="roundtrip">Aller/retour</label><select id="roundtrip"><option>Non</option><option>Oui</option></select></div>
-          <div><label for="waitOnTrip">Attente pendant le trajet</label><select id="waitOnTrip"><option>Non</option><option>Oui</option></select></div>
-        </div>
-        <div class="form-row">
-          <div><label for="waitHours">Durée d’attente (heures)</label><select id="waitHours"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
-          <div><label for="child">Siège enfant</label><select id="child"><option>Non</option><option>Oui</option></select></div>
-        </div>
-        <div><label for="notes">Notes utiles</label><textarea id="notes" placeholder="Détails utiles :
+<div class="container">
+<div class="header">
+<div class="header-left"><img alt="Taxi LI logo" src="images/logo.png"/></div>
+<div class="header-center"><h1>Taxi Li Réservation Guadeloupe</h1><div class="tagline">Le plaisir de vous conduire</div></div>
+<div class="header-right">
+<a href="tel:+590691280005">0691 28 00 05</a>
+<a href="https://wa.me/590691280005" target="_blank">WhatsApp</a>
+<a href="#form">Réserver</a>
+</div>
+</div>
+<div class="grid">
+<div class="card">
+<h2>Réservez votre taxi en ligne simplement et rapidement</h2>
+<p>Courses locales et longues distances. Tarifs clairs, confirmation instantanée sur WhatsApp ou e‑mail.</p>
+<div class="badges">
+<div class="badge">Disponibilité 24/7*</div>
+<div class="badge">Paiement CB/espèces</div>
+<div class="badge">Siège enfant sur demande</div>
+</div>
+<div class="small">* Selon planning — réponse rapide.</div>
+<div class="gallery">
+<h3 style="margin:16px 0 8px 0">Notre véhicule en images</h3>
+<div class="slider">
+<div id="slides"></div>
+</div>
+<div class="dots" id="dots"></div>
+</div>
+</div>
+<div class="card" id="form">
+<div class="form-row">
+<div><label for="name">Nom et prénom *</label><input id="name" required=""/><div class="field-error" id="nameAlphaError" style="display:none">Veuillez saisir uniquement des lettres (accents et espaces autorisés). Merci !</div></div>
+<div><label for="phone">Téléphone *</label><input id="phone" required="" type="tel"/><div class="field-error" id="phoneError" style="display:none">Veuillez saisir uniquement un numéro valide : chiffres uniquement, « + » autorisé au début. Merci !</div></div>
+</div>
+<div class="form-row">
+<div><label for="start">Lieu de départ *</label><input id="start" placeholder="Adresse, aéroport, hôtel…" required=""/></div>
+<div><label for="end">Destination *</label><input id="end" placeholder="Adresse, aéroport, hôtel…" required=""/></div>
+</div>
+<div class="form-row">
+<div><label for="date">Date *</label><input id="date" required="" type="date"/><div class="field-error" id="dateErrorMin" style="display:none">Veuillez sélectionner une date à partir d'aujourd'hui.</div></div>
+<div><label for="time">Heure *</label><input id="time" required="" type="time"/><div class="field-error" id="timeErrorNow" style="display:none">Veuillez choisir une heure ultérieure à l'heure actuelle pour aujourd'hui.</div></div>
+</div>
+<div class="form-row">
+<div><label for="pax">Passagers</label><select id="pax"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+<div><label for="bags">Bagages</label><select id="bags"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+</div>
+<div class="form-row">
+<div><label for="roundtrip">Aller/retour</label><select id="roundtrip"><option>Non</option><option>Oui</option></select></div>
+<div><label for="waitOnTrip">Attente pendant le trajet</label><select id="waitOnTrip"><option>Non</option><option>Oui</option></select></div>
+</div>
+<div class="form-row">
+<div><label for="waitHours">Durée d’attente (heures)</label><select id="waitHours"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
+<div><label for="child">Siège enfant</label><select id="child"><option>Non</option><option>Oui</option></select></div>
+</div>
+<div><label for="notes">Notes utiles</label><textarea id="notes" placeholder="Détails utiles :
 code de porte, vol, lieu précis…
 Pour plus d’informations,
 contactez-nous."></textarea></div>
-
-        <div class="card" style="margin-top:14px">
-          <div class="calc">
-            <button class="btn" id="estimateBtn" type="button">Estimation du prix</button>
-            <div class="result" id="estimateOut">—</div>
-          </div>
-          <div class="small" style="margin-top:10px">
-            Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.<br>
+<div class="card" style="margin-top:14px">
+<div class="calc">
+<button class="btn" id="estimateBtn" type="button">Estimation du prix</button>
+<div class="result" id="estimateOut">—</div>
+</div>
+<div class="small" style="margin-top:10px">
+            Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.<br/>
             Le prix affiché est indicatif ; le prix exact est déterminé par le taximètre (compteur kilométrique). Pour plus d’informations, contactez‑nous.
           </div>
-          <div id="confirmArea" style="margin-top:14px;text-align:center">
-            <button class="btn" id="confirmBtn" type="button">Réserver</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:18px">
-      <h3>Tarifs & transparence</h3>
-      <p>Le prix final est déterminé par le <strong>taximètre (compteur kilométrique)</strong> selon le trajet réel (embouteillages, déviations, etc.).</p>
-      <table class="table">
-        <thead><tr><th>Élément</th><th>Montant</th></tr></thead>
-        <tbody>
-          <tr><td>Prise en charge</td><td>3,75 €</td></tr>
-          <tr><td>Tarif A (aller/retour de jour, au km)</td><td>1,03 €/km</td></tr>
-          <tr><td>Tarif B (aller/retour de nuit et jour férié, au km)</td><td>1,55 €/km</td></tr>
-          <tr><td>Tarif C (aller simple de jour, au km)</td><td>2,06 €/km</td></tr>
-          <tr><td>Tarif D (aller simple de nuit et jour férié, au km)</td><td>3,06 €/km</td></tr>
-          <tr><td>Heure d’attente pendant les courses (par heure)</td><td>25 €</td></tr>
-        </tbody>
-      </table>
-      <ul>
-        <li>Facturation claire — pas de surprises.</li>
-        <li>Reçus sur demande (professionnels et particuliers).</li>
-        <li>Courtes et longues distances, aéroports, hôtels, rendez‑vous médicaux…</li>
-        <li>Paiement par carte, espèces ou lien de paiement sécurisé.</li>
-      </ul>
-      <div class="small">Tarifs susceptibles d’évoluer, sous réserve de modifications préfectorales.</div>
-    </div>
-
-    <div class="footer container" style="text-align:center;margin:24px auto">
+<div id="confirmArea" style="margin-top:14px;text-align:center">
+<button class="btn" id="confirmBtn" type="button">Réserver</button>
+</div>
+</div>
+</div>
+</div>
+<div class="card" style="margin-top:18px">
+<h3>Tarifs &amp; transparence</h3>
+<p>Le prix final est déterminé par le <strong>taximètre (compteur kilométrique)</strong> selon le trajet réel (embouteillages, déviations, etc.).</p>
+<table class="table">
+<thead><tr><th>Élément</th><th>Montant</th></tr></thead>
+<tbody>
+<tr><td>Prise en charge</td><td>3,75 €</td></tr>
+<tr><td>Tarif A (aller/retour de jour, au km)</td><td>1,03 €/km</td></tr>
+<tr><td>Tarif B (aller/retour de nuit et jour férié, au km)</td><td>1,55 €/km</td></tr>
+<tr><td>Tarif C (aller simple de jour, au km)</td><td>2,06 €/km</td></tr>
+<tr><td>Tarif D (aller simple de nuit et jour férié, au km)</td><td>3,06 €/km</td></tr>
+<tr><td>Heure d’attente pendant les courses (par heure)</td><td>25 €</td></tr>
+</tbody>
+</table>
+<ul>
+<li>Facturation claire — pas de surprises.</li>
+<li>Reçus sur demande (professionnels et particuliers).</li>
+<li>Courtes et longues distances, aéroports, hôtels, rendez‑vous médicaux…</li>
+<li>Paiement par carte, espèces ou lien de paiement sécurisé.</li>
+</ul>
+<div class="small">Tarifs susceptibles d’évoluer, sous réserve de modifications préfectorales.</div>
+</div>
+<div class="footer container" style="text-align:center;margin:24px auto">
       © TAXI LI — Guadeloupe. Zone principale : Capesterre‑Belle‑Eau, Le Gosier, Goyave — déplacements dans toute la Guadeloupe.
-      &nbsp; <a href="mailto:taxili@laposte.net">taxili@laposte.net</a> — <a href="tel:+590691280005">0691 28 00 05</a>
-    </div>
-  </div>
-
+        <a href="mailto:taxili@laposte.net">taxili@laposte.net</a> — <a href="tel:+590691280005">0691 28 00 05</a>
+</div>
+</div>
 <script src="assets/app.js"></script>
 <script src="assets/wait_hours.patch.js"></script>
-<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&libraries=places&callback=initPlaces"></script>
+<script async="" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&amp;libraries=places&amp;callback=initPlaces"></script>
 <script>
 // Dummy estimator just to keep layout identical; user can integrate real calc if needed.
 document.getElementById('estimateBtn').addEventListener('click', ()=>{
   document.getElementById('estimateOut').textContent = '—';
 });
 </script>
-
-
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   const dateInput = document.getElementById("date");
@@ -301,8 +150,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 });
 </script>
-
-
 <script>
 (function () {
   const estimateBtn = document.querySelector('#estimateBtn, button[data-role="estimate"], .btn-estimate');
@@ -350,8 +197,6 @@ document.addEventListener("DOMContentLoaded", function() {
   dest.addEventListener('input', clearError);
 })();
 </script>
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=="loading"){fn();} else {document.addEventListener("DOMContentLoaded", fn);} }
@@ -440,9 +285,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -557,9 +399,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -672,8 +511,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -780,8 +617,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -884,8 +719,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -963,8 +796,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
@@ -1042,8 +873,6 @@ document.addEventListener('DOMContentLoaded', function(){
   if(dateEl){ dateEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, timeErr); }); }
 });
 </script>
-
-
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
@@ -1119,8 +948,6 @@ document.addEventListener('DOMContentLoaded', function(){
   if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
 });
 </script>
-
-
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   function scrollToFirstError(){
@@ -1159,1283 +986,244 @@ document.addEventListener('DOMContentLoaded', function(){
   }, true);
 });
 </script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
-  if(phoneEl){
-    var errBox = document.getElementById('phone-err');
-    if(!errBox){
-      errBox = document.createElement('div');
-      errBox.id = 'phone-err';
-      errBox.className = 'field-error';
-      errBox.style.color = '#c53030';
-      errBox.style.display = 'none';
-      phoneEl.parentNode.appendChild(errBox);
+<script id="alpha-autoclean-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    var nameInput = document.getElementById('name');
+    if(!nameInput) return;
+    var err = document.getElementById('nameError');
+    // Autorisés: lettres (avec accents) + espaces
+    // On supprime instantanément tout le reste
+    function cleanAndNotify(){
+      var before = nameInput.value;
+      // Remplacer tout caractère NON lettre/espaces par rien
+      var after = before.replace(/[^\p{L}\s]/gu, '');
+      if(after !== before){
+        nameInput.value = after;
+        if(err){ err.style.display='block'; }
+        nameInput.classList.add('input-invalid');
+      }else{
+        if(err){ err.style.display='none'; }
+        nameInput.classList.remove('input-invalid');
+      }
     }
-    function isInvalidPhone(val){
-      if(!val) return false;
-      // Allowed only digits, +, space, -
-      return /[^0-9+\-\s]/.test(val);
+    nameInput.addEventListener('input', cleanAndNotify);
+    nameInput.addEventListener('blur', cleanAndNotify);
+  });
+})();
+</script>
+<script id="phone-autoclean-js-v2">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    var phone = document.getElementById('phone');
+    var err = document.getElementById('phoneError');
+    if(!phone) return;
+
+    function cleanPhone(){
+      var before = phone.value || '';
+      // Autoriser uniquement chiffres et '+' (peu importe la position)
+      var after = before.replace(/[^0-9+]+/g, '');
+      var changed = (after !== before);
+      if(changed) phone.value = after;
+
+      // Valide si ne contient QUE chiffres et '+'
+      var ok = /^[0-9+]*$/.test(phone.value);
+
+      if(changed || !ok){
+        if(err) err.style.display = 'block';
+        phone.classList.add('input-invalid');
+      }else{
+        if(err) err.style.display = 'none';
+        phone.classList.remove('input-invalid');
+      }
     }
-    function validatePhone(){
-      var v = phoneEl.value || '';
-      if(isInvalidPhone(v)){
-        errBox.textContent = "Merci de renseigner un numéro de téléphone valide (chiffres, +, espaces et tirets uniquement).";
-        errBox.style.display = 'block';
-        phoneEl.classList.add('input-error');
+
+    phone.addEventListener('input', cleanPhone);
+    phone.addEventListener('blur', cleanPhone);
+    // Première passe
+    cleanPhone();
+  });
+})();
+</script>
+<script id="name-accents-date-min-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    // NOM avec accents: autoriser lettres (Unicode) + espaces; supprimer le reste immédiatement
+    var nameInput = document.getElementById('name');
+    var nameErr = document.getElementById('nameAlphaError');
+    function cleanName(){
+      if(!nameInput) return;
+      var before = nameInput.value || '';
+      var after = before.replace(/[^\p{L}\s]/gu, ''); // \p{L} = lettres (accents inclus), \s = espaces
+      var changed = after !== before;
+      if(changed) nameInput.value = after;
+      var ok = /^[\p{L}\s]*$/u.test(nameInput.value);
+      if(changed || (!ok && nameInput.value.length)){
+        if(nameErr) nameErr.style.display = 'block';
+        nameInput.classList.add('input-invalid');
       } else {
-        errBox.style.display = 'none';
-        phoneEl.classList.remove('input-error');
+        if(nameErr) nameErr.style.display = 'none';
+        nameInput.classList.remove('input-invalid');
       }
     }
-    phoneEl.addEventListener('input', validatePhone);
-  }
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  // Selectors (tolerant)
-  var nameEl  = document.querySelector('#name, input[name="name"], #fullname, input[name="fullname"]');
-  var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
-  // Existing buttons
-  var btnReserve = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm, button#reserveBtn');
-  // WhatsApp / Mail buttons (common ids/classes used previously)
-  function getWA(el){ return el && (el.closest('#waBtn') || el.closest('[data-action="wa"]')); }
-  function getMail(el){ return el && (el.closest('#mailBtn') || el.closest('[data-action="mail"]')); }
-
-  // Ensure error boxes
-  function ensureErr(el, idSuffix, msg){
-    if(!el) return null;
-    var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
-    var box = document.getElementById(id);
-    if(!box){
-      box = document.createElement('div');
-      box.id = id;
-      box.className = 'field-error';
-      box.style.display = 'none';
-      box.textContent = msg;
-      if(el.parentNode){ el.parentNode.appendChild(box); }
-    } else {
-      box.textContent = msg;
+    if(nameInput){
+      nameInput.addEventListener('input', cleanName);
+      nameInput.addEventListener('blur', cleanName);
+      cleanName();
     }
-    return box;
-  }
 
-  var nameErr  = ensureErr(nameEl,  'name',  'Merci de saisir un nom et prénom valides (lettres uniquement, sans chiffres ni symboles).');
-  var phoneErr = document.getElementById('phone-err') || ensureErr(phoneEl, 'phone', 'Merci de renseigner un numéro de téléphone valide (chiffres, +, espaces et tirets uniquement).');
-
-  // Validators
-  function invalidName(){
-    if(!nameEl) return false;
-    var v = (nameEl.value||'').trim();
-    if(!v) return false; // champ vide géré par "requis" ailleurs si présent
-    // Autoriser lettres (avec accents), espaces, tirets et apostrophes
-    return /[^A-Za-zÀ-ÖØ-öø-ÿ '\-]/.test(v);
-  }
-  function invalidPhone(){
-    if(!phoneEl) return false;
-    var v = (phoneEl.value||'').trim();
-    if(!v) return false;
-    // Autorisés: chiffres, +, espaces, tirets
-    return /[^0-9+\-\s]/.test(v);
-  }
-
-  function show(el, box){ if(el&&box){ box.style.display='block'; el.classList.add('input-error'); } }
-  function hide(el, box){ if(el&&box){ box.style.display='none'; el.classList.remove('input-error'); } }
-
-  function refreshErrors(){
-    if(invalidName()){ show(nameEl, nameErr); } else { hide(nameEl, nameErr); }
-    if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
-  }
-
-  // Live validation
-  if(nameEl){ nameEl.addEventListener('input', refreshErrors); }
-  if(phoneEl){ phoneEl.addEventListener('input', refreshErrors); }
-
-  // Blocking logic: prevent actions if any error visible
-  function hasVisibleErrors(){
-    var boxes = [nameErr, phoneErr].filter(Boolean);
-    return boxes.some(function(b){ return b && b.style && b.style.display !== 'none'; });
-  }
-  function guard(e){
-    refreshErrors();
-    if(hasVisibleErrors()){
-      e.preventDefault();
-      if(e.stopImmediatePropagation) e.stopImmediatePropagation();
-      e.stopPropagation();
-      // Scroll to first visible error
-      var first = [nameErr, phoneErr].find(function(b){ return b && b.style.display!=='none'; });
-      if(first && first.scrollIntoView){ setTimeout(function(){ first.scrollIntoView({behavior:'smooth', block:'center'}); }, 10); }
-      return false;
+    // DATE: bloquer dates passées (min=today) + message et reset si besoin
+    var dateInput = document.getElementById('date');
+    var dateErr = document.getElementById('dateErrorMin');
+    function toYMD(d){
+      var y = d.getFullYear();
+      var m = String(d.getMonth()+1).padStart(2,'0');
+      var dd = String(d.getDate()).padStart(2,'0');
+      return y + '-' + m + '-' + dd;
     }
-  }
-
-  if(btnReserve){ btnReserve.addEventListener('click', guard, true); }
-  document.addEventListener('click', function(e){
-    var t = e.target;
-    if(getWA(t) || getMail(t)){ guard(e); }
-  }, true);
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var dateEl = document.querySelector('#date, input[name="date"], input[type="date"]');
-  var timeEl = document.querySelector('#time, input[name="time"], input[type="time"]');
-
-  function ensureErr(el, idSuffix, msg){
-    if(!el) return null;
-    var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
-    var box = document.getElementById(id);
-    if(!box){
-      box = document.createElement('div');
-      box.id = id;
-      box.className = 'field-error';
-      box.style.color = '#c53030';
-      box.style.display = 'none';
-      box.textContent = msg;
-      if(el.parentNode){ el.parentNode.appendChild(box); }
+    function setMinToday(){
+      var t = new Date(); t.setHours(0,0,0,0);
+      if(dateInput) dateInput.setAttribute('min', toYMD(t));
     }
-    return box;
-  }
-  var timeErr = ensureErr(timeEl, 'time', 'Merci de choisir une heure à partir de maintenant.');
-
-  function parseDate(val){
-    if(!val) return null;
-    var p = String(val).split('-'); if(p.length!==3) return null;
-    var y=+p[0], m=+p[1]-1, d=+p[2];
-    if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
-    return new Date(y,m,d);
-  }
-  function parseTime(val){
-    if(!val) return null;
-    var p = String(val).split(':');
-    var h=+p[0], mi=+p[1]||0;
-    if(isNaN(h)||isNaN(mi)) return null;
-    return {h:h, m:mi};
-  }
-  function isToday(d){
-    var now = new Date();
-    return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
-  }
-  function timeInPast(){
-    if(!timeEl) return false;
-    var t = parseTime(timeEl.value); if(!t) return false;
-    var d = parseDate(dateEl && dateEl.value);
-    if(d && isToday(d)){
-      var now = new Date();
-      var input = new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
-      return input < now;
-    }
-    return false;
-  }
-
-  function showTimeErr(){
-    if(!timeErr || !timeEl) return;
-    if(timeInPast()){
-      timeErr.style.display = 'block';
-      timeEl.classList.add('input-error');
-    }else{
-      timeErr.style.display = 'none';
-      timeEl.classList.remove('input-error');
-    }
-  }
-
-  // Guard function used on buttons
-  function guardTime(e){
-    showTimeErr();
-    if(timeInPast()){
-      e.preventDefault();
-      if(e.stopImmediatePropagation) e.stopImmediatePropagation();
-      e.stopPropagation();
-      // Scroll to error
-      if(timeErr && timeErr.scrollIntoView){
-        setTimeout(function(){ timeErr.scrollIntoView({behavior:'smooth', block:'center'}); }, 10);
+    function validateDate(){
+      if(!dateInput) return true;
+      var v = dateInput.value;
+      if(!v){
+        if(dateErr) dateErr.style.display='none';
+        dateInput.classList.remove('input-invalid');
+        return true;
       }
-      return false;
-    }
-  }
-
-  // Hook main "Réserver" button (various selectors tolerated)
-  var reserveBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm, button#reserveBtn');
-  if(reserveBtn){ reserveBtn.addEventListener('click', guardTime, true); }
-
-  // Hook WhatsApp / Mail buttons by common ids/data-action
-  document.addEventListener('click', function(e){
-    var t = e.target;
-    var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
-    var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
-    if(waBtn || mailBtn){
-      guardTime(e);
-    }
-  }, true);
-
-  // Live updates when user changes time/date
-  if(timeEl){ timeEl.addEventListener('change', showTimeErr); timeEl.addEventListener('input', showTimeErr); }
-  if(dateEl){ dateEl.addEventListener('change', showTimeErr); }
-
-  // Initial check (prefilled cases)
-  showTimeErr();
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var dateEl = document.querySelector('#date, input[name="date"], input[type="date"]');
-
-  function ensureErr(el, idSuffix, msg){
-    if(!el) return null;
-    var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
-    var box = document.getElementById(id);
-    if(!box){
-      box = document.createElement('div');
-      box.id = id;
-      box.className = 'field-error';
-      box.style.color = '#c53030';
-      box.style.display = 'none';
-      box.textContent = msg;
-      if(el.parentNode){ el.parentNode.appendChild(box); }
-    } else {
-      box.textContent = msg;
-    }
-    return box;
-  }
-
-  function parseDate(val){
-    if(!val) return null;
-    var p = String(val).split('-'); if(p.length!==3) return null;
-    var y=+p[0], m=+p[1]-1, d=+p[2];
-    if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
-    return new Date(y,m,d);
-  }
-
-  function isDateInPast(){
-    if(!dateEl) return false;
-    var d = parseDate(dateEl.value);
-    if(!d) return false;
-    var now = new Date();
-    // set to midnight to compare dates only
-    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    var dd    = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    return dd < today;
-  }
-
-  var dateErr = ensureErr(dateEl, 'date', 'Merci de choisir une date valide (à partir d\'aujourd\'hui).');
-
-  function showDateErr(){
-    if(!dateErr || !dateEl) return;
-    if(isDateInPast()){
-      dateErr.style.display = 'block';
-      dateEl.classList.add('input-error');
-    }else{
-      dateErr.style.display = 'none';
-      dateEl.classList.remove('input-error');
-    }
-  }
-
-  // Hook buttons to block if date invalid (reuse same selectors as autres guards)
-  function guardDate(e){
-    showDateErr();
-    if(isDateInPast()){
-      e.preventDefault();
-      if(e.stopImmediatePropagation) e.stopImmediatePropagation();
-      e.stopPropagation();
-      if(dateErr && dateErr.scrollIntoView){
-        setTimeout(function(){ dateErr.scrollIntoView({behavior:'smooth', block:'center'}); }, 10);
-      }
-      return false;
-    }
-  }
-
-  var reserveBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm, button#reserveBtn');
-  if(reserveBtn){ reserveBtn.addEventListener('click', guardDate, true); }
-
-  document.addEventListener('click', function(e){
-    var t = e.target;
-    var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
-    var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
-    if(waBtn || mailBtn){ guardDate(e); }
-  }, true);
-
-  if(dateEl){ dateEl.addEventListener('change', showDateErr); }
-  // initial state
-  showDateErr();
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  // Locate the date input
-  var dateEl = document.querySelector('#date, input[name="date"], input[type="date"]');
-  if(!dateEl) return;
-
-  // Wrap date input to place a button next to it (non-destructive)
-  var wrap = document.createElement('span');
-  wrap.className = 'date-picker-wrap';
-  dateEl.parentNode.insertBefore(wrap, dateEl);
-  wrap.appendChild(dateEl);
-
-  // Create the calendar button
-  var btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'date-picker-btn';
-  btn.setAttribute('aria-label', 'Ouvrir le calendrier');
-  btn.title = 'Ouvrir le calendrier';
-  btn.textContent = '📅';
-  wrap.appendChild(btn);
-
-  // On click, open native picker if supported, else focus
-  btn.addEventListener('click', function(){
-    try {
-      if (typeof dateEl.showPicker === 'function') {
-        dateEl.showPicker();
-      } else {
-        dateEl.focus();
-        // Try triggering a click to open some mobile pickers
-        var evt = new MouseEvent('mousedown', {bubbles:true});
-        dateEl.dispatchEvent(evt);
-      }
-    } catch(e) {
-      dateEl.focus();
-    }
-  });
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var nameEl  = document.querySelector('#name, input[name="name"], #fullname, input[name="fullname"]');
-  var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
-  var dateEl  = document.querySelector('#date, input[name="date"], input[type="date"]');
-  var timeEl  = document.querySelector('#time, input[name="time"], input[type="time"]');
-  var reserveBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm, button#reserveBtn');
-
-  function ensureErr(el, idSuffix, msg){
-    if(!el) return null;
-    var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
-    var box = document.getElementById(id);
-    if(!box){
-      box = document.createElement('div');
-      box.id = id;
-      box.className = 'field-error';
-      box.style.color = '#c53030';
-      box.style.display = 'none';
-      box.textContent = msg;
-      if(el.parentNode){ el.parentNode.appendChild(box); }
-    } else {
-      box.textContent = msg;
-    }
-    return box;
-  }
-
-  var nameErr  = ensureErr(nameEl,  'name',  "Merci de saisir un nom et prénom valides (lettres uniquement, sans chiffres ni symboles).");
-  var phoneErr = ensureErr(phoneEl, 'phone', "Merci de renseigner un numéro de téléphone valide (chiffres, +, espaces et tirets uniquement).");
-  var dateErr  = ensureErr(dateEl,  'date',  "Merci de choisir une date valide (à partir d'aujourd'hui).");
-  var timeErr  = ensureErr(timeEl,  'time',  "Merci de choisir une heure à partir de maintenant.");
-
-  function show(el, box){ if(el&&box){ box.style.display='block'; el.classList.add('input-error'); } }
-  function hide(el, box){ if(el&&box){ box.style.display='none'; el.classList.remove('input-error'); } }
-
-  function invalidName(){
-    if(!nameEl) return false;
-    var v = (nameEl.value||'').trim();
-    if(!v) return false;
-    return /[^A-Za-zÀ-ÖØ-öø-ÿ '\-]/.test(v);
-  }
-  function invalidPhone(){
-    if(!phoneEl) return false;
-    var v = (phoneEl.value||'').trim();
-    if(!v) return false;
-    return /[^0-9+\-\s]/.test(v);
-  }
-  function parseDate(val){
-    if(!val) return null;
-    var p = String(val).split('-'); if(p.length!==3) return null;
-    var y=+p[0], m=+p[1]-1, d=+p[2]; if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
-    return new Date(y,m,d);
-  }
-  function parseTime(val){
-    if(!val) return null;
-    var p = String(val).split(':');
-    var h=+p[0], mi=+p[1]||0; if(isNaN(h)||isNaN(mi)) return null;
-    return {h:h, m:mi};
-  }
-  function isToday(d){
-    var now = new Date();
-    return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
-  }
-  function dateInPast(){
-    if(!dateEl) return false;
-    var d = parseDate(dateEl.value); if(!d) return false;
-    var now = new Date();
-    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    var dd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    return dd < today;
-  }
-  function timeInPast(){
-    if(!timeEl) return false;
-    var t = parseTime(timeEl.value); if(!t) return false;
-    var d = parseDate(dateEl && dateEl.value);
-    if(d && isToday(d)){
-      var now = new Date();
-      var input = new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
-      return input < now;
-    }
-    return false;
-  }
-
-  function refreshErrors(){
-    if(invalidName()){ show(nameEl, nameErr); } else { hide(nameEl, nameErr); }
-    if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
-    if(dateInPast()){ show(dateEl, dateErr); } else { hide(dateEl, dateErr); }
-    if(timeInPast()){ show(timeEl, timeErr); } else { hide(timeEl, timeErr); }
-  }
-  function hasBlockingErrors(){
-    return (invalidName() || invalidPhone() || dateInPast() || timeInPast());
-  }
-  function guard(e){
-    refreshErrors();
-    if(hasBlockingErrors()){
-      e.preventDefault();
-      if(e.stopImmediatePropagation) e.stopImmediatePropagation();
-      e.stopPropagation();
-      // Scroll to first visible error
-      var boxes = [nameErr, phoneErr, dateErr, timeErr].filter(Boolean);
-      var first = boxes.find(function(b){ return b && b.style.display !== 'none'; });
-      if(first && first.scrollIntoView){ setTimeout(function(){ first.scrollIntoView({behavior:'smooth', block:'center'}); }, 10); }
-      return false;
-    }
-  }
-
-  // Hook reserve button
-  if(reserveBtn){ reserveBtn.addEventListener('click', guard, true); }
-
-  // Hook WA / Mail and common links that trigger booking
-  document.addEventListener('click', function(e){
-    var t = e.target;
-    // WhatsApp buttons/links
-    var isWA = false, isMail = false;
-    if(t.closest){
-      var wa = t.closest('#waBtn, [data-action="wa"], a[href^="https://wa.me"], a[href^="http://wa.me"], a[href*="api.whatsapp.com"]');
-      var ml = t.closest('#mailBtn, [data-action="mail"], a[href^="mailto:"]');
-      isWA = !!wa; isMail = !!ml;
-    }
-    if(isWA || isMail){ guard(e); }
-  }, true);
-
-  // Live updates
-  if(nameEl){ nameEl.addEventListener('input', refreshErrors); }
-  if(phoneEl){ phoneEl.addEventListener('input', refreshErrors); }
-  if(dateEl){ dateEl.addEventListener('change', refreshErrors); }
-  if(timeEl){ timeEl.addEventListener('input', refreshErrors); timeEl.addEventListener('change', refreshErrors); }
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  function getButtons(){
-    var arr = [];
-    var main = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm, button#reserveBtn');
-    if(main) arr.push(main);
-    document.querySelectorAll('#waBtn, [data-action="wa"], a[href*="wa.me"], a[href*="api.whatsapp.com"]').forEach(function(n){ arr.push(n); });
-    document.querySelectorAll('#mailBtn, [data-action="mail"], a[href^="mailto:"]').forEach(function(n){ arr.push(n); });
-    return Array.from(new Set(arr));
-  }
-  function setDisabled(state){
-    getButtons().forEach(function(b){
-      try{
-        if('disabled' in b) b.disabled = !!state;
-        if(state){ b.classList.add('btn-disabled','is-disabled'); b.setAttribute('aria-disabled','true'); }
-        else { b.classList.remove('btn-disabled','is-disabled'); b.removeAttribute('aria-disabled'); }
-      }catch(e){}
-    });
-  }
-
-  // Hook into existing validations by checking error visibility regularly
-  function hasVisibleErrors(){
-    var errs = document.querySelectorAll('.field-error');
-    for(var i=0;i<errs.length;i++){
-      var e = errs[i];
-      if(e && e.style && e.style.display !== 'none') return true;
-    }
-    // also check inputs flagged
-    if(document.querySelector('.input-error')) return true;
-    return false;
-  }
-  function refresh(){
-    setDisabled(hasVisibleErrors());
-  }
-
-  // Run on load and on interactions
-  refresh();
-  document.addEventListener('input', refresh, true);
-  document.addEventListener('change', refresh, true);
-  document.addEventListener('click', function(){ setTimeout(refresh, 30); }, true);
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var dateEl = document.querySelector('#date, input[name="date"], input[type="date"]');
-  var btn = document.querySelector('.date-picker-btn');
-
-  if(dateEl){
-    dateEl.addEventListener('change', function(){
-      // Let the native picker set the value then blur to close
-      setTimeout(function(){
-        try{ dateEl.blur(); }catch(e){}
-        if(btn){ try{ btn.blur(); }catch(e){} }
-      }, 50);
-    });
-  }
-  if(btn){
-    btn.addEventListener('click', function(){
-      // After opening, schedule a blur so it doesn't keep focus
-      setTimeout(function(){ try{ btn.blur(); }catch(e){} }, 150);
-    });
-  }
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var btn = document.querySelector('.date-picker-btn');
-  if(btn){
-    btn.setAttribute('aria-disabled','true');
-    btn.setAttribute('tabindex','-1');
-    var clone = btn.cloneNode(true);
-    btn.parentNode.replaceChild(clone, btn);
-  }
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var header = document.querySelector('header, .site-header, .topbar');
-  if(header){
-    var wa = header.querySelector('a[href*="wa.me"], a[href*="api.whatsapp.com"], [data-action="wa"], .wa-btn, .btn-wa');
-    if(wa){
-      wa.setAttribute('href', 'https://wa.me/590691280005');
-      wa.setAttribute('target', '_blank');
-      wa.setAttribute('rel', 'noopener');
-      wa.classList.add('wa-always');
-    }
-  }
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  function enableHeaderWA(){
-    var header = document.querySelector('header, .site-header, .topbar');
-    if(!header) return;
-    var wa = header.querySelector('.wa-always, a[href*="wa.me"], a[href*="api.whatsapp.com"]');
-    if(!wa) return;
-    try{
-      if('disabled' in wa) wa.disabled = false;
-      wa.classList.remove('btn-disabled','is-disabled');
-      wa.removeAttribute('aria-disabled');
-      wa.style.pointerEvents = '';
-      wa.style.opacity = '';
-    }catch(e){}
-  }
-  enableHeaderWA();
-  document.addEventListener('input', enableHeaderWA, true);
-  document.addEventListener('change', enableHeaderWA, true);
-  document.addEventListener('click', function(){ setTimeout(enableHeaderWA, 30); }, true);
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var dateEl = document.querySelector('#date, input[name="date"], input[type="date"]');
-  if(!dateEl) return;
-  // Compute today in local timezone as YYYY-MM-DD
-  var now = new Date();
-  var yyyy = now.getFullYear();
-  var mm = String(now.getMonth()+1).padStart(2,'0');
-  var dd = String(now.getDate()).padStart(2,'0');
-  var todayStr = yyyy + '-' + mm + '-' + dd;
-  // Set min attribute so past dates are greyed and not selectable
-  try { dateEl.setAttribute('min', todayStr); } catch(e){}
-  // If current value is before today, clear it to force a valid pick
-  if(dateEl.value && dateEl.value < todayStr){
-    dateEl.value = '';
-  }
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  function enableHeaderWA(){
-    var header = document.querySelector('header, .site-header, .topbar') || document;
-    var nodes = header.querySelectorAll('a, button, .btn, .link, [role="button"]');
-    nodes.forEach(function(n){
-      var txt = (n.textContent || '').toLowerCase();
-      var cls = (n.className || '').toLowerCase();
-      var aria = (n.getAttribute('aria-label') || '').toLowerCase();
-      if(/whats/.test(txt) || /whats/.test(cls) || /whats/.test(aria)){
-        // Re-enable visually and functionally
-        try{ n.disabled = false; }catch(e){}
-        n.classList.remove('btn-disabled','is-disabled');
-        n.removeAttribute('aria-disabled');
-        n.style.pointerEvents = 'auto';
-        n.style.opacity = '';
-        // Click -> open WA
-        if(!n._waBound){
-          n.addEventListener('click', function(e){
-            e.preventDefault();
-            window.open('https://wa.me/590691280005','_blank','noopener');
-          });
-          n._waBound = true;
-        }
-      }
-    });
-  }
-  // Run now and after any UI updates
-  enableHeaderWA();
-  document.addEventListener('input', function(){ setTimeout(enableHeaderWA, 10); }, true);
-  document.addEventListener('change', function(){ setTimeout(enableHeaderWA, 10); }, true);
-  document.addEventListener('click', function(){ setTimeout(enableHeaderWA, 10); }, true);
-});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var now = new Date();
-  var yyyy = now.getFullYear();
-  var mm = String(now.getMonth()+1).padStart(2,'0');
-  var dd = String(now.getDate()).padStart(2,'0');
-  var todayStr = yyyy + '-' + mm + '-' + dd;
-  var dates = document.querySelectorAll('input[type="date"]');
-  dates.forEach(function(el){
-    try { el.setAttribute('min', todayStr); } catch(e){}
-    if(el.value && el.value < todayStr){ el.value = ''; }
-  });
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  function markAndEnableWA(){
-    // Pick the WhatsApp link near the top (first wa.me in the document)
-    var wa = document.querySelector('a[href*="wa.me"], a[href*="api.whatsapp.com"]');
-    if(!wa) return;
-    wa.classList.add('wa-keep');
-    try{ wa.disabled = false; }catch(e){}
-    wa.classList.remove('btn-disabled','is-disabled');
-    wa.removeAttribute('aria-disabled');
-    wa.style.pointerEvents = 'auto';
-    wa.style.opacity = '';
-    // Ensure it opens WA directly
-    if(!wa._boundWA){
-      wa.addEventListener('click', function(e){
-        // if already a proper href, let default proceed; otherwise force open
-        var href = wa.getAttribute('href')||'';
-        if(!/wa\.me|api\.whatsapp\.com/.test(href)){
-          e.preventDefault();
-          window.open('https://wa.me/590691280005','_blank','noopener');
-        }
-      });
-      wa._boundWA = true;
-    }
-  }
-  markAndEnableWA();
-  // Run again after UI updates that could gray it out
-  document.addEventListener('input', function(){ setTimeout(markAndEnableWA, 20); }, true);
-  document.addEventListener('change', function(){ setTimeout(markAndEnableWA, 20); }, true);
-  document.addEventListener('click', function(){ setTimeout(markAndEnableWA, 20); }, true);
-});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  function todayStr(){
-    var now=new Date();
-    var y=now.getFullYear(); var m=String(now.getMonth()+1).padStart(2,'0'); var d=String(now.getDate()).padStart(2,'0');
-    return y+'-'+m+'-'+d;
-  }
-  function enforceMin(el){
-    try{ el.setAttribute('min', todayStr()); }catch(e){}
-  }
-  function hook(el){
-    if(!el._minHooked){
-      ['focus','click'].forEach(function(evt){ el.addEventListener(evt, function(){ enforceMin(el); }, true); });
-      el._minHooked = true;
-    }
-    enforceMin(el);
-  }
-  var dates = document.querySelectorAll('input[type="date"]');
-  dates.forEach(hook);
-  // Observe future date inputs
-  var obs = new MutationObserver(function(muts){
-    muts.forEach(function(m){
-      m.addedNodes && m.addedNodes.forEach(function(n){
-        if(n.querySelectorAll){
-          n.querySelectorAll('input[type="date"]').forEach(hook);
-        } else if(n.tagName && n.matches && n.matches('input[type="date"]')){
-          hook(n);
-        }
-      });
-    });
-  });
-  obs.observe(document.documentElement, {childList:true, subtree:true});
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  function isVisible(el){ return !!(el && el.offsetParent !== null); }
-  var nodes = Array.from(document.querySelectorAll('a,button,[role="button"],.btn,.button'));
-  var candidates = nodes.filter(function(n){
-    var t = (n.textContent||'').toLowerCase();
-    var c = (n.className||'').toLowerCase();
-    var a = (n.getAttribute('aria-label')||'').toLowerCase();
-    return isVisible(n) && (/whats/.test(t) || /whats/.test(c) || /whats/.test(a));
-  });
-  if(candidates.length){
-    var wa = candidates[0];
-    // Ensure proper link attributes
-    try{ wa.setAttribute('href','https://wa.me/590691280005'); }catch(e){}
-    try{ wa.setAttribute('target','_blank'); wa.setAttribute('rel','noopener'); }catch(e){}
-    // Force-open WA even if other scripts try to block
-    if(!wa._forceWA){
-      wa.addEventListener('click', function(e){
-        try{
-          e.preventDefault(); 
-          if(e.stopImmediatePropagation) e.stopImmediatePropagation();
-          e.stopPropagation();
-        }catch(err){}
-        try{ window.open('https://wa.me/590691280005','_blank','noopener'); }catch(err){}
-        return false;
-      }, true); // capture to run before other listeners
-      wa._forceWA = true;
-    }
-    // Also keep it enabled visually
-    try{
-      if('disabled' in wa) wa.disabled = false;
-      wa.classList.remove('btn-disabled','is-disabled');
-      wa.removeAttribute('aria-disabled');
-      wa.style.pointerEvents = 'auto';
-      wa.style.opacity = '';
-    }catch(e){}
-  }
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var dateInput = document.querySelector('#date, input[name="date"], input[type="date"]');
-  var root = document.getElementById('tl-cal-root');
-  if(!dateInput || !root) return;
-
-  // helpers
-  function today(){ var d=new Date(); d.setHours(0,0,0,0); return d; }
-  function dmy(d){var dd=('0'+d.getDate()).slice(-2),mm=('0'+(d.getMonth()+1)).slice(-2),yyyy=d.getFullYear();return dd+'/'+mm+'/'+yyyy;}
-function ymd(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0'); }
-  function parse(val){
-    if(!val) return null;
-    var p=String(val).split('-'); if(p.length!==3) return null;
-    var y=+p[0], m=+p[1]-1, d=+p[2]; if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
-    var dt = new Date(y,m,d); dt.setHours(0,0,0,0); return dt;
-  }
-  function firstOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
-  function addMonths(d, n){ return new Date(d.getFullYear(), d.getMonth()+n, 1); }
-
-  var viewDate = parse(dateInput.value) || today();
-  viewDate.setDate(1);
-
-  function render(){
-    root.innerHTML = "";
-    // position overlay under the input
-    var rect = dateInput.getBoundingClientRect();
-    var top = window.scrollY + rect.bottom + 6;
-    var left = window.scrollX + rect.left;
-    root.style.top = top + "px";
-    root.style.left = left + "px";
-
-    var head = document.createElement('div');
-    head.className = 'tl-cal-header';
-    var prev = document.createElement('button'); prev.type='button'; prev.textContent='‹';
-    var next = document.createElement('button'); next.type='button'; next.textContent='›';
-    var title = document.createElement('div');
-    var monthNames = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
-    title.textContent = monthNames[viewDate.getMonth()] + " " + viewDate.getFullYear();
-    head.appendChild(prev); head.appendChild(title); head.appendChild(next);
-    root.appendChild(head);
-
-    var grid = document.createElement('div');
-    grid.className='tl-cal-grid';
-
-    // DOW headers (Mon .. Sun)
-    var dows = ['L','M','M','J','V','S','D'];
-    dows.forEach(function(d){ var h=document.createElement('div'); h.className='tl-cal-dow'; h.textContent=d; grid.appendChild(h); });
-
-    // compute blanks
-    var first = firstOfMonth(viewDate);
-    var startIdx = (first.getDay()+6)%7; // convert Sun=0 to Mon=0
-    for(var i=0;i<startIdx;i++){ var blank=document.createElement('div'); blank.className='tl-cal-cell tl-disabled'; blank.textContent=''; grid.appendChild(blank); }
-
-    var t = today();
-    var cur = parse(dateInput.value);
-    var daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 0).getDate();
-    for(var d=1; d<=daysInMonth; d++){
-      var cell = document.createElement('div');
-      cell.className = 'tl-cal-cell';
-      cell.textContent = d;
-      var dateObj = new Date(viewDate.getFullYear(), viewDate.getMonth(), d); dateObj.setHours(0,0,0,0);
-
-      if(+dateObj < +t){
-        cell.classList.add('tl-disabled');
-      } else {
-        cell.classList.add('tl-active');
-        cell.addEventListener('click', (function(sel){
-          return function(){
-            var val = ymd(sel);
-            try{ dateInput.value = val; }catch(e){}
-            hide();
-            // Trigger native change for other validators
-            var ev = new Event('change', {bubbles:true});
-            dateInput.dispatchEvent(ev);
-          };
-        })(dateObj));
-      }
-      if(+dateObj === +t){ cell.classList.add('tl-today'); }
-      if(cur && +dateObj === +cur){ cell.style.outline='2px solid #111'; }
-      grid.appendChild(cell);
-    }
-
-    root.appendChild(grid);
-
-    // navigation
-    prev.addEventListener('click', function(){
-      var candidate = addMonths(viewDate, -1);
-      var t0 = today();
-      // Prevent navigating to past months (greys out entirely)
-      if(candidate.getFullYear() < t0.getFullYear() || (candidate.getFullYear()===t0.getFullYear() && candidate.getMonth() < t0.getMonth())){
-        viewDate = new Date(t0.getFullYear(), t0.getMonth(), 1);
-      } else {
-        viewDate = candidate;
-      }
-      render();
-    });
-    next.addEventListener('click', function(){ viewDate = addMonths(viewDate, 1); render(); });
-  }
-
-  function show(){ render(); root.style.display='block'; root.setAttribute('aria-hidden','false'); }
-  function hide(){ root.style.display='none'; root.setAttribute('aria-hidden','true'); }
-
-  // open overlay on focus/click
-  dateInput.addEventListener('focus', show);
-  dateInput.addEventListener('click', show);
-  // close on outside click or ESC
-  document.addEventListener('click', function(e){
-    if(!root.contains(e.target) && e.target !== dateInput){ hide(); }
-  });
-  document.addEventListener('keydown', function(e){ if(e.key==='Escape') hide(); });
-  window.addEventListener('scroll', function(){ if(root.style.display==='block') render(); }, true);
-  window.addEventListener('resize', function(){ if(root.style.display==='block') render(); }, true);
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  // --- Disable native date picker to avoid double calendar ---
-  var dateEl = document.querySelector('#date, input[name="date"]');
-  if(dateEl){
-    try{
-      dateEl.setAttribute('type','text');       // no native date UI
-      dateEl.setAttribute('inputmode','none');  // no keyboard popup on mobile
-      if(!dateEl.getAttribute('placeholder')){
-        dateEl.setAttribute('placeholder','JJ/MM/AAAA');
-      }
-    }catch(e){}
-  }
-
-  // --- Close overlays when clicking outside so they don't cover header ---
-  function closeOverlays(){
-    try{
-      var cal = document.getElementById('tl-cal-root');
-      if(cal){ cal.style.display='none'; cal.setAttribute('aria-hidden','true'); }
-      var ts = document.getElementById('time-suggestions');
-      if(ts){ ts.classList.add('hidden'); ts.setAttribute('aria-hidden','true'); }
-    }catch(e){}
-  }
-  document.addEventListener('click', function(e){
-    var isOverlay = e.target.closest && (e.target.closest('#tl-cal-root') || e.target.closest('.time-suggestions'));
-    var isTrigger = e.target.closest && (e.target.closest('#date') || e.target.closest('#time'));
-    if(!isOverlay && !isTrigger){ closeOverlays(); }
-  }, true);
-
-  // Prevent overlays from closing when interacting inside
-  ['tl-cal-root','time-suggestions'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el){
-      el.addEventListener('click', function(e){ e.stopPropagation(); }, true);
-    }
-  });
-
-  // --- Make header WhatsApp button always open WhatsApp ---
-  var waNumber = '590691280005'; // Guadeloupe format sans +
-  function enableHeaderWA(){
-    // pick the first visible element that looks like WhatsApp in the header/topbar
-    var header = document.querySelector('header, .site-header, .topbar') || document;
-    var nodes = header.querySelectorAll('a,button,[role="button"],.btn,.button');
-    nodes.forEach(function(n){
-      var t = (n.textContent||'').toLowerCase();
-      var c = (n.className||'').toLowerCase();
-      var a = (n.getAttribute('aria-label')||'').toLowerCase();
-      if(/whats/.test(t) || /whats/.test(c) || /whats/.test(a)){
-        try{ n.setAttribute('href','https://wa.me/'+waNumber); }catch(e){}
-        try{ n.setAttribute('target','_blank'); n.setAttribute('rel','noopener'); }catch(e){}
-        try{ n.disabled=false; n.classList.remove('btn-disabled','is-disabled'); n.removeAttribute('aria-disabled'); }catch(e){}
-        n.style.pointerEvents='auto'; n.style.opacity='';
-        if(!n._waForced){
-          n.addEventListener('click', function(e){
-            e.preventDefault(); e.stopPropagation();
-            try{ window.open('https://wa.me/'+waNumber, '_blank', 'noopener'); }catch(err){}
-            return false;
-          }, true); // capture to run before other listeners
-          n._waForced = true;
-        }
-      }
-    });
-  }
-  enableHeaderWA();
-  document.addEventListener('input', function(){ setTimeout(enableHeaderWA, 30); }, true);
-  document.addEventListener('change', function(){ setTimeout(enableHeaderWA, 30); }, true);
-  document.addEventListener('click', function(){ setTimeout(enableHeaderWA, 30); }, true);
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  window.TL_parseDate = function(v){
-    if(!v) return null;
-    try{
-      if(v.includes('/')){
-        var p=v.split('/'); return new Date(parseInt(p[2],10), parseInt(p[1],10)-1, parseInt(p[0],10));
-      }
-      if(v.includes('-')){
-        var p=v.split('-'); return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
-      }
-    }catch(e){}
-    return new Date(v);
-  };
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var waNum = '590691280005';
-  // Try to find the header WhatsApp button between phone and "Réserver"
-  var header = document.querySelector('header, .site-header, .topbar') || document;
-  var candidates = header.querySelectorAll('a,button,[role="button"],.btn,.button');
-  candidates.forEach(function(n){
-    var txt=(n.textContent||'').toLowerCase();
-    if(/whats/.test(txt)){
-      try{ n.setAttribute('href','https://wa.me/'+waNum); }catch(e){}
-      n.setAttribute('target','_blank'); n.setAttribute('rel','noopener');
-      n.style.pointerEvents='auto'; n.style.opacity='';
-      if(!n._forceWA){
-        n.addEventListener('click', function(e){
-          e.preventDefault(); e.stopPropagation();
-          window.open('https://wa.me/'+waNum, '_blank', 'noopener');
+      var parts = v.split('-');
+      if(parts.length===3){
+        var d = new Date(+parts[0], +parts[1]-1, +parts[2]); d.setHours(0,0,0,0);
+        var t = new Date(); t.setHours(0,0,0,0);
+        if(d < t){
+          if(dateErr) dateErr.style.display='block';
+          dateInput.classList.add('input-invalid');
+          // remettre à aujourd'hui pour éviter la date passée
+          dateInput.value = toYMD(t);
           return false;
-        }, true);
-        n._forceWA = true;
+        }
       }
+      if(dateErr) dateErr.style.display='none';
+      dateInput.classList.remove('input-invalid');
+      return true;
+    }
+    setMinToday();
+    if(dateInput){
+      dateInput.addEventListener('change', validateDate);
+      dateInput.addEventListener('blur', validateDate);
+      validateDate();
     }
   });
-});
+})();
 </script>
 
 
-<link rel="stylesheet" href="assets/css/patch_whatsapp_frdate_integrated.css">
-<script src="assets/js/patch_whatsapp_frdate_integrated.js"></script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var dateEl = document.querySelector('#date, input[name="date"][type="date"], input[type="date"]');
-  if(dateEl){
-    try{
-      var now = new Date();
-      var yyyy = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0'), dd = String(now.getDate()).padStart(2,'0');
-      dateEl.setAttribute('min', yyyy + '-' + mm + '-' + dd);
-    }catch(e){}
-  }
-  // If a previous patch script changed the type to text, revert it
-  try{
-    if(dateEl && dateEl.type !== 'date'){ dateEl.type = 'date'; }
-  }catch(e){}
-});
-</script>
 
 
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  // --- Re-enable native date picker: kill custom overlays if present ---
-  try{
-    var dateEl = document.querySelector('#date') || document.querySelector('input[name="date"]');
-    if(dateEl){
-      try{ dateEl.type = 'date'; }catch(e){}
-      dateEl.removeAttribute('readonly');
-      if(dateEl.getAttribute('inputmode')==='none'){ dateEl.removeAttribute('inputmode'); }
-      // set min today
-      var now = new Date();
-      var yyyy = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0'), dd = String(now.getDate()).padStart(2,'0');
-      dateEl.setAttribute('min', yyyy + '-' + mm + '-' + dd);
+
+
+
+<script id="time-now-guard-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+
+    var dateInput = document.getElementById('date') || document.querySelector('input[type="date"]');
+    var timeInput = document.getElementById('time') || document.querySelector('input[type="time"]');
+    var timeErr   = document.getElementById('timeErrorNow');
+
+    if(!timeInput) return;
+
+    function toYMD(d){
+      var y=d.getFullYear();
+      var m=String(d.getMonth()+1).padStart(2,'0');
+      var dd=String(d.getDate()).padStart(2,'0');
+      return y+'-'+m+'-'+dd;
     }
-    // Remove known overlay roots if they exist
-    ['tl-cal-root','frdate-overlay','time-suggestions'].forEach(function(id){
-      var el = document.getElementById(id);
-      if(el && el.parentNode){ el.parentNode.removeChild(el); }
-    });
-  }catch(e){}
+    function toHM(d){
+      var hh=String(d.getHours()).padStart(2,'0');
+      var mm=String(d.getMinutes()).padStart(2,'0');
+      return hh+':'+mm;
+    }
+    function isTodaySelected(){
+      if(!dateInput) return false;
+      var v = dateInput.value;
+      if(!v) return false;
+      var t = new Date(); t.setHours(0,0,0,0);
+      var parts = v.split('-');
+      if(parts.length!==3) return false;
+      var d = new Date(+parts[0], +parts[1]-1, +parts[2]);
+      d.setHours(0,0,0,0);
+      return d.getTime() === t.getTime();
+    }
 
-  // --- WhatsApp header: make active immediately on load ---
-  try{
-    var WA = 'https://wa.me/590691280005';
-    function enableWA(){
-      var header = document.querySelector('header, .site-header, .topbar') || document;
-      var btn = null;
-      var nodes = header.querySelectorAll('a,button,[role="button"],.btn,.button');
-      nodes.forEach(function(n){
-        var t=(n.textContent||'').toLowerCase();
-        var a=(n.getAttribute('aria-label')||'').toLowerCase();
-        var c=(n.className||'').toLowerCase();
-        if(!btn && (/whats/.test(t) || /whats/.test(a) || /whats/.test(c))){ btn = n; }
+    function showError(){
+      if(timeErr) timeErr.style.display='block';
+      timeInput && timeInput.classList.add('input-invalid');
+    }
+    function hideError(){
+      if(timeErr) timeErr.style.display='none';
+      timeInput && timeInput.classList.remove('input-invalid');
+    }
+
+    // Fixer min à l'heure actuelle si AUJOURD'HUI, sinon retirer min
+    function setMinForToday(){
+      if(isTodaySelected()){
+        var nowHM = toHM(new Date());
+        timeInput.setAttribute('min', nowHM);
+      } else {
+        timeInput.removeAttribute('min');
+        hideError();
+      }
+    }
+
+    // Validation + auto-réinitialisation si invalide
+    function validateAndAutoReset(){
+      if(!timeInput.value){
+        // rien saisi : pas d'erreur au démarrage
+        hideError();
+        return true;
+      }
+      if(isTodaySelected()){
+        var nowHM = toHM(new Date());
+        if(timeInput.value < nowHM){
+          showError();
+          // réinitialise à l'heure actuelle
+          timeInput.value = nowHM;
+          // réapplique min pour cohérence
+          timeInput.setAttribute('min', nowHM);
+          return false;
+        }
+      }
+      hideError();
+      return true;
+    }
+
+    // État initial : effacer le message au démarrage
+    hideError();
+    setMinForToday();
+
+    // Événements
+    if(dateInput){
+      dateInput.addEventListener('change', function(){
+        setMinForToday();
+        validateAndAutoReset();
       });
-      if(btn){
-        try{ btn.removeAttribute('disabled'); btn.classList.remove('btn-disabled','is-disabled','disabled'); btn.removeAttribute('aria-disabled'); }catch(e){}
-        btn.style.pointerEvents='auto'; btn.style.opacity='';
-        if(btn.tagName.toLowerCase()==='a'){
-          btn.setAttribute('href', WA);
-          btn.setAttribute('target', '_blank');
-          btn.setAttribute('rel', 'noopener');
-        }
-        if(!btn._waForce){
-          btn.addEventListener('click', function(e){
-            // If something blocks default, force open
-            var opened=false;
-            try{
-              var href = btn.getAttribute('href') || WA;
-              var w = window.open(href, '_blank', 'noopener');
-              opened = !!w;
-            }catch(err){}
-            if(!opened){ e.preventDefault(); e.stopPropagation(); window.open(WA, '_blank', 'noopener'); }
-          }, true); // capture to run before other handlers
-          btn._waForce = true;
-        }
-      }
+      dateInput.addEventListener('blur', function(){
+        setMinForToday();
+        validateAndAutoReset();
+      });
     }
-    // Run immediately, after load, and a few times in case another script toggles states later
-    enableWA();
-    window.addEventListener('load', enableWA);
-    var tries = 0;
-    var iv = setInterval(function(){ enableWA(); tries++; if(tries>20) clearInterval(iv); }, 150);
-  }catch(e){}
-});
-</script>
+    timeInput.addEventListener('change', validateAndAutoReset);
+    timeInput.addEventListener('blur', validateAndAutoReset);
 
-
-<script>
-// Hardened WhatsApp activator: enables & binds the header WhatsApp button on load & after SPA updates
-(function(){
-  var WA_URL = 'https://wa.me/590691280005';
-  function looksLikeWA(el){
-    if(!el) return false;
-    var t = (el.textContent||'').toLowerCase();
-    var id = (el.id||'').toLowerCase();
-    var cls = (el.className||'').toLowerCase();
-    var aria = (el.getAttribute && (el.getAttribute('aria-label')||'').toLowerCase()) || '';
-    return /whats/.test(t) || /whats/.test(id) || /whats/.test(cls) || /whats/.test(aria);
-  }
-  function enable(el){
-    try{ el.removeAttribute('disabled'); el.removeAttribute('aria-disabled'); }catch(e){}
-    try{ el.classList.remove('disabled','is-disabled','btn-disabled'); }catch(e){}
-    el.style.pointerEvents = 'auto';
-    el.style.opacity = '';
-    if(el.tagName.toLowerCase()==='a'){
-      el.setAttribute('href', WA_URL);
-      el.setAttribute('target','_blank'); el.setAttribute('rel','noopener');
-    }
-    if(!el._waBound){
-      el.addEventListener('click', function(ev){
-        // Force open even if other scripts try to intercept
-        try{ ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation(); }catch(e){}
-        try{ window.open(WA_URL, '_blank', 'noopener'); }catch(e){}
-        return false;
-      }, true); // capture: run before others
-      el._waBound = true;
-    }
-  }
-  function scan(){
-    var scope = document.querySelector('header, .site-header, .topbar') || document;
-    var nodes = scope.querySelectorAll('a,button,[role="button"],.btn,.button');
-    var found = null;
-    nodes.forEach(function(n){ if(!found && looksLikeWA(n)) found = n; });
-    if(found){ enable(found); return true; }
-    return false;
-  }
-  function keepTrying(){
-    var tries = 0;
-    var iv = setInterval(function(){
-      var ok = scan(); tries++;
-      if(ok && tries>3){ clearInterval(iv); }
-      if(tries>50){ clearInterval(iv); }
-    }, 150);
-    // Also MutationObserver if DOM changes later
-    var obs = new MutationObserver(function(){ scan(); });
-    obs.observe(document.documentElement, {childList:true, subtree:true});
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', keepTrying);
-  } else {
-    keepTrying();
-  }
-  window.addEventListener('load', scan);
+  });
 })();
 </script>
 
-
-<script>
-// Independent WhatsApp button: immune to other site scripts
-(function(){
-  var btn = document.getElementById('waTop');
-  var WA_URL = 'https://wa.me/590691280005';
-  if(!btn) return;
-  // ensure it's a link
-  btn.setAttribute('href', WA_URL);
-  btn.setAttribute('target','_blank');
-  btn.setAttribute('rel','noopener');
-  btn.removeAttribute('disabled');
-  btn.removeAttribute('aria-disabled');
-  btn.style.pointerEvents = 'auto';
-  btn.style.opacity = '';
-  // capture click early and force open
-  btn.addEventListener('click', function(e){
-    try {
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-    } catch(err){}
-    try { window.open(WA_URL, '_blank', 'noopener'); } catch(err){}
-    return false;
-  }, true); // capture
-})();
-</script>
-
-
-<script>
-// Minimal WA fix: make the button active on page load, without touching other logic
-document.addEventListener('DOMContentLoaded', function(){
-  var btn = document.getElementById('waButton');
-  if(!btn) return;
-  btn.setAttribute('href', 'https://wa.me/590691280005');
-  btn.setAttribute('target','_blank');
-  btn.setAttribute('rel','noopener');
-  btn.removeAttribute('disabled');
-  btn.removeAttribute('aria-disabled');
-  btn.classList.remove('disabled','is-disabled','btn-disabled');
-  btn.style.pointerEvents = 'auto';
-  btn.style.opacity = '';
-});
-</script>
-
-
-<script>
-// FORCE WhatsApp button to work on first click (capture phase) and keep it enabled
-(function(){
-  var WA_URL = 'https://wa.me/590691280005';
-  function prepare(btn){
-    if(!btn) return;
-    // ensure attributes and enabled state
-    btn.setAttribute('href', WA_URL);
-    btn.setAttribute('target','_blank');
-    btn.setAttribute('rel','noopener');
-    btn.removeAttribute('disabled');
-    btn.removeAttribute('aria-disabled');
-    btn.classList.remove('disabled','is-disabled','btn-disabled');
-    btn.style.pointerEvents='auto';
-    btn.style.opacity='';
-    if(btn._waBound) return;
-    // CAPTURE the click before any other listener and force open
-    btn.addEventListener('click', function(e){
-      try{ e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation) e.stopImmediatePropagation(); }catch(err){}
-      try{ window.open(WA_URL, '_blank', 'noopener'); }catch(err){}
-      return false;
-    }, true);
-    btn._waBound = true;
-  }
-  function scan(){
-    var btn = document.getElementById('waButton');
-    if(!btn){
-      // try to find any element that looks like WhatsApp in header
-      var header = document.querySelector('header,.site-header,.topbar') || document;
-      var nodes = header.querySelectorAll('a,button,[role="button"],.btn,.button');
-      for(var i=0;i<nodes.length;i++){
-        var n=nodes[i]; var t=(n.textContent||'').toLowerCase(), c=(n.className||'').toLowerCase();
-        if(/whats/.test(t) || /whats/.test(c)){ btn=n; break; }
-      }
-    }
-    prepare(btn);
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', scan);
-  else scan();
-  window.addEventListener('load', scan);
-  // Retry a few times in case other scripts re-disable
-  var tries=0; var iv=setInterval(function(){ scan(); tries++; if(tries>30) clearInterval(iv); }, 150);
-  // Observe DOM changes (SPA/hydration)
-  var obs=new MutationObserver(scan); obs.observe(document.documentElement,{childList:true,subtree:true});
-})();
-</script>
-
-
-<script>
-// Keep header WhatsApp active regardless of global form validation lock
-document.addEventListener('DOMContentLoaded', function(){
-  var wa = document.getElementById('waButton');
-  if(!wa) return;
-  var WA_URL = 'https://wa.me/590691280005';
-  function free(){
-    try{
-      wa.setAttribute('href', WA_URL);
-      wa.setAttribute('target','_blank');
-      wa.setAttribute('rel','noopener');
-      wa.removeAttribute('disabled');
-      wa.removeAttribute('aria-disabled');
-      wa.classList.remove('btn-disabled','is-disabled','disabled');
-      wa.style.pointerEvents='auto';
-      wa.style.opacity='';
-    }catch(e){}
-  }
-  free();
-  document.addEventListener('input', free, true);
-  document.addEventListener('change', free, true);
-  document.addEventListener('click', function(){ setTimeout(free, 0); }, true);
-});
-</script>
-
-</body>
+</body></html>
