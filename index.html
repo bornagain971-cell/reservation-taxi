@@ -11,6 +11,15 @@
 .input-error{border-color:#c53030 !important; outline-color:#c53030 !important;}
 </style>
 
+
+<style>
+textarea#notes::placeholder {
+  text-align: center;
+  white-space: pre-line;
+}
+</style>
+
+    <link rel="stylesheet" href="assets/css/responsive.css">
 </head>
 <body>
   <div class="container">
@@ -69,7 +78,10 @@
           <div><label for="waitHours">Durée d’attente (heures)</label><select id="waitHours"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
           <div><label for="child">Siège enfant</label><select id="child"><option>Non</option><option>Oui</option></select></div>
         </div>
-        <div><label for="notes">Notes</label><textarea id="notes"></textarea></div>
+        <div><label for="notes">Notes utiles</label><textarea id="notes" placeholder="Détails utiles :
+code de porte, vol, lieu précis…
+Pour plus d’informations,
+contactez-nous."></textarea></div>
 
         <div class="card" style="margin-top:14px">
           <div class="calc">
@@ -81,7 +93,7 @@
             Le prix affiché est indicatif ; le prix exact est déterminé par le taximètre (compteur kilométrique). Pour plus d’informations, contactez‑nous.
           </div>
           <div id="confirmArea" style="margin-top:14px;text-align:center">
-            <button class="btn" id="confirmBtn" type="button">Obtenir la confirmation</button>
+            <button class="btn" id="confirmBtn" type="button">Réserver</button>
           </div>
         </div>
       </div>
@@ -465,12 +477,12 @@ document.addEventListener("DOMContentLoaded", function() {
         return;
       }
       var service = new google.maps.DistanceMatrixService();
-      service.getDistanceMatrix({        origins: [origin],
+      service.getDistanceMatrix({
+        origins: [origin],
         destinations: [destination],
         travelMode: google.maps.TravelMode.DRIVING,
-        unitSystem: google.maps.UnitSystem.METRIC,
-        drivingOptions: { departureTime: new Date(), trafficModel: google.maps.TrafficModel.BEST_GUESS }
-    }, function(response, status){
+        unitSystem: google.maps.UnitSystem.METRIC
+      }, function(response, status){
         if(status !== 'OK' || !response || !response.rows || !response.rows[0] || !response.rows[0].elements || !response.rows[0].elements[0]){
           cb(new Error('DistanceMatrix status: '+status), null);
           return;
@@ -520,128 +532,491 @@ document.addEventListener("DOMContentLoaded", function() {
 })();
 </script>
 
-</body>
+
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
   ready(function(){
-    var btn = document.getElementById('estimateBtn') || document.querySelector('.estimate-btn, button[data-action="estimate"]');
-    if(!btn) return;
+    var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+    var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+    var dateEl  = document.querySelector('#date, input[type="date"]');
+    var timeEl  = document.querySelector('#time, input[type="time"]');
 
-    var out = document.getElementById('estimateOut');
-    if(!out){
-      out = document.createElement('div'); out.id='estimateOut';
-      out.style.display='inline-block'; out.style.marginLeft='10px'; out.style.padding='10px 12px';
-      out.style.borderRadius='10px'; out.style.background='#f0f0f0'; out.style.minWidth='80px'; out.style.textAlign='center';
-      btn.parentNode && btn.parentNode.appendChild(out);
-    }
-
-    var errBox = document.getElementById('estimateApiError');
-    if(!errBox){
-      errBox = document.createElement('div'); errBox.id='estimateApiError';
-      errBox.style.color = '#c53030'; errBox.style.marginTop='8px'; errBox.style.fontSize='.92rem';
-      errBox.style.display='none';
-      btn.parentNode && btn.parentNode.appendChild(errBox);
-    }
-    function showErr(msg){ errBox.textContent = msg; errBox.style.display='block'; }
-    function hideErr(){ errBox.textContent=''; errBox.style.display='none'; }
-
-    function getInput(sel){ return document.querySelector(sel); }
-    function getVal(sel){ var el=getInput(sel); return el ? (el.value||'').trim() : ''; }
-
-    function parseWaitHours(){
-      var waitSel = document.getElementById('waitOnTrip') || document.getElementById('waitDuring');
-      var hoursSel = document.getElementById('waitHours');
-      if(!waitSel || !hoursSel) return 0;
-      if(hoursSel.disabled) return 0;
-      return (String(waitSel.value).toLowerCase()==='oui') ? parseInt(hoursSel.value||'0',10)||0 : 0;
-    }
-    function isNight(dateStr, timeStr){
-      try{
-        var parts = (timeStr||'').split(':');
-        var h = parseInt(parts[0]||'0',10);
-        if(isNaN(h)) return false;
-        return (h >= 19 || h < 7);
-      }catch(e){ return false; }
-    }
-    function pickTariff(isRoundTrip, night){
-      return isRoundTrip ? (night ? 1.55 : 1.03) : (night ? 3.06 : 2.06);
-    }
-    function dm(origin, destination, cb){
-      if(!(window.google && google.maps && google.maps.DistanceMatrixService)){
-        cb({code:'NO_API', message:'Google Distance Matrix indisponible'}, null); return;
+    function ensureErr(el, idSuffix, msg){
+      if(!el) return null;
+      var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+      var box = document.getElementById(id);
+      if(!box){
+        box = document.createElement('div');
+        box.id = id;
+        box.className = 'field-error';
+        box.style.display = 'none';
+        box.textContent = msg;
+        if(el.parentNode){ el.parentNode.appendChild(box); }
+      } else {
+        box.textContent = msg;
       }
-      var service = new google.maps.DistanceMatrixService();
-      service.getDistanceMatrix({
-        origins: [origin],
-        destinations: [destination],
-        travelMode: google.maps.TravelMode.DRIVING,
-        unitSystem: google.maps.UnitSystem.METRIC
-      }, function(response, status){
-        if(status !== 'OK' || !response || !response.rows || !response.rows[0] ||
-           !response.rows[0].elements || !response.rows[0].elements[0]){
-          cb({code:status||'BAD_RESPONSE', message:'DistanceMatrix status: '+status}, null); return;
-        }
-        var el = response.rows[0].elements[0];
-        if(el.status !== 'OK'){
-          cb({code:el.status, message:'Element status: '+el.status}, null); return;
-        }
-        var meters = el.distance && el.distance.value;
-        cb(null, (meters||0)/1000.0);
-      });
+      return box;
     }
 
-    // Try to use place_id if Autocomplete is on inputs
-    function resolvePlace(inputSel){
-  var el = document.querySelector(inputSel);
-  if(!el) return null;
-  var p = el._gm_place || (el.getAttribute && (function(){ try { return JSON.parse(el.getAttribute('data-place')||'null'); } catch(e){ return null; } })()) || null;
-  if(p && p.place_id){ return { placeId: p.place_id }; }
-  var v = (el.value||'').trim();
-  return v ? v : null;
-}; }
-      var v = (el.value||'').trim();
-      return v ? v : null;
+    var errPhone = ensureErr(phoneEl, 'phone', 'Merci de renseigner un numéro de téléphone valide (chiffres uniquement).');
+    var errTime  = ensureErr(timeEl,  'time',  'Merci de choisir une heure à partir de maintenant.');
+
+    function show(el, box, msg){
+      if(!el||!box) return;
+      if(msg) box.textContent = msg;
+      box.style.display = 'block';
+      el.classList.add('input-error');
+    }
+    function hide(el, box){
+      if(!el||!box) return;
+      box.style.display = 'none';
+      el.classList.remove('input-error');
     }
 
-    btn.addEventListener('click', function(){
-      hideErr();
-      var origin = resolvePlace('#start, #depart, #origin, input[name="origin"], input[name="start"]') || getVal('#start, #depart, #origin, input[name="origin"], input[name="start"]');
-      var destination = resolvePlace('#end, #destination, #dest, input[name="destination"]') || getVal('#end, #destination, #dest, input[name="destination"]');
-      if(!origin || !destination){ return; } // other validators handle empties
+    function parseDate(val){
+      if(!val) return null;
+      var p = String(val).split('-'); if(p.length!==3) return null;
+      var y=+p[0], m=+p[1]-1, d=+p[2]; if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+      return new Date(y,m,d);
+    }
+    function parseTime(val){
+      if(!val) return null;
+      var p = String(val).split(':');
+      var h=+p[0], mi=+p[1]||0; if(isNaN(h)||isNaN(mi)) return null;
+      return {h:h, m:mi};
+    }
+    function isToday(d){
+      var now=new Date();
+      return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+    }
+    function invalidTime(){
+      if(!timeEl) return false;
+      var t=parseTime(timeEl.value); if(!t) return false;
+      var d=parseDate(dateEl && dateEl.value);
+      if(d && isToday(d)){
+        var now=new Date();
+        var input=new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
+        return input < now;
+      }
+      return false;
+    }
+    function invalidPhone(){
+      if(!phoneEl) return false;
+      var v=(phoneEl.value||'').trim();
+      if(!v) return false;
+      return /[A-Za-z]/.test(v);
+    }
 
-      out.textContent = '…';
+    function hasBlockingErrors(){
+      var blocked=false;
+      if(invalidPhone()){ show(phoneEl, errPhone); blocked=true; } else { hide(phoneEl, errPhone); }
+      if(invalidTime()){ show(timeEl, errTime); blocked=true; } else { hide(timeEl, errTime); }
+      return blocked;
+    }
 
-      var dateStr = getVal('#date, input[type="date"]');
-      var timeStr = getVal('#time, input[type="time"]');
-      var isRoundTrip = (String(getVal('#roundtrip, #roundTrip')).toLowerCase()==='oui');
-      var night = isNight(dateStr, timeStr);
-      var perKm = pickTariff(isRoundTrip, night);
-      var pickup = 3.75;
-      var waitH = parseWaitHours();
-      var waitPrice = (waitH>0 ? (25 * waitH) : 0);
+    function guard(e){
+      if(hasBlockingErrors()){
+        e.preventDefault();
+        if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+        e.stopPropagation();
+        return false;
+      }
+    }
 
-      dm(origin, destination, function(err, km){
-        if(err){
-          console.warn('Estimation error:', err);
-          if(err.code==='NO_API'){
-            showErr('Estimation indisponible : Distance Matrix API n’est pas chargée. Activez **Distance Matrix API** et la facturation dans Google Cloud.');
-          }else if(err.code==='REQUEST_DENIED'){
-            showErr('Accès refusé par Google (REQUEST_DENIED). Vérifiez la clé API, la facturation et les restrictions de domaines.');
-          }else if(err.code==='ZERO_RESULTS'){
-            showErr('Aucun itinéraire trouvable entre ces adresses. Merci de vérifier vos saisies.');
-          }else{
-            showErr('Impossible d’obtenir l’estimation (code: '+(err.code||'inconnu')+'). Merci de réessayer.');
-          }
-          out.textContent = '—';
-          return;
-        }
-        var totalKm = isRoundTrip ? (km * 2) : km;
-        var total = pickup + (totalKm * perKm) + waitPrice;
-        total = Math.round(total * 100) / 100;
-        out.textContent = total.toFixed(2) + ' €';
-      });
-    });
+    if(confirmBtn){ confirmBtn.addEventListener('click', guard, true); }
+    document.addEventListener('click', function(e){
+      var t=e.target;
+      var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
+      var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
+      if(waBtn || mailBtn){ guard(e); }
+    }, true);
+
+    // Clear errors on edits
+    if(phoneEl) phoneEl.addEventListener('input', function(){ if(!invalidPhone()) hide(phoneEl, errPhone); });
+    if(timeEl)  timeEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, errTime); });
+    if(dateEl)  dateEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, errTime); });
   });
 })();
 </script>
+
+
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+  ready(function(){
+    // Tolerant selectors (do not change layout/ids)
+    var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+    var dateEl  = document.querySelector('#date, input[name="date"], input[type="date"]');
+    var timeEl  = document.querySelector('#time, input[name="time"], input[type="time"]');
+    var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+
+    function ensureErr(el, idSuffix, msg){
+      if(!el) return null;
+      var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+      var box = document.getElementById(id);
+      if(!box){
+        box = document.createElement('div');
+        box.id = id;
+        box.className = 'field-error';
+        box.style.display = 'none';
+        box.textContent = msg;
+        if(el.parentNode){ el.parentNode.appendChild(box); }
+      } else {
+        box.textContent = msg;
+      }
+      return box;
+    }
+    var phoneErr = ensureErr(phoneEl, 'phone', 'Merci de renseigner un numéro de téléphone valide (chiffres uniquement).');
+    var timeErr  = ensureErr(timeEl,  'time',  'Merci de choisir une heure à partir de maintenant.');
+
+    function show(el, box, msg){
+      if(!el||!box) return;
+      if(msg) box.textContent = msg;
+      box.style.display = 'block';
+      el.classList.add('input-error');
+    }
+    function hide(el, box){
+      if(!el||!box) return;
+      box.style.display = 'none';
+      el.classList.remove('input-error');
+    }
+
+    function invalidPhone(){
+      if(!phoneEl) return false;
+      var v = (phoneEl.value||'').trim();
+      if(!v) return false; // empty handled by other "required" validators
+      // Reject any letter, allow digits, spaces, +, -, (), .
+      return /[A-Za-z]/.test(v);
+    }
+
+    function parseDate(val){
+      if(!val) return null;
+      var p = String(val).split('-');
+      if(p.length!==3) return null;
+      var y=+p[0], m=+p[1]-1, d=+p[2];
+      if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+      return new Date(y,m,d);
+    }
+    function parseTime(val){
+      if(!val) return null;
+      var p = String(val).split(':');
+      var h=+p[0], mi=+p[1]||0;
+      if(isNaN(h)||isNaN(mi)) return null;
+      return {h:h, m:mi};
+    }
+    function isToday(d){
+      var now = new Date();
+      return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+    }
+    function invalidTime(){
+      if(!timeEl) return false;
+      var t = parseTime(timeEl.value);
+      if(!t) return false; // no time => other required validators handle it
+      var d = parseDate(dateEl && dateEl.value);
+      var now = new Date();
+      if(d && isToday(d)){
+        var input = new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
+        return input < now;
+      }
+      return false;
+    }
+
+    function validateAndShow(){
+      var bad = false;
+      if(invalidPhone()){ show(phoneEl, phoneErr); bad = true; } else { hide(phoneEl, phoneErr); }
+      if(invalidTime()){ show(timeEl, timeErr); bad = true; } else { hide(timeEl, timeErr); }
+      return !bad;
+    }
+
+    // Real-time clearing of messages
+    if(phoneEl){ phoneEl.addEventListener('input', function(){ if(!invalidPhone()) hide(phoneEl, phoneErr); }); }
+    if(timeEl){ timeEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, timeErr); }); }
+    if(dateEl){ dateEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, timeErr); }); }
+
+    // Also validate on confirm click so the user sees errors even without interacting
+    if(confirmBtn){
+      confirmBtn.addEventListener('click', function(){
+        validateAndShow();
+      });
+    }
+  });
+})();
+</script>
+
+
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+  ready(function(){
+    var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+    var dateEl  = document.querySelector('#date, input[name="date"], input[type="date"]');
+    var timeEl  = document.querySelector('#time, input[name="time"], input[type="time"]');
+    var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+
+    function getErr(el, idSuffix){
+      if(!el) return null;
+      var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+      return document.getElementById(id);
+    }
+    function hasLettersPhone(){
+      if(!phoneEl) return false;
+      var v=(phoneEl.value||'').trim();
+      if(!v) return false;
+      return /[A-Za-z]/.test(v);
+    }
+    function parseDate(val){
+      if(!val) return null;
+      var p=String(val).split('-'); if(p.length!==3) return null;
+      var y=+p[0], m=+p[1]-1, d=+p[2]; if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+      return new Date(y,m,d);
+    }
+    function parseTime(val){
+      if(!val) return null;
+      var p=String(val).split(':');
+      var h=+p[0], mi=+p[1]||0; if(isNaN(h)||isNaN(mi)) return null;
+      return {h:h, m:mi};
+    }
+    function isToday(d){
+      var now=new Date();
+      return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+    }
+    function timeInPast(){
+      if(!timeEl) return false;
+      var t=parseTime(timeEl.value); if(!t) return false;
+      var d=parseDate(dateEl && dateEl.value);
+      if(d && isToday(d)){
+        var now=new Date();
+        var input=new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
+        return input < now;
+      }
+      return false;
+    }
+
+    function hasBlockingErrors(){
+      var phoneErr = getErr(phoneEl,'phone');
+      var timeErr  = getErr(timeEl,'time');
+      var blocked=false;
+      if(hasLettersPhone()){ if(phoneErr){ phoneErr.style.display='block'; } phoneEl && phoneEl.classList.add('input-error'); blocked=true; }
+      if(timeInPast()){ if(timeErr){ timeErr.style.display='block'; } timeEl && timeEl.classList.add('input-error'); blocked=true; }
+      return blocked;
+    }
+
+    function blockIfErrors(e){
+      if(hasBlockingErrors()){
+        e.preventDefault();
+        if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+        e.stopPropagation();
+        return false;
+      }
+    }
+
+    if(confirmBtn){ confirmBtn.addEventListener('click', blockIfErrors, true); }
+
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
+      var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
+      if(waBtn || mailBtn){ blockIfErrors(e); }
+    }, true);
+  });
+})();
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+  var dateEl  = document.querySelector('#date, input[name="date"], input[type="date"]');
+  var timeEl  = document.querySelector('#time, input[name="time"], input[type="time"]');
+  var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+
+  function ensureErr(el, idSuffix, msg){
+    if(!el) return null;
+    var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+    var box = document.getElementById(id);
+    if(!box){
+      box = document.createElement('div');
+      box.id = id;
+      box.className = 'field-error';
+      box.style.display = 'none';
+      box.textContent = msg;
+      if(el.parentNode){ el.parentNode.appendChild(box); }
+    } else {
+      box.textContent = msg;
+    }
+    return box;
+  }
+
+  var phoneErr = ensureErr(phoneEl, 'phone', 'Merci de renseigner un numéro de téléphone valide (chiffres uniquement).');
+  var timeErr  = ensureErr(timeEl,  'time',  'Merci de choisir une heure à partir de maintenant.');
+
+  function show(el, box){ if(el&&box){ box.style.display='block'; el.classList.add('input-error'); } }
+  function hide(el, box){ if(el&&box){ box.style.display='none'; el.classList.remove('input-error'); } }
+
+  function invalidPhone(){
+    if(!phoneEl) return false;
+    var v=(phoneEl.value||'').trim();
+    if(!v) return false;
+    return /[A-Za-z]/.test(v);
+  }
+
+  function parseDate(val){
+    if(!val) return null;
+    var p = String(val).split('-'); if(p.length!==3) return null;
+    var y=+p[0], m=+p[1]-1, d=+p[2]; if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+    return new Date(y,m,d);
+  }
+  function parseTime(val){
+    if(!val) return null;
+    var p = String(val).split(':');
+    var h=+p[0], mi=+p[1]||0; if(isNaN(h)||isNaN(mi)) return null;
+    return {h:h, m:mi};
+  }
+  function isToday(d){
+    var now=new Date();
+    return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+  }
+  function invalidTime(){
+    if(!timeEl) return false;
+    var t=parseTime(timeEl.value); if(!t) return false;
+    var d=parseDate(dateEl && dateEl.value);
+    if(d && isToday(d)){
+      var now=new Date();
+      var input=new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
+      return input < now;
+    }
+    return false;
+  }
+
+  function showErrors(){
+    if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
+    if(invalidTime()){ show(timeEl, timeErr); } else { hide(timeEl, timeErr); }
+  }
+
+  // Hook events
+  if(confirmBtn){ confirmBtn.addEventListener('click', showErrors); }
+  if(phoneEl){ phoneEl.addEventListener('input', function(){ if(!invalidPhone()) hide(phoneEl, phoneErr); }); }
+  if(timeEl){ timeEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, timeErr); }); }
+  if(dateEl){ dateEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, timeErr); }); }
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+  var dateEl  = document.querySelector('#date, input[name="date"], input[type="date"]');
+  var timeEl  = document.querySelector('#time, input[name="time"], input[type="time"]');
+
+  function ensureErr(el, idSuffix, msg){
+    if(!el) return null;
+    var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+    var box = document.getElementById(id);
+    if(!box){
+      box = document.createElement('div');
+      box.id = id;
+      box.className = 'field-error';
+      box.style.display = 'none';
+      box.textContent = msg;
+      if(el.parentNode){ el.parentNode.appendChild(box); }
+    }
+    return box;
+  }
+  var phoneErr = ensureErr(phoneEl, 'phone', 'Merci de renseigner un numéro de téléphone valide (chiffres uniquement).');
+  var timeErr  = ensureErr(timeEl,  'time',  'Merci de choisir une heure à partir de maintenant.');
+
+  function show(el, box){ if(el&&box){ box.style.display='block'; el.classList.add('input-error'); } }
+  function hide(el, box){ if(el&&box){ box.style.display='none'; el.classList.remove('input-error'); } }
+
+  function invalidPhone(){
+    if(!phoneEl) return false;
+    var v=(phoneEl.value||'').trim();
+    if(!v) return false;
+    return /[A-Za-z]/.test(v);
+  }
+  function parseDate(val){
+    if(!val) return null;
+    var p=String(val).split('-'); if(p.length!==3) return null;
+    var y=+p[0], m=+p[1]-1, d=+p[2]; if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+    return new Date(y,m,d);
+  }
+  function parseTime(val){
+    if(!val) return null;
+    var p=String(val).split(':');
+    var h=+p[0], mi=+p[1]||0; if(isNaN(h)||isNaN(mi)) return null;
+    return {h:h, m:mi};
+  }
+  function isToday(d){
+    var now=new Date();
+    return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+  }
+  function invalidTime(){
+    if(!timeEl) return false;
+    var t=parseTime(timeEl.value); if(!t) return false;
+    var d=parseDate(dateEl && dateEl.value);
+    if(d && isToday(d)){
+      var now=new Date();
+      var input=new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
+      return input < now;
+    }
+    return false;
+  }
+
+  // Live validation
+  if(phoneEl){
+    phoneEl.addEventListener('input', function(){
+      if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
+    });
+  }
+  function checkTime(){ if(invalidTime()){ show(timeEl, timeErr); } else { hide(timeEl, timeErr); } }
+  if(timeEl){ timeEl.addEventListener('input', checkTime); timeEl.addEventListener('change', checkTime); }
+  if(dateEl){ dateEl.addEventListener('change', checkTime); }
+
+  // Initial check on load in case fields are prefilled
+  checkTime();
+  if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  function scrollToFirstError(){
+    // 1) Prefer a visible .field-error
+    var err = Array.from(document.querySelectorAll('.field-error')).find(function(n){
+      return n && n.style && n.style.display !== 'none' && n.offsetParent !== null;
+    });
+    if(err && err.scrollIntoView){ err.scrollIntoView({behavior:'smooth', block:'center'}); return true; }
+    // 2) Fallback to first input with .input-error
+    var bad = document.querySelector('.input-error');
+    if(bad && bad.scrollIntoView){ bad.scrollIntoView({behavior:'smooth', block:'center'}); return true; }
+    return false;
+  }
+
+  function hookClick(sel){
+    var el = document.querySelector(sel);
+    if(!el) return;
+    el.addEventListener('click', function(){
+      // Wait a tick so validators can show messages, then scroll
+      setTimeout(scrollToFirstError, 50);
+    }, true);
+  }
+
+  // Hook main actions
+  hookClick('#confirmBtn');
+  hookClick('button[data-role="confirm"]');
+  hookClick('.btn-confirm');
+  // Also hook possible WhatsApp / Mail
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
+    var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
+    if(waBtn || mailBtn){
+      setTimeout(scrollToFirstError, 50);
+    }
+  }, true);
+});
+</script>
+
+</body>
