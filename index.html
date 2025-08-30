@@ -1551,7 +1551,10 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 
-<script id="estimation-reprogram-js">
+
+
+
+<script id="estimation-reprogram-v2-js">
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
   ready(function(){
@@ -1563,184 +1566,95 @@ document.addEventListener('DOMContentLoaded', function(){
     var BASE_FEE = 3.75;
     var WAIT_PER_HOUR = 25;
 
-    // Permet la surcharge via data-* sur <body>
-    try{
-      var b = document.body;
-      if(b.dataset.rateA) RATE_A = parseFloat(String(b.dataset.rateA).replace(',','.'))||RATE_A;
-      if(b.dataset.rateB) RATE_B = parseFloat(String(b.dataset.rateB).replace(',','.'))||RATE_B;
-      if(b.dataset.rateC) RATE_C = parseFloat(String(b.dataset.rateC).replace(',','.'))||RATE_C;
-      if(b.dataset.rateD) RATE_D = parseFloat(String(b.dataset.rateD).replace(',','.'))||RATE_D;
-      if(b.dataset.baseFee) BASE_FEE = parseFloat(String(b.dataset.baseFee).replace(',','.'))||BASE_FEE;
-      if(b.dataset.waitHour) WAIT_PER_HOUR = parseFloat(String(b.dataset.waitHour).replace(',','.'))||WAIT_PER_HOUR;
-    }catch(_){}
-
-    // ---- Helpers ----
     function $(sel){ return document.querySelector(sel); }
     function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
     function parseNum(v){ var n=parseFloat(String(v).replace(',','.')); return isNaN(n)?0:n; }
 
-    // Champs
-    var dateInput  = $('#date') || document.querySelector('input[type="date"]');
-    var timeInput  = $('#time') || document.querySelector('input[type="time"]');
-    var waitHours  = $('#waitHours') || $('#dureeAttente') || $all('select').find(s=>/attente|durée|duree/i.test(s.outerHTML));
-    var priceOut   = $('#estimationPrice') || (function(){ var s=document.createElement('span'); s.id='estimationPrice'; s.style.marginLeft='10px'; s.style.fontWeight='700'; return s; })();
-    var estBtn     = $('#btn-estimation') || $all('button,a').find(el=>/estimation du prix|estimer|estimation/i.test((el.textContent||'').toLowerCase()));
-
+    var depInput = $('#origin') || $('#lieuDepart') || $('#depart');
+    var destInput = $('#destination') || $('#lieuArrivee');
+    var timeInput = $('#time') || document.querySelector('input[type="time"]');
+    var dateInput = $('#date') || document.querySelector('input[type="date"]');
+    var waitToggle = $('#waitToggle') || document.querySelector('input[name="attente"]');
+    var waitHours = $('#waitHours') || $('#dureeAttente') || $all('select').find(s=>/attente/i.test(s.outerHTML));
+    var estBtn = $('#btn-estimation') || $all('button').find(el=>(el.textContent||'').toLowerCase().includes('estimation'));
+    var priceOut = $('#estimationPrice') || (function(){var s=document.createElement('span');s.id='estimationPrice';s.style.marginLeft='10px';s.style.fontWeight='bold';return s;})();
     if(estBtn && !priceOut.parentNode){ estBtn.insertAdjacentElement('afterend', priceOut); }
 
-    // Détection Aller/retour
+    // Track valid addresses via Google Autocomplete
+    var originValid=false, destValid=false;
+    if(depInput) depInput.addEventListener('input',()=>{ originValid = depInput.value.trim().length>3; });
+    if(destInput) destInput.addEventListener('input',()=>{ destValid = destInput.value.trim().length>3; });
+    function hasValidAddresses(){ return originValid && destValid; }
+
+    function isNight(){
+      if(!timeInput || !timeInput.value) return false;
+      var hh=parseInt(timeInput.value.split(':')[0],10);
+      return (hh>=19 || hh<7);
+    }
+
     function isRoundTrip(){
-      var rt = document.getElementById('roundTrip') || document.querySelector('input[name="roundTrip"]');
-      if(rt){
-        if(rt.type==='checkbox') return !!rt.checked;
-        if(rt.type==='radio'){
-          var yes = document.querySelector('input[name="roundTrip"][value="yes"], input[name="roundTrip"][value="oui"]');
-          if(yes) return !!yes.checked;
-        }
-      }
-      // Btn group
-      var group = document.getElementById('roundTripGroup') || document.querySelector('.roundtrip-toggle') || document.querySelector('.btn-group');
-      if(group){
-        var act = group.querySelector('[aria-pressed="true"], .active');
-        if(act) return /oui/i.test((act.textContent||''));
-      }
-      // Texte "Oui" actif proche
-      var yesEl = $all('button,label,span').find(el=>/^\s*oui\s*$/i.test((el.textContent||'')) && (el.classList.contains('active')||el.getAttribute('aria-pressed')==='true'));
-      return !!yesEl;
+      var yesBtn = $all('button, label').find(el=>/aller\/retour/i.test(el.textContent||'') && el.classList.contains('active'));
+      return yesBtn ? /oui/i.test(yesBtn.textContent||'') : false;
     }
 
-    // Attente activée ?
     function isWaitingOn(){
-      var att = document.getElementById('waitToggle') || document.querySelector('input[name="attente"]');
-      if(att){
-        if(att.type==='checkbox') return !!att.checked;
-        if(att.type==='radio'){
-          var y = document.querySelector('input[name="attente"][value="yes"], input[name="attente"][value="oui"]');
-          if(y) return !!y.checked;
-        }
-      }
-      var grp = document.getElementById('waitToggleGroup') || document.querySelector('.wait-toggle') || document.querySelector('.btn-group');
-      if(grp){
-        var act = grp.querySelector('[aria-pressed="true"], .active');
-        if(act) return /oui/i.test((act.textContent||''));
-      }
-      return false;
+      var yesBtn = $all('button,label').find(el=>/attente/i.test(el.textContent||'') && el.classList.contains('active') && /oui/i.test(el.textContent||''));
+      return !!yesBtn;
     }
 
-    // Forcer l'UI de durée en fonction du toggle (fix "toujours grisé")
     function syncWaitUI(){
       if(!waitHours) return;
       if(isWaitingOn()){
         waitHours.removeAttribute('disabled');
-        waitHours.classList.remove('is-disabled');
-        // si 0 → proposer 1 par défaut
-        if(waitHours.value === "0" || waitHours.value === "" || waitHours.value == null){
-          // s'assurer que les options 1..4 existent
-          if(waitHours.tagName.toLowerCase()==='select'){
-            for(var i=1;i<=4;i++){
-              if(!waitHours.querySelector('option[value="'+i+'"]')){
-                var opt=document.createElement('option'); opt.value=String(i); opt.textContent=String(i); waitHours.appendChild(opt);
-              }
-            }
-          }
-          waitHours.value = "1";
-        }
+        if(waitHours.value==="0"||waitHours.value===""){ waitHours.value="1"; }
       } else {
         waitHours.setAttribute('disabled','disabled');
-        waitHours.classList.add('is-disabled');
-        if(waitHours.tagName.toLowerCase()==='select'){
-          var opt0 = waitHours.querySelector('option[value="0"]');
-          if(!opt0){
-            opt0 = document.createElement('option'); opt0.value="0"; opt0.textContent="0"; opt0.dataset.temp="1";
-            waitHours.insertBefore(opt0, waitHours.firstChild);
-          }
-          waitHours.value = "0";
-        } else {
-          waitHours.value = "0";
-        }
+        waitHours.value="0";
       }
     }
 
-    // Événements pour resynchroniser l'UI
-    $all('#waitToggle, input[name="attente"]').forEach(function(el){
-      el.addEventListener('change', function(){ setTimeout(syncWaitUI, 30); });
+    $all('button,label').forEach(function(el){
+      if(/attente/i.test(el.textContent||'')){
+        el.addEventListener('click',()=>setTimeout(syncWaitUI,100));
+      }
     });
-    var waitGroup = document.getElementById('waitToggleGroup') || document.querySelector('.wait-toggle') || document.querySelector('.btn-group');
-    if(waitGroup){
-      waitGroup.addEventListener('click', function(){ setTimeout(syncWaitUI, 30); });
-    }
-    // Sync initial
     syncWaitUI();
-
-    // Distance en km (chercher plusieurs sources)
-    function getDistanceKm(){
-      var el = document.getElementById('distanceKm') || document.querySelector('[data-distance-km]');
-      if(el){
-        var v = el.getAttribute('data-distance-km') || el.textContent || el.value || '';
-        var n = parseNum(v);
-        if(n>0) return n;
-      }
-      var kmNode = $all('span,div,p').find(function(n){
-        var t=(n.textContent||'').toLowerCase();
-        return /\d+([.,]\d+)?\s*km/.test(t);
-      });
-      if(kmNode){
-        var m = (kmNode.textContent||'').match(/(\d+(?:[.,]\d+)?)\s*km/i);
-        if(m){ return parseNum(m[1]); }
-      }
-      if(typeof window.currentDistanceKm === 'number') return window.currentDistanceKm;
-      return 0;
-    }
-
-    function isNight(){
-      if(!timeInput || !timeInput.value) return false;
-      var hh = parseInt(timeInput.value.split(':')[0],10);
-      if(isNaN(hh)) return false;
-      return (hh>=19 || hh<7);
-    }
 
     function getWaitHours(){
       if(!isWaitingOn()) return 0;
-      if(!waitHours) return 0;
-      var n = parseInt((waitHours.value||'0'),10);
-      if(isNaN(n)) n = 0;
-      // bornes 1..4 si attente activée
-      if(n<1) n=1;
+      var n=parseInt(waitHours.value||"0",10);
+      if(isNaN(n)||n<1) n=1;
       if(n>4) n=4;
       return n;
     }
 
+    function getDistanceKm(){
+      var el=document.getElementById('distanceKm');
+      if(el){ return parseNum(el.value||el.textContent); }
+      if(typeof window.currentDistanceKm==='number') return window.currentDistanceKm;
+      return 10; // fallback
+    }
+
     function computePrice(){
-      var dist = getDistanceKm();
-      if(!dist || dist<=0) return null;
-
-      var rt = isRoundTrip();
-      var night = isNight();
-
-      var perKm = rt ? (night ? RATE_B : RATE_A) : (night ? RATE_D : RATE_C);
-      var totalKm = rt ? dist*2 : dist;
-      var waitH = getWaitHours();
-
-      var price = (totalKm * perKm) + BASE_FEE + (waitH * WAIT_PER_HOUR);
+      if(!hasValidAddresses()) return null;
+      var dist=getDistanceKm();
+      if(dist<=0) return null;
+      var rt=isRoundTrip();
+      var night=isNight();
+      var perKm = rt?(night?RATE_B:RATE_A):(night?RATE_D:RATE_C);
+      var totalKm= rt? dist*2:dist;
+      var wait=getWaitHours();
+      var price=(totalKm*perKm)+BASE_FEE+(wait*WAIT_PER_HOUR);
       return Math.round(price*100)/100;
     }
 
-    function showPrice(){
-      var p = computePrice();
-      if(p==null){
-        // Pas de distance trouvée -> afficher une petite aide
-        if(priceOut){ priceOut.textContent = " (entrez vos adresses pour calculer)"; }
-        return;
-      }
-      if(priceOut){ priceOut.textContent = "≈ " + p.toFixed(2) + " €"; }
-    }
-
     if(estBtn){
-      estBtn.addEventListener('click', function(e){
+      estBtn.addEventListener('click',function(e){
         e.preventDefault();
-        e.stopPropagation();
-        showPrice();
-      }, true);
+        var price=computePrice();
+        if(price==null){ priceOut.textContent="Veuillez remplir les adresses et l'heure."; }
+        else { priceOut.textContent="≈ "+price.toFixed(2)+" €"; }
+      });
     }
   });
 })();
