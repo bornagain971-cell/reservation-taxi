@@ -20,7 +20,6 @@ textarea#notes::placeholder {
 .field-error{color:#c1121f;font-weight:700;margin-top:6px;font-size:0.95rem}
 .input-invalid{border-color:#c1121f !important;box-shadow:0 0 0 2px rgba(193,18,31,.1)}
 </style>
-
 <style id="global-error-css">
 .form-global-error{
   background:#ffe6e6;
@@ -34,12 +33,9 @@ textarea#notes::placeholder {
 .field-error{color:#c1121f;font-weight:700;margin-top:6px;font-size:0.95rem}
 .input-invalid{border-color:#c1121f !important;box-shadow:0 0 0 2px rgba(193,18,31,.1)}
 </style>
-
-
 <style id="wait-ui-toggle-css">
 .is-disabled { opacity: .6; pointer-events: none; }
 </style>
-
 </head>
 <body>
 <div class="container">
@@ -1141,16 +1137,6 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 })();
 </script>
-
-
-
-
-
-
-
-
-
-
 <script id="time-now-guard-js">
 (function () {
   const timeInput =
@@ -1260,393 +1246,6 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 
-<script id="global-validate-js">
-(function(){
-  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
-  ready(function(){
-
-    // ---- Helpers ----
-    function $(sel){ return document.querySelector(sel); }
-    function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
-
-    // Time error element: hide on load as requested
-    var timeErr = document.getElementById('timeError') || document.getElementById('timeErrorNow');
-    if(timeErr){ timeErr.style.display = 'none'; }
-    var timeInput = document.getElementById('time') || document.querySelector('input[type="time"]');
-    if(timeInput){ timeInput.classList.remove('input-invalid','input-error','is-invalid'); }
-
-    // Create/ensure global error container
-    function ensureGlobalError(){
-      var container = document.getElementById('globalFormError');
-      if(!container){
-        // try to place near confirm / reservation area
-        var anchor = document.getElementById('confirmBtn') || document.querySelector('#confirmArea, form, main, body');
-        container = document.createElement('div');
-        container.id = 'globalFormError';
-        container.className = 'form-global-error';
-        container.style.display = 'none';
-        anchor.parentNode.insertBefore(container, anchor);
-      }
-      return container;
-    }
-    var globalErr = ensureGlobalError();
-
-    // Field finders (robust by id/label/placeholder)
-    function findByLabelText(text){
-      text = text.toLowerCase();
-      var labels = $all('label');
-      for(var i=0;i<labels.length;i++){
-        var t = (labels[i].textContent||'').toLowerCase();
-        if(t.includes(text)){
-          var inp = labels[i].querySelector('input,textarea,select');
-          if(inp) return inp;
-        }
-      }
-      return null;
-    }
-    function findByPlaceholder(part){
-      part = part.toLowerCase();
-      var inputs = $all('input,textarea');
-      return inputs.find(function(el){
-        return ((el.getAttribute('placeholder')||'').toLowerCase().includes(part));
-      }) || null;
-    }
-
-    var nameInput = document.getElementById('name') || findByLabelText('nom') || findByPlaceholder('nom');
-    var phoneInput = document.getElementById('phone') || findByLabelText('téléphone') || findByPlaceholder('tél') || findByPlaceholder('phone');
-    var dateInput = document.getElementById('date') || document.querySelector('input[type="date"]');
-    var startInput = document.getElementById('start') || findByLabelText('lieu de départ') || findByPlaceholder('départ') || findByPlaceholder('depart');
-    var endInput   = document.getElementById('end')   || findByLabelText('destination')    || findByPlaceholder('destination');
-
-    // Utility to show per-field error under the input
-    function ensureFieldError(input){
-      if(!input) return null;
-      var sib = input.nextElementSibling;
-      if(sib && sib.classList && sib.classList.contains('field-error')) return sib;
-      var d = document.createElement('div');
-      d.className = 'field-error';
-      d.style.display = 'none';
-      input.insertAdjacentElement('afterend', d);
-      return d;
-    }
-
-    var errName = ensureFieldError(nameInput);
-    var errPhone = ensureFieldError(phoneInput);
-    var errDate = ensureFieldError(dateInput);
-    var errTime = ensureFieldError(timeInput);
-    var errStart = ensureFieldError(startInput);
-    var errEnd = ensureFieldError(endInput);
-
-    function setErr(input, holder, msg){
-      if(!input||!holder) return;
-      holder.textContent = msg;
-      holder.style.display = 'block';
-      input.classList.add('input-invalid');
-    }
-    function clearErr(input, holder){
-      if(holder){ holder.style.display='none'; holder.textContent=''; }
-      if(input){ input.classList.remove('input-invalid'); }
-    }
-
-    // Validate each field quickly (presence + existing class states)
-    function validateAll(showMsgs){
-      var missing = [];
-
-      // Name: required + no invalid class
-      if(nameInput){
-        var v = (nameInput.value||'').trim();
-        if(!v){
-          missing.push('Nom et prénoms');
-          if(showMsgs) setErr(nameInput, errName, "Veuillez renseigner votre nom et prénoms.");
-        } else if (nameInput.classList.contains('input-invalid')) {
-          if(showMsgs) setErr(nameInput, errName, "Veuillez corriger votre nom (lettres uniquement, accents et espaces autorisés).");
-          missing.push('Nom et prénoms');
-        } else {
-          clearErr(nameInput, errName);
-        }
-      }
-
-      // Phone
-      if(phoneInput){
-        var pv = (phoneInput.value||'').trim();
-        if(!pv){
-          missing.push('Téléphone');
-          if(showMsgs) setErr(phoneInput, errPhone, "Veuillez saisir votre numéro de téléphone.");
-        } else if (phoneInput.classList.contains('input-invalid')) {
-          if(showMsgs) setErr(phoneInput, errPhone, "Numéro invalide. Chiffres (et + si nécessaire) uniquement.");
-          missing.push('Téléphone');
-        } else {
-          clearErr(phoneInput, errPhone);
-        }
-      }
-
-      // Date
-      if(dateInput){
-        var dv = (dateInput.value||'').trim();
-        if(!dv){
-          missing.push('Date');
-          if(showMsgs) setErr(dateInput, errDate, "Veuillez sélectionner une date.");
-        } else if (dateInput.classList.contains('input-invalid')) {
-          if(showMsgs) setErr(dateInput, errDate, "La date choisie n'est pas valide.");
-          missing.push('Date');
-        } else {
-          clearErr(dateInput, errDate);
-        }
-      }
-
-      // Time (respecte la règle actuelle si le site a déjà une validation)
-      if(timeInput){
-        var tv = (timeInput.value||'').trim();
-        if(!tv){
-          missing.push('Heure');
-          if(showMsgs) setErr(timeInput, errTime, "Veuillez choisir une heure.");
-        } else if (timeInput.classList.contains('input-invalid')) {
-          // Remettre le message demandé si invalide
-          if(showMsgs) setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
-          missing.push('Heure');
-        } else {
-          clearErr(timeInput, errTime);
-        }
-      }
-
-      // Start / End (lieux)
-      if(startInput){
-        var sv = (startInput.value||'').trim();
-        if(!sv){
-          missing.push('Lieu de départ');
-          if(showMsgs) setErr(startInput, errStart, "Veuillez renseigner le lieu de départ.");
-        } else {
-          clearErr(startInput, errStart);
-        }
-      }
-      if(endInput){
-        var ev = (endInput.value||'').trim();
-        if(!ev){
-          missing.push('Destination');
-          if(showMsgs) setErr(endInput, errEnd, "Veuillez renseigner la destination.");
-        } else {
-          clearErr(endInput, errEnd);
-        }
-      }
-
-      return missing;
-    }
-
-    // Build global message
-    function showGlobal(miss){
-      if(!globalErr) return;
-      if(!miss || miss.length===0){
-        globalErr.style.display = 'none';
-        globalErr.textContent = '';
-        return;
-      }
-      var txt = "Merci de compléter/rectifier : " + miss.join(", ") + ".";
-      globalErr.textContent = txt;
-      globalErr.style.display = 'block';
-    }
-
-    // Bind click on "Réserver par WhatsApp" / "Réserver par e-mail"
-    function findActionButtons(){
-      var all = $all('a,button');
-      var wa = all.find(el => /réserver par whatsapp/i.test((el.textContent||'').trim())) || all.find(el => (el.href||'').includes('wa.me'));
-      var mail = all.find(el => /réserver par e-?mail/i.test((el.textContent||'').trim())) || all.find(el => (el.href||'').startsWith('mailto:'));
-      return {wa, mail};
-    }
-    var actions = findActionButtons();
-
-    function clickGuard(e){
-      var missing = validateAll(true);
-      if(missing.length){
-        e.preventDefault();
-        showGlobal(missing);
-        // scroll to global error
-        try{ globalErr.scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){}
-      } else {
-        showGlobal([]);
-      }
-    }
-
-    if(actions.wa){ actions.wa.addEventListener('click', clickGuard, true); }
-    if(actions.mail){ actions.mail.addEventListener('click', clickGuard, true); }
-
-  });
-})();
-</script>
-
-
-
-
-
-<script id="tariff-roundtrip-fix-js">
-(function(){
-  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
-  ready(function(){
-    var RATE_A = 1.03;
-    var RATE_B = 1.55;
-    var RATE_C = 1.03;
-    var RATE_D = 1.55;
-    var WAIT_PER_HOUR = 25.0;
-    var BASE_FEE = 3.75;
-
-    function $(sel){ return document.querySelector(sel); }
-    function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
-    function parseFloatSafe(v){ var n=parseFloat(String(v).replace(',', '.')); return isNaN(n)?0:n; }
-
-    try{
-      var b=document.body;
-      if(b.dataset.rateA) RATE_A=parseFloatSafe(b.dataset.rateA);
-      if(b.dataset.rateB) RATE_B=parseFloatSafe(b.dataset.rateB);
-      if(b.dataset.rateC) RATE_C=parseFloatSafe(b.dataset.rateC);
-      if(b.dataset.rateD) RATE_D=parseFloatSafe(b.dataset.rateD);
-      if(b.dataset.waitHour) WAIT_PER_HOUR=parseFloatSafe(b.dataset.waitHour);
-      if(b.dataset.baseFee) BASE_FEE=parseFloatSafe(b.dataset.baseFee);
-    }catch(_){}
-
-    function findEstimateBtn(){
-      var byId = $('#btn-estimation') || $('#estimateBtn') || $('#estimationBtn');
-      if(byId) return byId;
-      return $all('button,a').find(function(el){
-        var t=(el.textContent||'').toLowerCase();
-        return t.includes('estimation') || t.includes('estimer') || t.includes('estimation du prix');
-      }) || null;
-    }
-    var estBtn = findEstimateBtn();
-    if(!estBtn) return;
-
-    var priceOut = $('#estimationPrice') || (function(){
-      var span = document.createElement('span');
-      span.id = 'estimationPrice';
-      span.style.marginLeft='10px';
-      span.style.fontWeight='700';
-      estBtn.insertAdjacentElement('afterend', span);
-      return span;
-    })();
-
-    var dateInput = $('#date') || document.querySelector('input[type="date"]');
-    var timeInput = $('#time') || document.querySelector('input[type="time"]');
-    var waitHoursInput = $('#waitHours') || $('#dureeAttente') || $all('select,input').find(function(el){
-      var p=(el.getAttribute('placeholder')||'').toLowerCase();
-      return p.includes('durée') || p.includes('duree');
-    });
-
-    // --- Aller/retour ---
-    function isRoundTrip(){
-      var rtInput = document.getElementById('roundTrip') || document.querySelector('input[name="roundTrip"]');
-      if(rtInput){
-        if(rtInput.type==='checkbox') return !!rtInput.checked;
-        if(rtInput.type==='radio'){
-          var yes = document.querySelector('input[name="roundTrip"][value="yes"], input[name="roundTrip"][value="oui"]');
-          if(yes) return !!yes.checked;
-        }
-      }
-      // boutons Oui/Non à aria-pressed
-      var group = document.getElementById('roundTripGroup') || $all('[role="group"], .btn-group').find(function(g){
-        return /aller/.test((g.textContent||'').toLowerCase());
-      });
-      if(group){
-        var active = group.querySelector('[aria-pressed="true"], .active');
-        if(active && /oui/i.test(active.textContent||'')) return true;
-        return false;
-      }
-      return false;
-    }
-
-    // --- Attente pendant le trajet ---
-    function isWaitingEnabled(){
-      // priorité aux inputs sémantiques
-      var attInput = document.getElementById('waitToggle') || document.querySelector('input[name="attente"]');
-      if(attInput){
-        if(attInput.type==='checkbox') return !!attInput.checked;
-        if(attInput.type==='radio'){
-          var y = document.querySelector('input[name="attente"][value="yes"], input[name="attente"][value="oui"]');
-          if(y) return !!y.checked;
-        }
-      }
-      // sinon, recherche d'un bouton "Oui" actif
-      var group = document.getElementById('waitToggleGroup') || $all('[role="group"], .btn-group').find(function(g){
-        return /attente/.test((g.textContent||'').toLowerCase());
-      });
-      if(group){
-        var active = group.querySelector('[aria-pressed="true"], .active');
-        if(active && /oui/i.test(active.textContent||'')) return true;
-      }
-      return false;
-    }
-
-    function getWaitHours(){
-      if(!isWaitingEnabled()) return 0; // << clé : on NE compte que si "Oui"
-      var h = 0;
-      if(waitHoursInput){
-        var val = (waitHoursInput.value||'').trim();
-        h = parseInt(val,10);
-        if(isNaN(h)) h = 0;
-      }
-      return h;
-    }
-
-    function isNight(){
-      if(!timeInput) return false;
-      var v=timeInput.value||'';
-      if(!v) return false;
-      var parts=v.split(':');
-      var hh=parseInt(parts[0],10);
-      if(isNaN(hh)) return false;
-      return (hh>=19 || hh<7);
-    }
-
-    function getDistanceKm(){
-      var el = document.getElementById('distanceKm') || document.querySelector('[data-distance-km]');
-      if(el){
-        var v = el.getAttribute('data-distance-km') || el.textContent || el.value || '';
-        var n = parseFloatSafe(v);
-        if(n>0) return n;
-      }
-      var kmNode = Array.from(document.querySelectorAll('span,div,p')).find(function(n){
-        var t=(n.textContent||'').toLowerCase();
-        return /\d+([.,]\d+)?\s*km/.test(t);
-      });
-      if(kmNode){
-        var m = (kmNode.textContent||'').match(/(\d+(?:[.,]\d+)?)\s*km/i);
-        if(m){ return parseFloatSafe(m[1]); }
-      }
-      if(window.currentDistanceKm && typeof window.currentDistanceKm==='number') return window.currentDistanceKm;
-      return 0;
-    }
-
-    function computeAndShow(){
-      var dist = getDistanceKm();
-      if(!dist || dist<=0){ return true; }
-
-      var rt = isRoundTrip();
-      var night = isNight();
-
-      var perKm = 0;
-      if(rt){
-        perKm = night ? RATE_B : RATE_A; // A jour / B nuit
-      }else{
-        perKm = night ? (RATE_D||RATE_B) : (RATE_C||RATE_A); // C jour / D nuit (fallback)
-      }
-
-      var waitH = getWaitHours(); // << NE compte que si "Oui"
-      var totalDist = rt ? dist*2 : dist;
-      var price = (totalDist * perKm) + BASE_FEE + (waitH * WAIT_PER_HOUR);
-      price = Math.round(price*100)/100;
-
-      var priceOut = document.getElementById('estimationPrice');
-      if(priceOut) priceOut.textContent = "≈ " + price.toFixed(2) + " €";
-      return false;
-    }
-
-    var estBtn = findEstimateBtn();
-    estBtn && estBtn.addEventListener('click', function(e){
-      var handled = computeAndShow();
-      if(handled===false){ e.preventDefault(); e.stopPropagation(); }
-    }, true);
-  });
-})();
-</script>
-
-
 <script id="wait-ui-toggle-js">
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
@@ -1746,6 +1345,402 @@ document.addEventListener('DOMContentLoaded', function(){
           setTimeout(syncUI, 50);
         });
       });
+    }
+  });
+})();
+</script>
+
+<script id="wa-mail-validate-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    function $(sel){ return document.querySelector(sel); }
+    function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
+
+    // Cache inputs (robuste: id, label, placeholder)
+    function findByLabelText(text){
+      text = text.toLowerCase();
+      var labels = $all('label');
+      for(var i=0;i<labels.length;i++){
+        var t = (labels[i].textContent||'').toLowerCase();
+        if(t.includes(text)){
+          var inp = labels[i].querySelector('input,textarea,select');
+          if(inp) return inp;
+        }
+      }
+      return null;
+    }
+    function findByPlaceholder(part){
+      part = part.toLowerCase();
+      var inputs = $all('input,textarea');
+      return inputs.find(function(el){
+        return ((el.getAttribute('placeholder')||'').toLowerCase().includes(part));
+      }) || null;
+    }
+
+    var nameInput  = $('#name') || findByLabelText('nom') || findByPlaceholder('nom');
+    var phoneInput = $('#phone') || findByLabelText('téléphone') || findByPlaceholder('tél') || findByPlaceholder('phone');
+    var dateInput  = $('#date') || document.querySelector('input[type="date"]');
+    var timeInput  = $('#time') || document.querySelector('input[type="time"]');
+    var startInput = $('#start') || findByLabelText('lieu de départ') || findByPlaceholder('départ') || findByPlaceholder('depart');
+    var endInput   = $('#end')   || findByLabelText('destination')    || findByPlaceholder('destination');
+
+    // Effacer le message sous "heure" au démarrage
+    var timeErr = document.getElementById('timeError') || document.getElementById('timeErrorNow');
+    if(timeErr){ timeErr.style.display = 'none'; }
+    if(timeInput){ timeInput.classList.remove('input-invalid','input-error','is-invalid'); }
+
+    // Fabrique un "petit message rouge" sous un champ si absent
+    function ensureFieldError(input){
+      if(!input) return null;
+      var sib = input.nextElementSibling;
+      if(sib && sib.classList && sib.classList.contains('field-error')) return sib;
+      var d = document.createElement('div');
+      d.className = 'field-error';
+      d.style.display = 'none';
+      input.insertAdjacentElement('afterend', d);
+      return d;
+    }
+    var errName = ensureFieldError(nameInput);
+    var errPhone = ensureFieldError(phoneInput);
+    var errDate = ensureFieldError(dateInput);
+    var errTime = ensureFieldError(timeInput);
+    var errStart = ensureFieldError(startInput);
+    var errEnd = ensureFieldError(endInput);
+
+    // Global banner near buttons
+    function ensureGlobalError(){
+      var banner = document.getElementById('globalFormError');
+      if(!banner){
+        // place it right above the action buttons area if possible
+        var anchor = document.getElementById('btn-whatsapp') || document.getElementById('btn-email') ||
+                     $all('a,button').find(el => /réserver par whatsapp/i.test((el.textContent||''))) ||
+                     $all('a,button').find(el => /réserver par e-?mail/i.test((el.textContent||''))) ||
+                     document.body;
+        banner = document.createElement('div');
+        banner.id = 'globalFormError';
+        banner.className = 'form-global-error';
+        banner.style.display = 'none';
+        anchor.parentNode.insertBefore(banner, anchor);
+      }
+      return banner;
+    }
+    var globalErr = ensureGlobalError();
+
+    function setErr(input, holder, msg){
+      if(!input||!holder) return;
+      holder.textContent = msg;
+      holder.style.display = 'block';
+      input.classList.add('input-invalid');
+    }
+    function clearErr(input, holder){
+      if(holder){ holder.style.display='none'; holder.textContent=''; }
+      if(input){ input.classList.remove('input-invalid'); }
+    }
+
+    // Validation du champ Heure selon ta règle (<= maintenant -> erreur + message demandé)
+    function nowHM(){
+      var d = new Date();
+      return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    }
+    function isTodaySelected(){
+      if(!dateInput || !dateInput.value) return false;
+      var v=dateInput.value;
+      var d;
+      if(v.includes('/')){ // JJ/MM/AAAA
+        var p=v.split('/'); d=new Date(+p[2], +p[1]-1, +p[0]); 
+      }else{ // AAAA-MM-JJ
+        var p=v.split('-'); d=new Date(+p[0], +p[1]-1, +p[2]);
+      }
+      var t=new Date(); t.setHours(0,0,0,0);
+      d && d.setHours(0,0,0,0);
+      return d && d.getTime()===t.getTime();
+    }
+    function validateTimeField(){
+      if(!timeInput) return true;
+      // Ne rien afficher au démarrage si vide
+      if(!timeInput.value){ clearErr(timeInput, errTime); return true; }
+      if(isTodaySelected()){
+        if(timeInput.value <= nowHM()){
+          setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
+          return false;
+        }
+      }
+      clearErr(timeInput, errTime);
+      return true;
+    }
+
+    function validateAll(showMsgs){
+      var missing = [];
+
+      // Nom
+      if(nameInput){
+        var v=(nameInput.value||'').trim();
+        if(!v){ missing.push('Nom et prénoms'); if(showMsgs) setErr(nameInput, errName, "Veuillez renseigner votre nom et prénoms."); }
+        else if(nameInput.classList.contains('input-invalid')){ missing.push('Nom et prénoms'); if(showMsgs) setErr(nameInput, errName, "Veuillez corriger votre nom (lettres uniquement, accents et espaces autorisés)."); }
+        else clearErr(nameInput, errName);
+      }
+      // Téléphone
+      if(phoneInput){
+        var pv=(phoneInput.value||'').trim();
+        if(!pv){ missing.push('Téléphone'); if(showMsgs) setErr(phoneInput, errPhone, "Veuillez saisir votre numéro de téléphone."); }
+        else if(phoneInput.classList.contains('input-invalid')){ missing.push('Téléphone'); if(showMsgs) setErr(phoneInput, errPhone, "Numéro invalide. Chiffres (et « + ») uniquement."); }
+        else clearErr(phoneInput, errPhone);
+      }
+      // Date
+      if(dateInput){
+        var dv=(dateInput.value||'').trim();
+        if(!dv){ missing.push('Date'); if(showMsgs) setErr(dateInput, errDate, "Veuillez sélectionner une date."); }
+        else if(dateInput.classList.contains('input-invalid')){ missing.push('Date'); if(showMsgs) setErr(dateInput, errDate, "La date choisie n'est pas valide."); }
+        else clearErr(dateInput, errDate);
+      }
+      // Heure
+      var timeOK = validateTimeField();
+      if(!timeOK){ missing.push('Heure'); }
+
+      // Lieux
+      if(startInput){
+        var sv=(startInput.value||'').trim();
+        if(!sv){ missing.push('Lieu de départ'); if(showMsgs) setErr(startInput, errStart, "Veuillez renseigner le lieu de départ."); }
+        else clearErr(startInput, errStart);
+      }
+      if(endInput){
+        var ev=(endInput.value||'').trim();
+        if(!ev){ missing.push('Destination'); if(showMsgs) setErr(endInput, errEnd, "Veuillez renseigner la destination."); }
+        else clearErr(endInput, errEnd);
+      }
+
+      return missing;
+    }
+
+    function showGlobal(miss){
+      if(!globalErr) return;
+      if(!miss.length){ globalErr.style.display='none'; globalErr.textContent=''; return; }
+      globalErr.textContent = "Merci de compléter/rectifier : " + miss.join(", ") + ".";
+      globalErr.style.display = 'block';
+      try{ globalErr.scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){}
+    }
+
+    // Trouver les boutons "Réserver par WhatsApp" et "Réserver par e-mail"
+    function findActions(){
+      var all = $all('a,button');
+      var wa = all.find(el => /réserver par whatsapp/i.test((el.textContent||'').trim())) || all.find(el => (el.href||'').includes('wa.me'));
+      var mail = all.find(el => /réserver par e-?mail/i.test((el.textContent||'').trim())) || all.find(el => (el.href||'').startsWith('mailto:'));
+      return {wa, mail};
+    }
+    var actions = findActions();
+
+    function guardClick(e){
+      var missing = validateAll(true);
+      if(missing.length){
+        e.preventDefault();
+        e.stopPropagation();
+        showGlobal(missing);
+      } else {
+        showGlobal([]);
+      }
+    }
+
+    if(actions.wa){ actions.wa.addEventListener('click', guardClick, true); }
+    if(actions.mail){ actions.mail.addEventListener('click', guardClick, true); }
+
+    // Et on cache le message de l'heure au démarrage (exigence)
+    if(timeErr){ timeErr.style.display='none'; }
+  });
+})();
+</script>
+
+
+<script id="estimation-reprogram-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    // ---- Tarifs ----
+    var RATE_A = 1.03; // AR jour
+    var RATE_B = 1.55; // AR nuit/jour férié
+    var RATE_C = 1.03; // Simple jour
+    var RATE_D = 1.55; // Simple nuit/jour férié
+    var BASE_FEE = 3.75;
+    var WAIT_PER_HOUR = 25;
+
+    // Permet la surcharge via data-* sur <body>
+    try{
+      var b = document.body;
+      if(b.dataset.rateA) RATE_A = parseFloat(String(b.dataset.rateA).replace(',','.'))||RATE_A;
+      if(b.dataset.rateB) RATE_B = parseFloat(String(b.dataset.rateB).replace(',','.'))||RATE_B;
+      if(b.dataset.rateC) RATE_C = parseFloat(String(b.dataset.rateC).replace(',','.'))||RATE_C;
+      if(b.dataset.rateD) RATE_D = parseFloat(String(b.dataset.rateD).replace(',','.'))||RATE_D;
+      if(b.dataset.baseFee) BASE_FEE = parseFloat(String(b.dataset.baseFee).replace(',','.'))||BASE_FEE;
+      if(b.dataset.waitHour) WAIT_PER_HOUR = parseFloat(String(b.dataset.waitHour).replace(',','.'))||WAIT_PER_HOUR;
+    }catch(_){}
+
+    // ---- Helpers ----
+    function $(sel){ return document.querySelector(sel); }
+    function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
+    function parseNum(v){ var n=parseFloat(String(v).replace(',','.')); return isNaN(n)?0:n; }
+
+    // Champs
+    var dateInput  = $('#date') || document.querySelector('input[type="date"]');
+    var timeInput  = $('#time') || document.querySelector('input[type="time"]');
+    var waitHours  = $('#waitHours') || $('#dureeAttente') || $all('select').find(s=>/attente|durée|duree/i.test(s.outerHTML));
+    var priceOut   = $('#estimationPrice') || (function(){ var s=document.createElement('span'); s.id='estimationPrice'; s.style.marginLeft='10px'; s.style.fontWeight='700'; return s; })();
+    var estBtn     = $('#btn-estimation') || $all('button,a').find(el=>/estimation du prix|estimer|estimation/i.test((el.textContent||'').toLowerCase()));
+
+    if(estBtn && !priceOut.parentNode){ estBtn.insertAdjacentElement('afterend', priceOut); }
+
+    // Détection Aller/retour
+    function isRoundTrip(){
+      var rt = document.getElementById('roundTrip') || document.querySelector('input[name="roundTrip"]');
+      if(rt){
+        if(rt.type==='checkbox') return !!rt.checked;
+        if(rt.type==='radio'){
+          var yes = document.querySelector('input[name="roundTrip"][value="yes"], input[name="roundTrip"][value="oui"]');
+          if(yes) return !!yes.checked;
+        }
+      }
+      // Btn group
+      var group = document.getElementById('roundTripGroup') || document.querySelector('.roundtrip-toggle') || document.querySelector('.btn-group');
+      if(group){
+        var act = group.querySelector('[aria-pressed="true"], .active');
+        if(act) return /oui/i.test((act.textContent||''));
+      }
+      // Texte "Oui" actif proche
+      var yesEl = $all('button,label,span').find(el=>/^\s*oui\s*$/i.test((el.textContent||'')) && (el.classList.contains('active')||el.getAttribute('aria-pressed')==='true'));
+      return !!yesEl;
+    }
+
+    // Attente activée ?
+    function isWaitingOn(){
+      var att = document.getElementById('waitToggle') || document.querySelector('input[name="attente"]');
+      if(att){
+        if(att.type==='checkbox') return !!att.checked;
+        if(att.type==='radio'){
+          var y = document.querySelector('input[name="attente"][value="yes"], input[name="attente"][value="oui"]');
+          if(y) return !!y.checked;
+        }
+      }
+      var grp = document.getElementById('waitToggleGroup') || document.querySelector('.wait-toggle') || document.querySelector('.btn-group');
+      if(grp){
+        var act = grp.querySelector('[aria-pressed="true"], .active');
+        if(act) return /oui/i.test((act.textContent||''));
+      }
+      return false;
+    }
+
+    // Forcer l'UI de durée en fonction du toggle (fix "toujours grisé")
+    function syncWaitUI(){
+      if(!waitHours) return;
+      if(isWaitingOn()){
+        waitHours.removeAttribute('disabled');
+        waitHours.classList.remove('is-disabled');
+        // si 0 → proposer 1 par défaut
+        if(waitHours.value === "0" || waitHours.value === "" || waitHours.value == null){
+          // s'assurer que les options 1..4 existent
+          if(waitHours.tagName.toLowerCase()==='select'){
+            for(var i=1;i<=4;i++){
+              if(!waitHours.querySelector('option[value="'+i+'"]')){
+                var opt=document.createElement('option'); opt.value=String(i); opt.textContent=String(i); waitHours.appendChild(opt);
+              }
+            }
+          }
+          waitHours.value = "1";
+        }
+      } else {
+        waitHours.setAttribute('disabled','disabled');
+        waitHours.classList.add('is-disabled');
+        if(waitHours.tagName.toLowerCase()==='select'){
+          var opt0 = waitHours.querySelector('option[value="0"]');
+          if(!opt0){
+            opt0 = document.createElement('option'); opt0.value="0"; opt0.textContent="0"; opt0.dataset.temp="1";
+            waitHours.insertBefore(opt0, waitHours.firstChild);
+          }
+          waitHours.value = "0";
+        } else {
+          waitHours.value = "0";
+        }
+      }
+    }
+
+    // Événements pour resynchroniser l'UI
+    $all('#waitToggle, input[name="attente"]').forEach(function(el){
+      el.addEventListener('change', function(){ setTimeout(syncWaitUI, 30); });
+    });
+    var waitGroup = document.getElementById('waitToggleGroup') || document.querySelector('.wait-toggle') || document.querySelector('.btn-group');
+    if(waitGroup){
+      waitGroup.addEventListener('click', function(){ setTimeout(syncWaitUI, 30); });
+    }
+    // Sync initial
+    syncWaitUI();
+
+    // Distance en km (chercher plusieurs sources)
+    function getDistanceKm(){
+      var el = document.getElementById('distanceKm') || document.querySelector('[data-distance-km]');
+      if(el){
+        var v = el.getAttribute('data-distance-km') || el.textContent || el.value || '';
+        var n = parseNum(v);
+        if(n>0) return n;
+      }
+      var kmNode = $all('span,div,p').find(function(n){
+        var t=(n.textContent||'').toLowerCase();
+        return /\d+([.,]\d+)?\s*km/.test(t);
+      });
+      if(kmNode){
+        var m = (kmNode.textContent||'').match(/(\d+(?:[.,]\d+)?)\s*km/i);
+        if(m){ return parseNum(m[1]); }
+      }
+      if(typeof window.currentDistanceKm === 'number') return window.currentDistanceKm;
+      return 0;
+    }
+
+    function isNight(){
+      if(!timeInput || !timeInput.value) return false;
+      var hh = parseInt(timeInput.value.split(':')[0],10);
+      if(isNaN(hh)) return false;
+      return (hh>=19 || hh<7);
+    }
+
+    function getWaitHours(){
+      if(!isWaitingOn()) return 0;
+      if(!waitHours) return 0;
+      var n = parseInt((waitHours.value||'0'),10);
+      if(isNaN(n)) n = 0;
+      // bornes 1..4 si attente activée
+      if(n<1) n=1;
+      if(n>4) n=4;
+      return n;
+    }
+
+    function computePrice(){
+      var dist = getDistanceKm();
+      if(!dist || dist<=0) return null;
+
+      var rt = isRoundTrip();
+      var night = isNight();
+
+      var perKm = rt ? (night ? RATE_B : RATE_A) : (night ? RATE_D : RATE_C);
+      var totalKm = rt ? dist*2 : dist;
+      var waitH = getWaitHours();
+
+      var price = (totalKm * perKm) + BASE_FEE + (waitH * WAIT_PER_HOUR);
+      return Math.round(price*100)/100;
+    }
+
+    function showPrice(){
+      var p = computePrice();
+      if(p==null){
+        // Pas de distance trouvée -> afficher une petite aide
+        if(priceOut){ priceOut.textContent = " (entrez vos adresses pour calculer)"; }
+        return;
+      }
+      if(priceOut){ priceOut.textContent = "≈ " + p.toFixed(2) + " €"; }
+    }
+
+    if(estBtn){
+      estBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        showPrice();
+      }, true);
     }
   });
 })();
