@@ -50,8 +50,8 @@
           <div><label for="phone">Téléphone *</label><input id="phone" required></div>
         </div>
         <div class="form-row">
-          <div><label for="start">Lieu de départ *</label><input id="start" placeholder="Détails utiles (code porte, numéro de vol, lieu précis du rendez-vous, etc.)" required></div>
-          <div><label for="end">Destination *</label><input id="end" placeholder="Détails utiles (code porte, numéro de vol, lieu précis du rendez-vous, etc.)" required></div>
+          <div><label for="start">Lieu de départ *</label><input id="start" placeholder="Adresse, aéroport, hôtel…" required></div>
+          <div><label for="end">Destination *</label><input id="end" placeholder="Adresse, aéroport, hôtel…" required></div>
         </div>
         <div class="form-row">
           <div><label for="date">Date *</label><input id="date" type="date" required></div>
@@ -465,12 +465,12 @@ document.addEventListener("DOMContentLoaded", function() {
         return;
       }
       var service = new google.maps.DistanceMatrixService();
-      service.getDistanceMatrix({
-        origins: [origin],
+      service.getDistanceMatrix({        origins: [origin],
         destinations: [destination],
         travelMode: google.maps.TravelMode.DRIVING,
-        unitSystem: google.maps.UnitSystem.METRIC
-      }, function(response, status){
+        unitSystem: google.maps.UnitSystem.METRIC,
+        drivingOptions: { departureTime: new Date(), trafficModel: google.maps.TrafficModel.BEST_GUESS }
+    }, function(response, status){
         if(status !== 'OK' || !response || !response.rows || !response.rows[0] || !response.rows[0].elements || !response.rows[0].elements[0]){
           cb(new Error('DistanceMatrix status: '+status), null);
           return;
@@ -593,10 +593,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Try to use place_id if Autocomplete is on inputs
     function resolvePlace(inputSel){
-      var el = getInput(inputSel);
-      if(!el) return null;
-      var place = el._gm_place || null; // we may store it from your existing autocomplete init
-      if(place && place.place_id){ return { placeId: place.place_id }; }
+  var el = document.querySelector(inputSel);
+  if(!el) return null;
+  var p = el._gm_place || (el.getAttribute && (function(){ try { return JSON.parse(el.getAttribute('data-place')||'null'); } catch(e){ return null; } })()) || null;
+  if(p && p.place_id){ return { placeId: p.place_id }; }
+  var v = (el.value||'').trim();
+  return v ? v : null;
+}; }
       var v = (el.value||'').trim();
       return v ? v : null;
     }
