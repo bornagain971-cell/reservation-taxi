@@ -2253,81 +2253,72 @@ document.addEventListener('DOMContentLoaded', function(){
       return lines.join("\n");
     }
 
-    // === UNIVERSAL CLICK/TAP GUARD ===
-    const isWA = (el)=>{
+    // === DETECTION ===
+    const isWAReserve = (el)=>{
       if(!el) return false;
       const txt = (el.textContent||'').toLowerCase();
-      const href = (el.getAttribute && el.getAttribute('href')) || '';
-      return txt.includes('réserver par whatsapp') || href.includes('wa.me');
+      return txt.includes('réserver par whatsapp') || txt.includes('reserver par whatsapp');
     };
-    const isMAIL = (el)=>{
+    const isWAAny = (el)=>{
       if(!el) return false;
-      const txt = (el.textContent||'').toLowerCase();
       const href = (el.getAttribute && el.getAttribute('href')) || '';
-      return txt.includes('réserver par e-mail') || txt.includes('reserver par e-mail') || href.startsWith('mailto:');
+      const txt = (el.textContent||'').toLowerCase();
+      return href.includes('wa.me') || txt.includes('whatsapp');
+    };
+    const isMailAny = (el)=>{
+      if(!el) return false;
+      const href = (el.getAttribute && el.getAttribute('href')) || '';
+      const txt = (el.textContent||'').toLowerCase();
+      return href.startsWith('mailto:') || txt.includes('réserver par e-mail') || txt.includes('reserver par e-mail');
     };
 
-    async function handleAction(el, kind, e){
-      // Hard guard: always strict-validate
+    // === ACTIONS ===
+    async function handleWAReserve(el, e){
       const ok = validateAllStrict(true);
       if(!ok){ e.preventDefault(); e.stopPropagation(); return; }
-
-      // Build summary with auto-estimate
       e.preventDefault(); e.stopPropagation();
       const price = await computeEstimate();
       const summary = buildSummary(price);
-
-      if(kind==='wa'){
-        let base = (el.getAttribute('href')||'') || 'https://wa.me/';
-        base = base.replace(/(\?|&)text=[^&]*/,'').replace(/&$/,'');
-        const sep = base.includes('?') ? '&' : '?';
-        const url = base + sep + 'text=' + encodeURIComponent(summary);
-        window.location.href = url;
-      } else {
-        let href = (el.getAttribute('href')||'').trim();
-        if(!href || !href.startsWith('mailto:')) href = 'mailto:taxili@laposte.net';
-        href = href.replace(/\?(.*)$/,'').trim();
-        const subject = 'Réservation Taxi Li – ' + (nameInput?nameInput.value.trim():'Client');
-        const url = href + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(summary);
-        window.location.href = url;
-      }
+      let base = (el.getAttribute('href')||'') || 'https://wa.me/';
+      base = base.replace(/(\?|&)text=[^&]*/,'').replace(/&$/,'');
+      const sep = base.includes('?') ? '&' : '?';
+      const url = base + sep + 'text=' + encodeURIComponent(summary);
+      window.location.href = url;
+    }
+    function handleWAQuick(el, e){
+      // contact rapide : pas de validation, pas d'estimation
+      // ouvre le wa.me tel/lien tel quel
+      const href = (el.getAttribute('href')||'').trim();
+      if(!href){ return; }
+      // laisser le navigateur suivre le lien (pas de preventDefault)
+    }
+    async function handleMailAny(el, e){
+      const ok = validateAllStrict(true);
+      if(!ok){ e.preventDefault(); e.stopPropagation(); return; }
+      e.preventDefault(); e.stopPropagation();
+      const price = await computeEstimate();
+      const summary = buildSummary(price);
+      let href = (el.getAttribute('href')||'').trim();
+      if(!href || !href.startsWith('mailto:')) href = 'mailto:taxili@laposte.net';
+      href = href.replace(/\?(.*)$/,'').trim();
+      const subject = 'Réservation Taxi Li – ' + (nameInput?nameInput.value.trim():'Client');
+      const url = href + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(summary);
+      window.location.href = url;
     }
 
     function universalListener(ev){
       const el = ev.target.closest('a,button');
       if(!el) return;
-      if(isWA(el)){ handleAction(el,'wa',ev); }
-      else if(isMAIL(el)){ handleAction(el,'mail',ev); }
+      if(isWAReserve(el)){ handleWAReserve(el, ev); }
+      else if(isWAAny(el)){ handleWAQuick(el, ev); }
+      else if(isMailAny(el)){ handleMailAny(el, ev); }
     }
 
-    // Capture on document + window for clicks & touch
+    // Bind capture
     ['click','touchstart','pointerdown'].forEach(evt=>{
       document.addEventListener(evt, universalListener, true);
       window.addEventListener(evt, universalListener, true);
     });
-
-    // Also bind directly to existing elements now (in case stopImmediatePropagation elsewhere)
-    $$('a,button').forEach(el=>{
-      if(isWA(el) || isMAIL(el)){
-        el.addEventListener('click', function(ev){ universalListener(ev); }, true);
-      }
-    });
-
-    // Observe DOM for dynamically inserted buttons/links
-    const mo = new MutationObserver((muts)=>{
-      muts.forEach(m=>{
-        m.addedNodes && m.addedNodes.forEach(n=>{
-          if(!(n instanceof Element)) return;
-          if(n.matches && (n.matches('a,button') || n.querySelector('a,button'))){
-            // bind to new elements
-            ['click','touchstart','pointerdown'].forEach(evt=>{
-              n.addEventListener && n.addEventListener(evt, universalListener, true);
-            });
-          }
-        });
-      });
-    });
-    mo.observe(document.documentElement, {childList:true, subtree:true});
   });
 })();
 </script></body></html>
