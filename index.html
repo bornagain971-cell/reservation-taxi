@@ -1,144 +1,134 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>Taxi LI — Réservation Guadeloupe</title>
-<link rel="stylesheet" href="assets/styles.css">
-
+<link href="assets/styles.css" rel="stylesheet"/>
 <style>
 .field-error{display:none;color:#c53030;font-size:.9rem;margin-top:6px}
 .input-error{border-color:#c53030 !important; outline-color:#c53030 !important;}
 </style>
-
-
 <style>
 textarea#notes::placeholder {
   text-align: center;
   white-space: pre-line;
 }
 </style>
-
-</head>
+<style id="validate-css">
+.field-error{ color:#c1121f; font-weight:600; margin-top:6px; font-size:0.95rem; }
+.input-invalid{ border-color:#c1121f !important; box-shadow:0 0 0 2px rgba(193,18,31,.08); }
+</style></head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="header-left"><img src="images/logo.png" alt="Taxi LI logo"></div>
-      <div class="header-center"><h1>Taxi Li Réservation Guadeloupe</h1><div class="tagline">Le plaisir de vous conduire</div></div>
-      <div class="header-right">
-        <a href="tel:+590691280005">0691 28 00 05</a>
-        <a href="https://wa.me/590691280005" target="_blank">WhatsApp</a>
-        <a href="#form">Réserver</a>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <h2>Réservez votre taxi en ligne simplement et rapidement</h2>
-        <p>Courses locales et longues distances. Tarifs clairs, confirmation instantanée sur WhatsApp ou e‑mail.</p>
-        <div class="badges">
-          <div class="badge">Disponibilité 24/7*</div>
-          <div class="badge">Paiement CB/espèces</div>
-          <div class="badge">Siège enfant sur demande</div>
-        </div>
-        <div class="small">* Selon planning — réponse rapide.</div>
-
-        <div class="gallery">
-          <h3 style="margin:16px 0 8px 0">Notre véhicule en images</h3>
-          <div class="slider">
-            <div id="slides"></div>
-          </div>
-          <div id="dots" class="dots"></div>
-        </div>
-      </div>
-
-      <div id="form" class="card">
-        <div class="form-row">
-          <div><label for="name">Nom et prénom *</label><input id="name" required></div>
-          <div><label for="phone">Téléphone *</label><input id="phone" required></div>
-        </div>
-        <div class="form-row">
-          <div><label for="start">Lieu de départ *</label><input id="start" placeholder="Adresse, aéroport, hôtel…" required></div>
-          <div><label for="end">Destination *</label><input id="end" placeholder="Adresse, aéroport, hôtel…" required></div>
-        </div>
-        <div class="form-row">
-          <div><label for="date">Date *</label><input id="date" type="date" required></div>
-          <div><label for="time">Heure *</label><input id="time" type="time" required></div>
-        </div>
-        <div class="form-row">
-          <div><label for="pax">Passagers</label><select id="pax"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
-          <div><label for="bags">Bagages</label><select id="bags"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
-        </div>
-        <div class="form-row">
-          <div><label for="roundtrip">Aller/retour</label><select id="roundtrip"><option>Non</option><option>Oui</option></select></div>
-          <div><label for="waitOnTrip">Attente pendant le trajet</label><select id="waitOnTrip"><option>Non</option><option>Oui</option></select></div>
-        </div>
-        <div class="form-row">
-          <div><label for="waitHours">Durée d’attente (heures)</label><select id="waitHours"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
-          <div><label for="child">Siège enfant</label><select id="child"><option>Non</option><option>Oui</option></select></div>
-        </div>
-        <div><label for="notes">Notes utiles</label><textarea id="notes" placeholder="Détails utiles :
+<div class="container">
+<div class="header">
+<div class="header-left"><img alt="Taxi LI logo" src="images/logo.png"/></div>
+<div class="header-center"><h1>Taxi Li Réservation Guadeloupe</h1><div class="tagline">Le plaisir de vous conduire</div></div>
+<div class="header-right">
+<a href="tel:+590691280005">0691 28 00 05</a>
+<a href="https://wa.me/590691280005" target="_blank">WhatsApp</a>
+<a href="#form">Réserver</a>
+</div>
+</div>
+<div class="grid">
+<div class="card">
+<h2>Réservez votre taxi en ligne simplement et rapidement</h2>
+<p>Courses locales et longues distances. Tarifs clairs, confirmation instantanée sur WhatsApp ou e‑mail.</p>
+<div class="badges">
+<div class="badge">Disponibilité 24/7*</div>
+<div class="badge">Paiement CB/espèces</div>
+<div class="badge">Siège enfant sur demande</div>
+</div>
+<div class="small">* Selon planning — réponse rapide.</div>
+<div class="gallery">
+<h3 style="margin:16px 0 8px 0">Notre véhicule en images</h3>
+<div class="slider">
+<div id="slides"></div>
+</div>
+<div class="dots" id="dots"></div>
+</div>
+</div>
+<div class="card" id="form">
+<div class="form-row">
+<div><label for="name">Nom et prénom *</label><input id="name" required=""/></div>
+<div><label for="phone">Téléphone *</label><input id="phone" required=""/></div>
+</div>
+<div class="form-row">
+<div><label for="start">Lieu de départ *</label><input id="start" placeholder="Adresse, aéroport, hôtel…" required=""/></div>
+<div><label for="end">Destination *</label><input id="end" placeholder="Adresse, aéroport, hôtel…" required=""/></div>
+</div>
+<div class="form-row">
+<div><label for="date">Date *</label><input id="date" required="" type="date"/></div>
+<div><label for="time">Heure *</label><input id="time" required="" type="time"/></div>
+</div>
+<div class="form-row">
+<div><label for="pax">Passagers</label><select id="pax"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+<div><label for="bags">Bagages</label><select id="bags"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+</div>
+<div class="form-row">
+<div><label for="roundtrip">Aller/retour</label><select id="roundtrip"><option>Non</option><option>Oui</option></select></div>
+<div><label for="waitOnTrip">Attente pendant le trajet</label><select id="waitOnTrip"><option>Non</option><option>Oui</option></select></div>
+</div>
+<div class="form-row">
+<div><label for="waitHours">Durée d’attente (heures)</label><select id="waitHours"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
+<div><label for="child">Siège enfant</label><select id="child"><option>Non</option><option>Oui</option></select></div>
+</div>
+<div><label for="notes">Notes utiles</label><textarea id="notes" placeholder="Détails utiles :
 code de porte, vol, lieu précis…
 Pour plus d’informations,
 contactez-nous."></textarea></div>
-
-        <div class="card" style="margin-top:14px">
-          <div class="calc">
-            <button class="btn" id="estimateBtn" type="button">Estimation du prix</button>
-            <div class="result" id="estimateOut">—</div>
-          </div>
-          <div class="small" style="margin-top:10px">
-            Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.<br>
+<div class="card" style="margin-top:14px">
+<div class="calc">
+<button class="btn" id="estimateBtn" type="button">Estimation du prix</button>
+<div class="result" id="estimateOut">—</div>
+</div>
+<div class="small" style="margin-top:10px">
+            Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.<br/>
             Le prix affiché est indicatif ; le prix exact est déterminé par le taximètre (compteur kilométrique). Pour plus d’informations, contactez‑nous.
           </div>
-          <div id="confirmArea" style="margin-top:14px;text-align:center">
-            <button class="btn" id="confirmBtn" type="button">Réserver</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:18px">
-      <h3>Tarifs & transparence</h3>
-      <p>Le prix final est déterminé par le <strong>taximètre (compteur kilométrique)</strong> selon le trajet réel (embouteillages, déviations, etc.).</p>
-      <table class="table">
-        <thead><tr><th>Élément</th><th>Montant</th></tr></thead>
-        <tbody>
-          <tr><td>Prise en charge</td><td>3,75 €</td></tr>
-          <tr><td>Tarif A (aller/retour de jour, au km)</td><td>1,03 €/km</td></tr>
-          <tr><td>Tarif B (aller/retour de nuit et jour férié, au km)</td><td>1,55 €/km</td></tr>
-          <tr><td>Tarif C (aller simple de jour, au km)</td><td>2,06 €/km</td></tr>
-          <tr><td>Tarif D (aller simple de nuit et jour férié, au km)</td><td>3,06 €/km</td></tr>
-          <tr><td>Heure d’attente pendant les courses (par heure)</td><td>25 €</td></tr>
-        </tbody>
-      </table>
-      <ul>
-        <li>Facturation claire — pas de surprises.</li>
-        <li>Reçus sur demande (professionnels et particuliers).</li>
-        <li>Courtes et longues distances, aéroports, hôtels, rendez‑vous médicaux…</li>
-        <li>Paiement par carte, espèces ou lien de paiement sécurisé.</li>
-      </ul>
-      <div class="small">Tarifs susceptibles d’évoluer, sous réserve de modifications préfectorales.</div>
-    </div>
-
-    <div class="footer container" style="text-align:center;margin:24px auto">
+<div id="confirmArea" style="margin-top:14px;text-align:center">
+<button class="btn" id="confirmBtn" type="button">Réserver</button>
+</div>
+</div>
+</div>
+</div>
+<div class="card" style="margin-top:18px">
+<h3>Tarifs &amp; transparence</h3>
+<p>Le prix final est déterminé par le <strong>taximètre (compteur kilométrique)</strong> selon le trajet réel (embouteillages, déviations, etc.).</p>
+<table class="table">
+<thead><tr><th>Élément</th><th>Montant</th></tr></thead>
+<tbody>
+<tr><td>Prise en charge</td><td>3,75 €</td></tr>
+<tr><td>Tarif A (aller/retour de jour, au km)</td><td>1,03 €/km</td></tr>
+<tr><td>Tarif B (aller/retour de nuit et jour férié, au km)</td><td>1,55 €/km</td></tr>
+<tr><td>Tarif C (aller simple de jour, au km)</td><td>2,06 €/km</td></tr>
+<tr><td>Tarif D (aller simple de nuit et jour férié, au km)</td><td>3,06 €/km</td></tr>
+<tr><td>Heure d’attente pendant les courses (par heure)</td><td>25 €</td></tr>
+</tbody>
+</table>
+<ul>
+<li>Facturation claire — pas de surprises.</li>
+<li>Reçus sur demande (professionnels et particuliers).</li>
+<li>Courtes et longues distances, aéroports, hôtels, rendez‑vous médicaux…</li>
+<li>Paiement par carte, espèces ou lien de paiement sécurisé.</li>
+</ul>
+<div class="small">Tarifs susceptibles d’évoluer, sous réserve de modifications préfectorales.</div>
+</div>
+<div class="footer container" style="text-align:center;margin:24px auto">
       © TAXI LI — Guadeloupe. Zone principale : Capesterre‑Belle‑Eau, Le Gosier, Goyave — déplacements dans toute la Guadeloupe.
-      &nbsp; <a href="mailto:taxili@laposte.net">taxili@laposte.net</a> — <a href="tel:+590691280005">0691 28 00 05</a>
-    </div>
-  </div>
-
+        <a href="mailto:taxili@laposte.net">taxili@laposte.net</a> — <a href="tel:+590691280005">0691 28 00 05</a>
+</div>
+</div>
 <script src="assets/app.js"></script>
 <script src="assets/wait_hours.patch.js"></script>
-<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&libraries=places&callback=initPlaces"></script>
+<script async="" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&amp;libraries=places&amp;callback=initPlaces"></script>
 <script>
 // Dummy estimator just to keep layout identical; user can integrate real calc if needed.
 document.getElementById('estimateBtn').addEventListener('click', ()=>{
   document.getElementById('estimateOut').textContent = '—';
 });
 </script>
-
-
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   const dateInput = document.getElementById("date");
@@ -159,8 +149,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 });
 </script>
-
-
 <script>
 (function () {
   const estimateBtn = document.querySelector('#estimateBtn, button[data-role="estimate"], .btn-estimate');
@@ -208,8 +196,6 @@ document.addEventListener("DOMContentLoaded", function() {
   dest.addEventListener('input', clearError);
 })();
 </script>
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=="loading"){fn();} else {document.addEventListener("DOMContentLoaded", fn);} }
@@ -298,9 +284,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -415,9 +398,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -530,8 +510,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -638,8 +616,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -742,8 +718,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -821,8 +795,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
-
-
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
@@ -900,8 +872,6 @@ document.addEventListener('DOMContentLoaded', function(){
   if(dateEl){ dateEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, timeErr); }); }
 });
 </script>
-
-
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
@@ -977,8 +947,6 @@ document.addEventListener('DOMContentLoaded', function(){
   if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
 });
 </script>
-
-
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   function scrollToFirstError(){
@@ -1017,8 +985,6 @@ document.addEventListener('DOMContentLoaded', function(){
   }, true);
 });
 </script>
-
-
 <script id="wait-ar-robust-js">
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
@@ -1163,4 +1129,249 @@ document.addEventListener('DOMContentLoaded', function(){
 })();
 </script>
 
-</body>
+<script id="validation-guard-v1-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    const $ = sel => document.querySelector(sel);
+    const $all = sel => Array.from(document.querySelectorAll(sel));
+
+    // ---- Helpers to find fields (id, label, placeholder) ----
+    const N = s => (s||'').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'');
+
+    function findByLabel(txt){
+      txt = N(txt);
+      const labels = $all('label');
+      for(const lb of labels){
+        const t = N(lb.textContent);
+        if(t.includes(txt)){
+          if(lb.htmlFor){
+            const el = document.getElementById(lb.htmlFor);
+            if(el) return el;
+          }
+          const el = lb.querySelector('input,textarea,select') || lb.parentElement && lb.parentElement.querySelector('input,textarea,select');
+          if(el) return el;
+        }
+      }
+      return null;
+    }
+    function findByPlaceholder(part){
+      part = N(part);
+      const inputs = $all('input,textarea');
+      return inputs.find(el => N(el.getAttribute('placeholder')||'').includes(part)) || null;
+    }
+
+    // Core fields
+    const nameInput  = $('#name') || findByLabel('nom') || findByPlaceholder('nom');
+    const phoneInput = $('#phone') || findByLabel('tele') || findByPlaceholder('tel') || findByPlaceholder('phone');
+    const dateInput  = $('#date') || document.querySelector('input[type="date"]') || findByLabel('date');
+    const timeInput  = $('#time') || document.querySelector('input[type="time"]') || findByLabel('heure');
+    const startInput = $('#start') || findByLabel('lieu de depart') || findByPlaceholder('depart') || $('#depart') || $('#origin');
+    const endInput   = $('#end')   || findByLabel('destination')   || findByPlaceholder('destination') || $('#dest') || $('#destination');
+
+    // Buttons WhatsApp / Email (find by text or href)
+    function findActions(){
+      const all = $all('a,button');
+      const wa = all.find(el => /réserver par whatsapp/i.test((el.textContent||''))) || all.find(el => (el.href||'').includes('wa.me'));
+      const mail = all.find(el => /réserver par e-?mail/i.test((el.textContent||''))) || all.find(el => (el.href||'').startsWith('mailto:'));
+      return {wa, mail};
+    }
+    const actions = findActions();
+
+    // Utility: create error holder under a field if missing
+    function ensureErrorHolder(input){
+      if(!input) return null;
+      const next = input.nextElementSibling;
+      if(next && next.classList && next.classList.contains('field-error')) return next;
+      const d = document.createElement('div');
+      d.className = 'field-error';
+      d.style.display = 'none';
+      input.insertAdjacentElement('afterend', d);
+      return d;
+    }
+
+    const errName  = ensureErrorHolder(nameInput);
+    const errPhone = ensureErrorHolder(phoneInput);
+    const errDate  = ensureErrorHolder(dateInput);
+    const errTime  = ensureErrorHolder(timeInput);
+    const errStart = ensureErrorHolder(startInput);
+    const errEnd   = ensureErrorHolder(endInput);
+
+    function setErr(input, holder, msg){
+      if(!input || !holder) return;
+      holder.textContent = msg;
+      holder.style.display = 'block';
+      input.classList.add('input-invalid');
+    }
+    function clearErr(input, holder){
+      if(holder){ holder.textContent=''; holder.style.display='none'; }
+      if(input){ input.classList.remove('input-invalid'); }
+    }
+
+    // ---- Name: alphabetic with accents, spaces, hyphens, apostrophes ----
+    if(nameInput){
+      nameInput.addEventListener('input', () => {
+        const before = nameInput.value;
+        const cleaned = before.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ' -]/g, '');
+        nameInput.value = cleaned;
+        if(before !== cleaned){
+          setErr(nameInput, errName, "Veuillez saisir un nom et des prénoms sans chiffres ni caractères spéciaux. Merci !");
+        } else if(cleaned.trim()===''){
+          setErr(nameInput, errName, "Veuillez saisir votre nom et prénoms.");
+        } else {
+          clearErr(nameInput, errName);
+        }
+      });
+    }
+
+    // ---- Phone: numeric; allow '+' only (preferably at first char) ----
+    if(phoneInput){
+      phoneInput.addEventListener('input', () => {
+        const before = phoneInput.value;
+        // keep digits; allow a single leading '+'
+        let cleaned = before.replace(/[^\d+]/g, '');
+        if(cleaned.indexOf('+') > 0){ cleaned = cleaned.replace(/\+/g,''); } // '+' only at start
+        if((cleaned.match(/\+/g)||[]).length > 1){ cleaned = cleaned.replace(/\+/g,''); }
+        phoneInput.value = cleaned;
+        if(before !== cleaned){
+          setErr(phoneInput, errPhone, "Veuillez saisir un numéro valide (chiffres uniquement, « + » autorisé en début).");
+        } else if(cleaned.trim()===''){
+          setErr(phoneInput, errPhone, "Veuillez saisir votre numéro de téléphone.");
+        } else {
+          clearErr(phoneInput, errPhone);
+        }
+      });
+    }
+
+    // ---- Date: min = today; past dates disabled visually ----
+    function todayISO(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    if(dateInput){
+      try{
+        dateInput.min = todayISO();
+      }catch(_){}
+      dateInput.addEventListener('change', () => {
+        const v = dateInput.value;
+        if(!v){
+          setErr(dateInput, errDate, "Veuillez sélectionner une date.");
+          return;
+        }
+        if(v < todayISO()){
+          setErr(dateInput, errDate, "Cette date est passée. Merci de choisir une date à partir d'aujourd'hui.");
+          // Auto-correct to today
+          dateInput.value = todayISO();
+        } else {
+          clearErr(dateInput, errDate);
+        }
+      });
+    }
+
+    // ---- Time: default now + 1 minute; if <= now when date = today -> reset and error ----
+    function nowPlus1(){
+      const d = new Date();
+      d.setMinutes(d.getMinutes()+1);
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      return `${hh}:${mm}`;
+    }
+    function isTodaySelected(){
+      if(!dateInput || !dateInput.value) return false;
+      return dateInput.value === todayISO();
+    }
+    if(timeInput){
+      // init default
+      if(!timeInput.value){ timeInput.value = nowPlus1(); }
+      // validate on change
+      timeInput.addEventListener('change', () => {
+        const v = timeInput.value;
+        if(!v){ setErr(timeInput, errTime, "Veuillez choisir une heure."); return; }
+        if(isTodaySelected()){
+          const now = new Date();
+          const [hh, mm] = v.split(':').map(n=>parseInt(n,10));
+          const chosen = new Date();
+          chosen.setHours(hh||0, mm||0, 0, 0);
+          if(chosen.getTime() <= now.getTime()){
+            setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
+            // reset to now + 1
+            timeInput.value = nowPlus1();
+            return;
+          }
+        }
+        clearErr(timeInput, errTime);
+      });
+    }
+
+    // ---- Start/End empty errors on input ----
+    function bindRequired(input, holder, label){
+      if(!input) return;
+      input.addEventListener('input', () => {
+        const v = (input.value||'').trim();
+        if(!v){ setErr(input, holder, "Veuillez renseigner " + label + "."); }
+        else { clearErr(input, holder); }
+      });
+    }
+    bindRequired(startInput, errStart, "le lieu de départ");
+    bindRequired(endInput, errEnd, "la destination");
+
+    // ---- Guard on WhatsApp / Email buttons ----
+    function validateAll(showMessages){
+      const missing = [];
+
+      function req(input, holder, label, test){
+        const v = (input && input.value||'').trim();
+        if(!input){
+          return;
+        }
+        if(!v){ missing.push(label); if(showMessages) setErr(input, holder, "Veuillez renseigner " + label + "."); return; }
+        if(test && !test()){ missing.push(label); }
+      }
+
+      req(nameInput,  errName,  "nom et prénoms", () => !nameInput.classList.contains('input-invalid'));
+      req(phoneInput, errPhone, "téléphone", () => !phoneInput.classList.contains('input-invalid'));
+      req(dateInput,  errDate,  "date", () => !dateInput.classList.contains('input-invalid'));
+      req(timeInput,  errTime,  "heure", () => !timeInput.classList.contains('input-invalid'));
+      req(startInput, errStart, "le lieu de départ");
+      req(endInput,   errEnd,   "la destination");
+
+      // Si heure aujourd'hui <= maintenant, marquer erreur
+      if(timeInput && dateInput && dateInput.value === todayISO()){
+        const v = timeInput.value||'';
+        if(v){
+          const [hh,mm] = v.split(':').map(n=>parseInt(n,10));
+          const now = new Date();
+          const chosen = new Date();
+          chosen.setHours(hh||0, mm||0, 0, 0);
+          if(chosen.getTime() <= now.getTime()){
+            setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
+            missing.push("heure");
+          }
+        }
+      }
+
+      return missing;
+    }
+
+    function guardClick(e){
+      const miss = validateAll(true);
+      if(miss.length){
+        e.preventDefault(); e.stopPropagation();
+      }
+    }
+
+    const allBtns = $all('a,button');
+    const wa = allBtns.find(el => /réserver par whatsapp/i.test((el.textContent||''))) || allBtns.find(el => (el.href||'').includes('wa.me'));
+    const mail = allBtns.find(el => /réserver par e-?mail/i.test((el.textContent||''))) || allBtns.find(el => (el.href||'').startsWith('mailto:'));
+    if(wa)   wa.addEventListener('click', guardClick, true);
+    if(mail) mail.addEventListener('click', guardClick, true);
+
+    // Initial clean of hour error
+    if(errTime){ errTime.style.display='none'; errTime.textContent=''; }
+  });
+})();
+</script>
+</body></html>
