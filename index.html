@@ -1,151 +1,144 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Taxi LI — Réservation Guadeloupe</title>
-<link href="assets/styles.css" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/styles.css">
+
 <style>
 .field-error{display:none;color:#c53030;font-size:.9rem;margin-top:6px}
 .input-error{border-color:#c53030 !important; outline-color:#c53030 !important;}
 </style>
+
+
 <style>
 textarea#notes::placeholder {
   text-align: center;
   white-space: pre-line;
 }
 </style>
-<style id="alpha-autoclean-css">
-.field-error{color:#c1121f;font-weight:700;margin-top:6px;font-size:0.95rem}
-.input-invalid{border-color:#c1121f !important;box-shadow:0 0 0 2px rgba(193,18,31,.1)}
-</style>
-<style id="global-error-css">
-.form-global-error{
-  background:#ffe6e6;
-  border:1px solid #ffb3b3;
-  color:#b00020;
-  padding:10px 12px;
-  border-radius:8px;
-  margin:12px 0;
-  font-weight:600;
-}
-.field-error{color:#c1121f;font-weight:700;margin-top:6px;font-size:0.95rem}
-.input-invalid{border-color:#c1121f !important;box-shadow:0 0 0 2px rgba(193,18,31,.1)}
-</style>
-<style id="wait-ui-toggle-css">
-.is-disabled { opacity: .6; pointer-events: none; }
-</style>
+
 </head>
 <body>
-<div class="container">
-<div class="header">
-<div class="header-left"><img alt="Taxi LI logo" src="images/logo.png"/></div>
-<div class="header-center"><h1>Taxi Li Réservation Guadeloupe</h1><div class="tagline">Le plaisir de vous conduire</div></div>
-<div class="header-right">
-<a href="tel:+590691280005">0691 28 00 05</a>
-<a href="https://wa.me/590691280005" target="_blank">WhatsApp</a>
-<a href="#form">Réserver</a>
-</div>
-</div>
-<div class="grid">
-<div class="card">
-<h2>Réservez votre taxi en ligne simplement et rapidement</h2>
-<p>Courses locales et longues distances. Tarifs clairs, confirmation instantanée sur WhatsApp ou e‑mail.</p>
-<div class="badges">
-<div class="badge">Disponibilité 24/7*</div>
-<div class="badge">Paiement CB/espèces</div>
-<div class="badge">Siège enfant sur demande</div>
-</div>
-<div class="small">* Selon planning — réponse rapide.</div>
-<div class="gallery">
-<h3 style="margin:16px 0 8px 0">Notre véhicule en images</h3>
-<div class="slider">
-<div id="slides"></div>
-</div>
-<div class="dots" id="dots"></div>
-</div>
-</div>
-<div class="card" id="form">
-<div class="form-row">
-<div><label for="name">Nom et prénom *</label><input id="name" required=""/><div class="field-error" id="nameAlphaError" style="display:none">Veuillez saisir uniquement des lettres (accents et espaces autorisés). Merci !</div></div>
-<div><label for="phone">Téléphone *</label><input id="phone" required="" type="tel"/><div class="field-error" id="phoneError" style="display:none">Veuillez saisir uniquement un numéro valide : chiffres uniquement, « + » autorisé au début. Merci !</div></div>
-</div>
-<div class="form-row">
-<div><label for="start">Lieu de départ *</label><input id="start" placeholder="Adresse, aéroport, hôtel…" required=""/></div>
-<div><label for="end">Destination *</label><input id="end" placeholder="Adresse, aéroport, hôtel…" required=""/></div>
-</div>
-<div class="form-row">
-<div><label for="date">Date *</label><input id="date" required="" type="date"/><div class="field-error" id="dateErrorMin" style="display:none">Veuillez sélectionner une date à partir d'aujourd'hui.</div></div>
-<div><label for="time">Heure *</label><input id="time" required="" type="time"/><div class="field-error" id="timeErrorNow" style="display:none">Veuillez choisir une heure ultérieure à l'heure actuelle pour aujourd'hui.</div></div>
-</div>
-<div class="form-row">
-<div><label for="pax">Passagers</label><select id="pax"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
-<div><label for="bags">Bagages</label><select id="bags"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
-</div>
-<div class="form-row">
-<div><label for="roundtrip">Aller/retour</label><select id="roundtrip"><option>Non</option><option>Oui</option></select></div>
-<div><label for="waitOnTrip">Attente pendant le trajet</label><select id="waitOnTrip"><option>Non</option><option>Oui</option></select></div>
-</div>
-<div class="form-row">
-<div><label for="waitHours">Durée d’attente (heures)</label><select id="waitHours"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
-<div><label for="child">Siège enfant</label><select id="child"><option>Non</option><option>Oui</option></select></div>
-</div>
-<div><label for="notes">Notes utiles</label><textarea id="notes" placeholder="Détails utiles :
+  <div class="container">
+    <div class="header">
+      <div class="header-left"><img src="images/logo.png" alt="Taxi LI logo"></div>
+      <div class="header-center"><h1>Taxi Li Réservation Guadeloupe</h1><div class="tagline">Le plaisir de vous conduire</div></div>
+      <div class="header-right">
+        <a href="tel:+590691280005">0691 28 00 05</a>
+        <a href="https://wa.me/590691280005" target="_blank">WhatsApp</a>
+        <a href="#form">Réserver</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Réservez votre taxi en ligne simplement et rapidement</h2>
+        <p>Courses locales et longues distances. Tarifs clairs, confirmation instantanée sur WhatsApp ou e‑mail.</p>
+        <div class="badges">
+          <div class="badge">Disponibilité 24/7*</div>
+          <div class="badge">Paiement CB/espèces</div>
+          <div class="badge">Siège enfant sur demande</div>
+        </div>
+        <div class="small">* Selon planning — réponse rapide.</div>
+
+        <div class="gallery">
+          <h3 style="margin:16px 0 8px 0">Notre véhicule en images</h3>
+          <div class="slider">
+            <div id="slides"></div>
+          </div>
+          <div id="dots" class="dots"></div>
+        </div>
+      </div>
+
+      <div id="form" class="card">
+        <div class="form-row">
+          <div><label for="name">Nom et prénom *</label><input id="name" required></div>
+          <div><label for="phone">Téléphone *</label><input id="phone" required></div>
+        </div>
+        <div class="form-row">
+          <div><label for="start">Lieu de départ *</label><input id="start" placeholder="Adresse, aéroport, hôtel…" required></div>
+          <div><label for="end">Destination *</label><input id="end" placeholder="Adresse, aéroport, hôtel…" required></div>
+        </div>
+        <div class="form-row">
+          <div><label for="date">Date *</label><input id="date" type="date" required></div>
+          <div><label for="time">Heure *</label><input id="time" type="time" required></div>
+        </div>
+        <div class="form-row">
+          <div><label for="pax">Passagers</label><select id="pax"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+          <div><label for="bags">Bagages</label><select id="bags"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+        </div>
+        <div class="form-row">
+          <div><label for="roundtrip">Aller/retour</label><select id="roundtrip"><option>Non</option><option>Oui</option></select></div>
+          <div><label for="waitOnTrip">Attente pendant le trajet</label><select id="waitOnTrip"><option>Non</option><option>Oui</option></select></div>
+        </div>
+        <div class="form-row">
+          <div><label for="waitHours">Durée d’attente (heures)</label><select id="waitHours"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
+          <div><label for="child">Siège enfant</label><select id="child"><option>Non</option><option>Oui</option></select></div>
+        </div>
+        <div><label for="notes">Notes utiles</label><textarea id="notes" placeholder="Détails utiles :
 code de porte, vol, lieu précis…
 Pour plus d’informations,
 contactez-nous."></textarea></div>
-<div class="card" style="margin-top:14px">
-<div class="calc">
-<button class="btn" id="estimateBtn" type="button">Estimation du prix</button>
-<div class="result" id="estimateOut">—</div>
-</div>
-<div class="small" style="margin-top:10px">
-            Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.<br/>
+
+        <div class="card" style="margin-top:14px">
+          <div class="calc">
+            <button class="btn" id="estimateBtn" type="button">Estimation du prix</button>
+            <div class="result" id="estimateOut">—</div>
+          </div>
+          <div class="small" style="margin-top:10px">
+            Saisissez départ, destination, date et heure (et attente si activée), puis cliquez.<br>
             Le prix affiché est indicatif ; le prix exact est déterminé par le taximètre (compteur kilométrique). Pour plus d’informations, contactez‑nous.
           </div>
-<div id="confirmArea" style="margin-top:14px;text-align:center">
-<button class="btn" id="confirmBtn" type="button">Réserver</button>
-</div>
-</div>
-</div>
-</div>
-<div class="card" style="margin-top:18px">
-<h3>Tarifs &amp; transparence</h3>
-<p>Le prix final est déterminé par le <strong>taximètre (compteur kilométrique)</strong> selon le trajet réel (embouteillages, déviations, etc.).</p>
-<table class="table">
-<thead><tr><th>Élément</th><th>Montant</th></tr></thead>
-<tbody>
-<tr><td>Prise en charge</td><td>3,75 €</td></tr>
-<tr><td>Tarif A (aller/retour de jour, au km)</td><td>1,03 €/km</td></tr>
-<tr><td>Tarif B (aller/retour de nuit et jour férié, au km)</td><td>1,55 €/km</td></tr>
-<tr><td>Tarif C (aller simple de jour, au km)</td><td>2,06 €/km</td></tr>
-<tr><td>Tarif D (aller simple de nuit et jour férié, au km)</td><td>3,06 €/km</td></tr>
-<tr><td>Heure d’attente pendant les courses (par heure)</td><td>25 €</td></tr>
-</tbody>
-</table>
-<ul>
-<li>Facturation claire — pas de surprises.</li>
-<li>Reçus sur demande (professionnels et particuliers).</li>
-<li>Courtes et longues distances, aéroports, hôtels, rendez‑vous médicaux…</li>
-<li>Paiement par carte, espèces ou lien de paiement sécurisé.</li>
-</ul>
-<div class="small">Tarifs susceptibles d’évoluer, sous réserve de modifications préfectorales.</div>
-</div>
-<div class="footer container" style="text-align:center;margin:24px auto">
+          <div id="confirmArea" style="margin-top:14px;text-align:center">
+            <button class="btn" id="confirmBtn" type="button">Réserver</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h3>Tarifs & transparence</h3>
+      <p>Le prix final est déterminé par le <strong>taximètre (compteur kilométrique)</strong> selon le trajet réel (embouteillages, déviations, etc.).</p>
+      <table class="table">
+        <thead><tr><th>Élément</th><th>Montant</th></tr></thead>
+        <tbody>
+          <tr><td>Prise en charge</td><td>3,75 €</td></tr>
+          <tr><td>Tarif A (aller/retour de jour, au km)</td><td>1,03 €/km</td></tr>
+          <tr><td>Tarif B (aller/retour de nuit et jour férié, au km)</td><td>1,55 €/km</td></tr>
+          <tr><td>Tarif C (aller simple de jour, au km)</td><td>2,06 €/km</td></tr>
+          <tr><td>Tarif D (aller simple de nuit et jour férié, au km)</td><td>3,06 €/km</td></tr>
+          <tr><td>Heure d’attente pendant les courses (par heure)</td><td>25 €</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li>Facturation claire — pas de surprises.</li>
+        <li>Reçus sur demande (professionnels et particuliers).</li>
+        <li>Courtes et longues distances, aéroports, hôtels, rendez‑vous médicaux…</li>
+        <li>Paiement par carte, espèces ou lien de paiement sécurisé.</li>
+      </ul>
+      <div class="small">Tarifs susceptibles d’évoluer, sous réserve de modifications préfectorales.</div>
+    </div>
+
+    <div class="footer container" style="text-align:center;margin:24px auto">
       © TAXI LI — Guadeloupe. Zone principale : Capesterre‑Belle‑Eau, Le Gosier, Goyave — déplacements dans toute la Guadeloupe.
-        <a href="mailto:taxili@laposte.net">taxili@laposte.net</a> — <a href="tel:+590691280005">0691 28 00 05</a>
-</div>
-</div>
+      &nbsp; <a href="mailto:taxili@laposte.net">taxili@laposte.net</a> — <a href="tel:+590691280005">0691 28 00 05</a>
+    </div>
+  </div>
+
 <script src="assets/app.js"></script>
 <script src="assets/wait_hours.patch.js"></script>
-<script async="" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&amp;libraries=places&amp;callback=initPlaces"></script>
+<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&libraries=places&callback=initPlaces"></script>
 <script>
 // Dummy estimator just to keep layout identical; user can integrate real calc if needed.
 document.getElementById('estimateBtn').addEventListener('click', ()=>{
   document.getElementById('estimateOut').textContent = '—';
 });
 </script>
+
+
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   const dateInput = document.getElementById("date");
@@ -166,6 +159,8 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 });
 </script>
+
+
 <script>
 (function () {
   const estimateBtn = document.querySelector('#estimateBtn, button[data-role="estimate"], .btn-estimate');
@@ -213,6 +208,8 @@ document.addEventListener("DOMContentLoaded", function() {
   dest.addEventListener('input', clearError);
 })();
 </script>
+
+
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=="loading"){fn();} else {document.addEventListener("DOMContentLoaded", fn);} }
@@ -301,6 +298,9 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
+
+
+
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -415,6 +415,9 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
+
+
+
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -527,6 +530,8 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
+
+
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -633,6 +638,8 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
+
+
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -735,6 +742,8 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
+
+
 <script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -812,6 +821,8 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 })();
 </script>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
@@ -889,6 +900,8 @@ document.addEventListener('DOMContentLoaded', function(){
   if(dateEl){ dateEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, timeErr); }); }
 });
 </script>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
@@ -964,6 +977,8 @@ document.addEventListener('DOMContentLoaded', function(){
   if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
 });
 </script>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   function scrollToFirstError(){
@@ -1002,662 +1017,5 @@ document.addEventListener('DOMContentLoaded', function(){
   }, true);
 });
 </script>
-<script id="alpha-autoclean-js">
-(function(){
-  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
-  ready(function(){
-    var nameInput = document.getElementById('name');
-    if(!nameInput) return;
-    var err = document.getElementById('nameError');
-    // Autorisés: lettres (avec accents) + espaces
-    // On supprime instantanément tout le reste
-    function cleanAndNotify(){
-      var before = nameInput.value;
-      // Remplacer tout caractère NON lettre/espaces par rien
-      var after = before.replace(/[^\p{L}\s]/gu, '');
-      if(after !== before){
-        nameInput.value = after;
-        if(err){ err.style.display='block'; }
-        nameInput.classList.add('input-invalid');
-      }else{
-        if(err){ err.style.display='none'; }
-        nameInput.classList.remove('input-invalid');
-      }
-    }
-    nameInput.addEventListener('input', cleanAndNotify);
-    nameInput.addEventListener('blur', cleanAndNotify);
-  });
-})();
-</script>
-<script id="phone-autoclean-js-v2">
-(function(){
-  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
-  ready(function(){
-    var phone = document.getElementById('phone');
-    var err = document.getElementById('phoneError');
-    if(!phone) return;
 
-    function cleanPhone(){
-      var before = phone.value || '';
-      // Autoriser uniquement chiffres et '+' (peu importe la position)
-      var after = before.replace(/[^0-9+]+/g, '');
-      var changed = (after !== before);
-      if(changed) phone.value = after;
-
-      // Valide si ne contient QUE chiffres et '+'
-      var ok = /^[0-9+]*$/.test(phone.value);
-
-      if(changed || !ok){
-        if(err) err.style.display = 'block';
-        phone.classList.add('input-invalid');
-      }else{
-        if(err) err.style.display = 'none';
-        phone.classList.remove('input-invalid');
-      }
-    }
-
-    phone.addEventListener('input', cleanPhone);
-    phone.addEventListener('blur', cleanPhone);
-    // Première passe
-    cleanPhone();
-  });
-})();
-</script>
-<script id="name-accents-date-min-js">
-(function(){
-  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
-  ready(function(){
-    // NOM avec accents: autoriser lettres (Unicode) + espaces; supprimer le reste immédiatement
-    var nameInput = document.getElementById('name');
-    var nameErr = document.getElementById('nameAlphaError');
-    function cleanName(){
-      if(!nameInput) return;
-      var before = nameInput.value || '';
-      var after = before.replace(/[^\p{L}\s]/gu, ''); // \p{L} = lettres (accents inclus), \s = espaces
-      var changed = after !== before;
-      if(changed) nameInput.value = after;
-      var ok = /^[\p{L}\s]*$/u.test(nameInput.value);
-      if(changed || (!ok && nameInput.value.length)){
-        if(nameErr) nameErr.style.display = 'block';
-        nameInput.classList.add('input-invalid');
-      } else {
-        if(nameErr) nameErr.style.display = 'none';
-        nameInput.classList.remove('input-invalid');
-      }
-    }
-    if(nameInput){
-      nameInput.addEventListener('input', cleanName);
-      nameInput.addEventListener('blur', cleanName);
-      cleanName();
-    }
-
-    // DATE: bloquer dates passées (min=today) + message et reset si besoin
-    var dateInput = document.getElementById('date');
-    var dateErr = document.getElementById('dateErrorMin');
-    function toYMD(d){
-      var y = d.getFullYear();
-      var m = String(d.getMonth()+1).padStart(2,'0');
-      var dd = String(d.getDate()).padStart(2,'0');
-      return y + '-' + m + '-' + dd;
-    }
-    function setMinToday(){
-      var t = new Date(); t.setHours(0,0,0,0);
-      if(dateInput) dateInput.setAttribute('min', toYMD(t));
-    }
-    function validateDate(){
-      if(!dateInput) return true;
-      var v = dateInput.value;
-      if(!v){
-        if(dateErr) dateErr.style.display='none';
-        dateInput.classList.remove('input-invalid');
-        return true;
-      }
-      var parts = v.split('-');
-      if(parts.length===3){
-        var d = new Date(+parts[0], +parts[1]-1, +parts[2]); d.setHours(0,0,0,0);
-        var t = new Date(); t.setHours(0,0,0,0);
-        if(d < t){
-          if(dateErr) dateErr.style.display='block';
-          dateInput.classList.add('input-invalid');
-          // remettre à aujourd'hui pour éviter la date passée
-          dateInput.value = toYMD(t);
-          return false;
-        }
-      }
-      if(dateErr) dateErr.style.display='none';
-      dateInput.classList.remove('input-invalid');
-      return true;
-    }
-    setMinToday();
-    if(dateInput){
-      dateInput.addEventListener('change', validateDate);
-      dateInput.addEventListener('blur', validateDate);
-      validateDate();
-    }
-  });
-})();
-</script>
-<script id="time-now-guard-js">
-(function () {
-  const timeInput =
-    document.querySelector('#time, #heure, input[type="time"][name*="heure" i]') ||
-    document.querySelector('input[type="time"]');
-  if (!timeInput) return;
-
-  const dateInput =
-    document.querySelector('#date, input[type="date"][name*="date" i]') ||
-    document.querySelector('input[type="date"]');
-
-  function nowHHMM() {
-    const d = new Date();
-    const h = String(d.getHours()).padStart(2, '0');
-    const m = String(d.getMinutes()).padStart(2, '0');
-    return `${h}:${m}`;
-  }
-
-  function ensureErrorEl() {
-    let el = document.getElementById('timeError');
-    if (!el) {
-      el = document.createElement('div');
-      el.id = 'timeError';
-      el.style.color = '#d32f2f';
-      el.style.fontSize = '0.92rem';
-      el.style.marginTop = '6px';
-      el.style.display = 'none';
-      timeInput.insertAdjacentElement('afterend', el);
-    }
-    return el;
-  }
-  const errorEl = ensureErrorEl();
-  // Effacer tout message au démarrage
-  errorEl.style.display = 'none';
-  timeInput.classList.remove('input-invalid', 'input-error', 'is-invalid');
-
-  function parseDate(value) {
-    if (!value) return null;
-    if (value.includes('/')) {
-      const [dd, mm, yyyy] = value.split('/');
-      const d = new Date(+yyyy, +mm - 1, +dd, 0, 0, 0, 0);
-      return isNaN(d.getTime()) ? null : d;
-    }
-    if (value.includes('-')) {
-      const [yyyy, mm, dd] = value.split('-');
-      const d = new Date(+yyyy, +mm - 1, +dd, 0, 0, 0, 0);
-      return isNaN(d.getTime()) ? null : d;
-    }
-    return null;
-  }
-
-  function sameDay(a, b) {
-    return a.getFullYear() === b.getFullYear() &&
-           a.getMonth() === b.getMonth() &&
-           a.getDate() === b.getDate();
-  }
-
-  function showErr() {
-    errorEl.textContent = "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.";
-    errorEl.style.display = 'block';
-    timeInput.classList.add('input-invalid');
-  }
-  function hideErr() {
-    errorEl.style.display = 'none';
-    timeInput.classList.remove('input-invalid');
-  }
-
-  function validateAndMaybeReset() {
-    if (!timeInput.value) { hideErr(); return true; }
-
-    let isToday = true;
-    if (dateInput && dateInput.value) {
-      const sel = parseDate(dateInput.value);
-      const today = new Date(); today.setHours(0,0,0,0);
-      if (sel) {
-        const sel0 = new Date(sel.getFullYear(), sel.getMonth(), sel.getDate(), 0,0,0,0);
-        isToday = sel0.getTime() === today.getTime();
-      }
-    }
-
-    if (isToday) {
-      const now = nowHHMM();
-      const chosen = timeInput.value;
-      if (chosen <= now) {
-        showErr();
-        // Réinitialise à l'heure actuelle
-        timeInput.value = now;
-        return false;
-      }
-    }
-    hideErr();
-    return true;
-  }
-
-  // Valider au changement / blur (pas au chargement)
-  timeInput.addEventListener('change', validateAndMaybeReset);
-  timeInput.addEventListener('blur', validateAndMaybeReset);
-
-  // Revalider sur actions (si présents)
-  ['#btn-estimation', '#btn-reserver', '#btn-whatsapp', '#btn-email'].forEach(sel => {
-    const b = document.querySelector(sel);
-    if (b) {
-      b.addEventListener('click', () => validateAndMaybeReset());
-    }
-  });
-})();
-</script>
-
-
-<script id="wait-ui-toggle-js">
-(function(){
-  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
-  ready(function(){
-    function $(sel){ return document.querySelector(sel); }
-    function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
-
-    // Try to detect the toggle and duration input
-    var waitToggleInput = document.getElementById('waitToggle') || document.querySelector('input[name="attente"]');
-    var waitGroup = document.getElementById('waitToggleGroup') || document.querySelector('.wait-toggle') || document.querySelector('.btn-group');
-    var waitHours = document.getElementById('waitHours') || $('#dureeAttente') || $all('select,input').find(function(el){
-      var p=(el.getAttribute('placeholder')||'').toLowerCase();
-      return p.includes('durée') || p.includes('duree');
-    });
-
-    // Helper to know if waiting is enabled
-    function isWaitingOn(){
-      // native inputs
-      if(waitToggleInput){
-        if(waitToggleInput.type==='checkbox') return !!waitToggleInput.checked;
-        if(waitToggleInput.type==='radio'){
-          var y = document.querySelector('input[name="attente"][value="yes"], input[name="attente"][value="oui"]');
-          if(y) return !!y.checked;
-        }
-      }
-      // aria-pressed buttons
-      if(waitGroup){
-        var active = waitGroup.querySelector('[aria-pressed="true"], .active');
-        if(active){ return /oui/i.test((active.textContent||'')); }
-      }
-      // defaults to false
-      return false;
-    }
-
-    function setDisabled(on){
-      if(!waitHours) return;
-      if(on){
-        waitHours.setAttribute('disabled','disabled');
-        // force 0 quand désactivé
-        if(waitHours.tagName.toLowerCase()==='select'){
-          // Chercher une option valeur "0" ou en créer une temporaire
-          var opt0 = waitHours.querySelector('option[value="0"]');
-          if(!opt0){
-            opt0 = document.createElement('option');
-            opt0.value = "0";
-            opt0.textContent = "0";
-            opt0.dataset.temp = "1";
-            waitHours.insertBefore(opt0, waitHours.firstChild);
-          }
-          waitHours.value = "0";
-        } else {
-          waitHours.value = "0";
-        }
-        waitHours.classList.add('is-disabled');
-      } else {
-        waitHours.removeAttribute('disabled');
-        waitHours.classList.remove('is-disabled');
-        // si select, s'assurer que les valeurs 1..4 existent
-        if(waitHours.tagName.toLowerCase()==='select'){
-          // Supprimer l'option temporaire 0 si on ne la veut que quand c'est désactivé
-          var temp = waitHours.querySelector('option[data-temp="1"]');
-          if(temp) temp.remove();
-          // S'il n'y a pas d'options 1..4, on les ajoute (sans dupliquer)
-          var need = [];
-          for(var i=1;i<=4;i++){
-            if(!waitHours.querySelector('option[value="'+i+'"]')) need.push(i);
-          }
-          need.forEach(function(i){
-            var opt = document.createElement('option');
-            opt.value = String(i);
-            opt.textContent = String(i);
-            waitHours.appendChild(opt);
-          });
-          // si valeur actuelle = 0, proposer 1 par défaut
-          if(waitHours.value === "0"){ waitHours.value = "1"; }
-        }
-      }
-    }
-
-    function syncUI(){
-      var on = !isWaitingOn(); // on = disabled state when waiting is OFF
-      setDisabled(on);
-    }
-
-    // Initial
-    syncUI();
-
-    // Bind changes
-    if(waitToggleInput){
-      waitToggleInput.addEventListener('change', syncUI);
-    }
-    if(waitGroup){
-      // capture clicks on group buttons
-      $all('button, [role="button"], .btn', waitGroup).forEach(function(btn){
-        btn.addEventListener('click', function(){
-          // petit délai pour que la classe .active / aria-pressed se mette à jour
-          setTimeout(syncUI, 50);
-        });
-      });
-    }
-  });
-})();
-</script>
-
-<script id="wa-mail-validate-js">
-(function(){
-  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
-  ready(function(){
-    function $(sel){ return document.querySelector(sel); }
-    function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
-
-    // Cache inputs (robuste: id, label, placeholder)
-    function findByLabelText(text){
-      text = text.toLowerCase();
-      var labels = $all('label');
-      for(var i=0;i<labels.length;i++){
-        var t = (labels[i].textContent||'').toLowerCase();
-        if(t.includes(text)){
-          var inp = labels[i].querySelector('input,textarea,select');
-          if(inp) return inp;
-        }
-      }
-      return null;
-    }
-    function findByPlaceholder(part){
-      part = part.toLowerCase();
-      var inputs = $all('input,textarea');
-      return inputs.find(function(el){
-        return ((el.getAttribute('placeholder')||'').toLowerCase().includes(part));
-      }) || null;
-    }
-
-    var nameInput  = $('#name') || findByLabelText('nom') || findByPlaceholder('nom');
-    var phoneInput = $('#phone') || findByLabelText('téléphone') || findByPlaceholder('tél') || findByPlaceholder('phone');
-    var dateInput  = $('#date') || document.querySelector('input[type="date"]');
-    var timeInput  = $('#time') || document.querySelector('input[type="time"]');
-    var startInput = $('#start') || findByLabelText('lieu de départ') || findByPlaceholder('départ') || findByPlaceholder('depart');
-    var endInput   = $('#end')   || findByLabelText('destination')    || findByPlaceholder('destination');
-
-    // Effacer le message sous "heure" au démarrage
-    var timeErr = document.getElementById('timeError') || document.getElementById('timeErrorNow');
-    if(timeErr){ timeErr.style.display = 'none'; }
-    if(timeInput){ timeInput.classList.remove('input-invalid','input-error','is-invalid'); }
-
-    // Fabrique un "petit message rouge" sous un champ si absent
-    function ensureFieldError(input){
-      if(!input) return null;
-      var sib = input.nextElementSibling;
-      if(sib && sib.classList && sib.classList.contains('field-error')) return sib;
-      var d = document.createElement('div');
-      d.className = 'field-error';
-      d.style.display = 'none';
-      input.insertAdjacentElement('afterend', d);
-      return d;
-    }
-    var errName = ensureFieldError(nameInput);
-    var errPhone = ensureFieldError(phoneInput);
-    var errDate = ensureFieldError(dateInput);
-    var errTime = ensureFieldError(timeInput);
-    var errStart = ensureFieldError(startInput);
-    var errEnd = ensureFieldError(endInput);
-
-    // Global banner near buttons
-    function ensureGlobalError(){
-      var banner = document.getElementById('globalFormError');
-      if(!banner){
-        // place it right above the action buttons area if possible
-        var anchor = document.getElementById('btn-whatsapp') || document.getElementById('btn-email') ||
-                     $all('a,button').find(el => /réserver par whatsapp/i.test((el.textContent||''))) ||
-                     $all('a,button').find(el => /réserver par e-?mail/i.test((el.textContent||''))) ||
-                     document.body;
-        banner = document.createElement('div');
-        banner.id = 'globalFormError';
-        banner.className = 'form-global-error';
-        banner.style.display = 'none';
-        anchor.parentNode.insertBefore(banner, anchor);
-      }
-      return banner;
-    }
-    var globalErr = ensureGlobalError();
-
-    function setErr(input, holder, msg){
-      if(!input||!holder) return;
-      holder.textContent = msg;
-      holder.style.display = 'block';
-      input.classList.add('input-invalid');
-    }
-    function clearErr(input, holder){
-      if(holder){ holder.style.display='none'; holder.textContent=''; }
-      if(input){ input.classList.remove('input-invalid'); }
-    }
-
-    // Validation du champ Heure selon ta règle (<= maintenant -> erreur + message demandé)
-    function nowHM(){
-      var d = new Date();
-      return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-    }
-    function isTodaySelected(){
-      if(!dateInput || !dateInput.value) return false;
-      var v=dateInput.value;
-      var d;
-      if(v.includes('/')){ // JJ/MM/AAAA
-        var p=v.split('/'); d=new Date(+p[2], +p[1]-1, +p[0]); 
-      }else{ // AAAA-MM-JJ
-        var p=v.split('-'); d=new Date(+p[0], +p[1]-1, +p[2]);
-      }
-      var t=new Date(); t.setHours(0,0,0,0);
-      d && d.setHours(0,0,0,0);
-      return d && d.getTime()===t.getTime();
-    }
-    function validateTimeField(){
-      if(!timeInput) return true;
-      // Ne rien afficher au démarrage si vide
-      if(!timeInput.value){ clearErr(timeInput, errTime); return true; }
-      if(isTodaySelected()){
-        if(timeInput.value <= nowHM()){
-          setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
-          return false;
-        }
-      }
-      clearErr(timeInput, errTime);
-      return true;
-    }
-
-    function validateAll(showMsgs){
-      var missing = [];
-
-      // Nom
-      if(nameInput){
-        var v=(nameInput.value||'').trim();
-        if(!v){ missing.push('Nom et prénoms'); if(showMsgs) setErr(nameInput, errName, "Veuillez renseigner votre nom et prénoms."); }
-        else if(nameInput.classList.contains('input-invalid')){ missing.push('Nom et prénoms'); if(showMsgs) setErr(nameInput, errName, "Veuillez corriger votre nom (lettres uniquement, accents et espaces autorisés)."); }
-        else clearErr(nameInput, errName);
-      }
-      // Téléphone
-      if(phoneInput){
-        var pv=(phoneInput.value||'').trim();
-        if(!pv){ missing.push('Téléphone'); if(showMsgs) setErr(phoneInput, errPhone, "Veuillez saisir votre numéro de téléphone."); }
-        else if(phoneInput.classList.contains('input-invalid')){ missing.push('Téléphone'); if(showMsgs) setErr(phoneInput, errPhone, "Numéro invalide. Chiffres (et « + ») uniquement."); }
-        else clearErr(phoneInput, errPhone);
-      }
-      // Date
-      if(dateInput){
-        var dv=(dateInput.value||'').trim();
-        if(!dv){ missing.push('Date'); if(showMsgs) setErr(dateInput, errDate, "Veuillez sélectionner une date."); }
-        else if(dateInput.classList.contains('input-invalid')){ missing.push('Date'); if(showMsgs) setErr(dateInput, errDate, "La date choisie n'est pas valide."); }
-        else clearErr(dateInput, errDate);
-      }
-      // Heure
-      var timeOK = validateTimeField();
-      if(!timeOK){ missing.push('Heure'); }
-
-      // Lieux
-      if(startInput){
-        var sv=(startInput.value||'').trim();
-        if(!sv){ missing.push('Lieu de départ'); if(showMsgs) setErr(startInput, errStart, "Veuillez renseigner le lieu de départ."); }
-        else clearErr(startInput, errStart);
-      }
-      if(endInput){
-        var ev=(endInput.value||'').trim();
-        if(!ev){ missing.push('Destination'); if(showMsgs) setErr(endInput, errEnd, "Veuillez renseigner la destination."); }
-        else clearErr(endInput, errEnd);
-      }
-
-      return missing;
-    }
-
-    function showGlobal(miss){
-      if(!globalErr) return;
-      if(!miss.length){ globalErr.style.display='none'; globalErr.textContent=''; return; }
-      globalErr.textContent = "Merci de compléter/rectifier : " + miss.join(", ") + ".";
-      globalErr.style.display = 'block';
-      try{ globalErr.scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){}
-    }
-
-    // Trouver les boutons "Réserver par WhatsApp" et "Réserver par e-mail"
-    function findActions(){
-      var all = $all('a,button');
-      var wa = all.find(el => /réserver par whatsapp/i.test((el.textContent||'').trim())) || all.find(el => (el.href||'').includes('wa.me'));
-      var mail = all.find(el => /réserver par e-?mail/i.test((el.textContent||'').trim())) || all.find(el => (el.href||'').startsWith('mailto:'));
-      return {wa, mail};
-    }
-    var actions = findActions();
-
-    function guardClick(e){
-      var missing = validateAll(true);
-      if(missing.length){
-        e.preventDefault();
-        e.stopPropagation();
-        showGlobal(missing);
-      } else {
-        showGlobal([]);
-      }
-    }
-
-    if(actions.wa){ actions.wa.addEventListener('click', guardClick, true); }
-    if(actions.mail){ actions.mail.addEventListener('click', guardClick, true); }
-
-    // Et on cache le message de l'heure au démarrage (exigence)
-    if(timeErr){ timeErr.style.display='none'; }
-  });
-})();
-</script>
-
-
-
-
-
-<script id="estimation-reprogram-v2-js">
-(function(){
-  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
-  ready(function(){
-    // ---- Tarifs ----
-    var RATE_A = 1.03; // AR jour
-    var RATE_B = 1.55; // AR nuit/jour férié
-    var RATE_C = 1.03; // Simple jour
-    var RATE_D = 1.55; // Simple nuit/jour férié
-    var BASE_FEE = 3.75;
-    var WAIT_PER_HOUR = 25;
-
-    function $(sel){ return document.querySelector(sel); }
-    function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
-    function parseNum(v){ var n=parseFloat(String(v).replace(',','.')); return isNaN(n)?0:n; }
-
-    var depInput = $('#origin') || $('#lieuDepart') || $('#depart');
-    var destInput = $('#destination') || $('#lieuArrivee');
-    var timeInput = $('#time') || document.querySelector('input[type="time"]');
-    var dateInput = $('#date') || document.querySelector('input[type="date"]');
-    var waitToggle = $('#waitToggle') || document.querySelector('input[name="attente"]');
-    var waitHours = $('#waitHours') || $('#dureeAttente') || $all('select').find(s=>/attente/i.test(s.outerHTML));
-    var estBtn = $('#btn-estimation') || $all('button').find(el=>(el.textContent||'').toLowerCase().includes('estimation'));
-    var priceOut = $('#estimationPrice') || (function(){var s=document.createElement('span');s.id='estimationPrice';s.style.marginLeft='10px';s.style.fontWeight='bold';return s;})();
-    if(estBtn && !priceOut.parentNode){ estBtn.insertAdjacentElement('afterend', priceOut); }
-
-    // Track valid addresses via Google Autocomplete
-    var originValid=false, destValid=false;
-    if(depInput) depInput.addEventListener('input',()=>{ originValid = depInput.value.trim().length>3; });
-    if(destInput) destInput.addEventListener('input',()=>{ destValid = destInput.value.trim().length>3; });
-    function hasValidAddresses(){ return originValid && destValid; }
-
-    function isNight(){
-      if(!timeInput || !timeInput.value) return false;
-      var hh=parseInt(timeInput.value.split(':')[0],10);
-      return (hh>=19 || hh<7);
-    }
-
-    function isRoundTrip(){
-      var yesBtn = $all('button, label').find(el=>/aller\/retour/i.test(el.textContent||'') && el.classList.contains('active'));
-      return yesBtn ? /oui/i.test(yesBtn.textContent||'') : false;
-    }
-
-    function isWaitingOn(){
-      var yesBtn = $all('button,label').find(el=>/attente/i.test(el.textContent||'') && el.classList.contains('active') && /oui/i.test(el.textContent||''));
-      return !!yesBtn;
-    }
-
-    function syncWaitUI(){
-      if(!waitHours) return;
-      if(isWaitingOn()){
-        waitHours.removeAttribute('disabled');
-        if(waitHours.value==="0"||waitHours.value===""){ waitHours.value="1"; }
-      } else {
-        waitHours.setAttribute('disabled','disabled');
-        waitHours.value="0";
-      }
-    }
-
-    $all('button,label').forEach(function(el){
-      if(/attente/i.test(el.textContent||'')){
-        el.addEventListener('click',()=>setTimeout(syncWaitUI,100));
-      }
-    });
-    syncWaitUI();
-
-    function getWaitHours(){
-      if(!isWaitingOn()) return 0;
-      var n=parseInt(waitHours.value||"0",10);
-      if(isNaN(n)||n<1) n=1;
-      if(n>4) n=4;
-      return n;
-    }
-
-    function getDistanceKm(){
-      var el=document.getElementById('distanceKm');
-      if(el){ return parseNum(el.value||el.textContent); }
-      if(typeof window.currentDistanceKm==='number') return window.currentDistanceKm;
-      return 10; // fallback
-    }
-
-    function computePrice(){
-      if(!hasValidAddresses()) return null;
-      var dist=getDistanceKm();
-      if(dist<=0) return null;
-      var rt=isRoundTrip();
-      var night=isNight();
-      var perKm = rt?(night?RATE_B:RATE_A):(night?RATE_D:RATE_C);
-      var totalKm= rt? dist*2:dist;
-      var wait=getWaitHours();
-      var price=(totalKm*perKm)+BASE_FEE+(wait*WAIT_PER_HOUR);
-      return Math.round(price*100)/100;
-    }
-
-    if(estBtn){
-      estBtn.addEventListener('click',function(e){
-        e.preventDefault();
-        var price=computePrice();
-        if(price==null){ priceOut.textContent="Veuillez remplir les adresses et l'heure."; }
-        else { priceOut.textContent="≈ "+price.toFixed(2)+" €"; }
-      });
-    }
-  });
-})();
-</script>
-
-</body></html>
+</body>
