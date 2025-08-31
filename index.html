@@ -1526,15 +1526,15 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 })();
 </script>
-<script id="reserve-with-estimate-js">
+<script id="reserve-with-estimate-v2-js">
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
   ready(function(){
     const $ = sel => document.querySelector(sel);
     const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-    // Locate fields
-    const nameInput  = $('#name') || $('#nom') || document.querySelector('input[autocomplete="name"]');
+    // === Locate fields ===
+    const nameInput  = $('#name') || $('#nom') || document.querySelector('input[autocomplete="name"]') || document.querySelector('input[name="name"]');
     const phoneInput = $('#phone') || $('#tel') || document.querySelector('input[type="tel"]');
     const dateInput  = $('#date')  || document.querySelector('input[type="date"]');
     const timeInput  = $('#time')  || document.querySelector('input[type="time"]');
@@ -1545,7 +1545,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const attenteYN  = document.getElementById('attente') || document.getElementById('attente_trajet') || document.querySelector('select#attente');
     const attenteH   = document.getElementById('attenteHeures') || document.getElementById('dureeAttente') || document.querySelector('select#attenteHeures, select#dureeAttente');
 
-    // Error helpers (reuse existing placeholders or create)
+    // Error helpers
     function ensureHolder(input){
       if(!input) return null;
       let next = input.nextElementSibling;
@@ -1577,7 +1577,7 @@ document.addEventListener('DOMContentLoaded', function(){
       if(input){ input.classList.remove('input-invalid'); }
     }
 
-    // Today ISO
+    // Helpers time/date
     function todayISO(){
       const d = new Date();
       const yyyy = d.getFullYear();
@@ -1585,7 +1585,6 @@ document.addEventListener('DOMContentLoaded', function(){
       const dd = String(d.getDate()).padStart(2,'0');
       return `${yyyy}-${mm}-${dd}`;
     }
-    // Now + 1 min
     function nowPlus1(){
       const d = new Date();
       d.setMinutes(d.getMinutes()+1);
@@ -1594,24 +1593,24 @@ document.addEventListener('DOMContentLoaded', function(){
       return `${hh}:${mm}`;
     }
 
-    // Validate all fields (no empty + no invalid)
+    // === Strict validate (no empty + no invalid) ===
     function validateAllStrict(){
       let ok = true;
-      function requireFilled(input, holder, label){
-        const v = (input && input.value || '').trim();
+      function must(input, holder, label){
+        const v = (input && input.value||'').trim();
         if(!input || !v){
           setErr(input, holder, `Veuillez renseigner ${label}.`);
           ok = false;
-        } else if (input.classList && input.classList.contains('input-invalid')){
+        } else if(input.classList && input.classList.contains('input-invalid')){
           ok = false;
         } else {
           clearErr(input, holder);
         }
       }
-      requireFilled(nameInput,  errName,  "votre nom et prénoms");
-      requireFilled(phoneInput, errPhone, "votre numéro de téléphone");
-      requireFilled(startInput, errStart, "le lieu de départ");
-      requireFilled(endInput,   errEnd,   "la destination");
+      must(nameInput,  errName,  "votre nom et prénoms");
+      must(phoneInput, errPhone, "votre numéro de téléphone");
+      must(startInput, errStart, "le lieu de départ");
+      must(endInput,   errEnd,   "la destination");
       if(dateInput){
         const v = (dateInput.value||'').trim();
         if(!v){ setErr(dateInput, errDate, "Veuillez sélectionner une date."); ok=false; }
@@ -1632,55 +1631,37 @@ document.addEventListener('DOMContentLoaded', function(){
               setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
               timeInput.value = nowPlus1();
               ok=false;
-            } else { clearErr(timeInput, errTime); }
-          } else { clearErr(timeInput, errTime); }
+            }else{ clearErr(timeInput, errTime); }
+          }else{ clearErr(timeInput, errTime); }
         }
       } else ok=false;
       return ok;
     }
 
-    // ==== Estimation ====
-    // Tarifs
-    const RATE = {
-      base: 3.75,
-      A: 1.03, // AR jour
-      B: 1.55, // AR nuit & férié
-      C: 2.06, // simple jour
-      D: 3.06, // simple nuit & férié
-      waitPerH: 25
-    };
-
+    // === Estimation (auto si bouton non cliqué) ===
+    const RATE = { base:3.75, A:1.03, B:1.55, C:2.06, D:3.06, waitPerH:25 };
     function isNightOrHoliday(dateStr, timeStr){
       if(!timeStr) return false;
       const [h, m] = timeStr.split(':').map(x=>parseInt(x,10));
       const minutes = (h||0)*60 + (m||0);
-      const night = (minutes >= 19*60) || (minutes < 7*60); // 19h-07h
+      const night = (minutes >= 19*60) || (minutes < 7*60);
       if(night) return true;
-      // Fériés simplifiés (m-d)
       const d = new Date(dateStr + 'T' + timeStr);
       const md = (d.getMonth()+1) + '-' + d.getDate();
       const feries = new Set(['1-1','5-1','5-8','7-14','8-15','11-1','11-11','12-25']);
       return feries.has(md);
     }
-
     function roundTripOn(){ return !!(arSel && /oui/i.test(arSel.value||'')); }
     function waitOn(){ return !!(attenteYN && /oui/i.test(attenteYN.value||'')); }
-    function waitHours(){ 
-      if(!waitOn()) return 0; 
-      const n = parseInt((attenteH && attenteH.value)||'0',10);
-      return (isNaN(n)?0:n);
-    }
+    function waitHours(){ if(!waitOn()) return 0; const n = parseInt((attenteH && attenteH.value)||'0',10); return (isNaN(n)?0:n); }
 
     async function getDistanceKm(){
-      // priority: window.__distanceKM (si déjà calculé par ton script)
       if(typeof window.__distanceKM === 'number'){ return window.__distanceKM; }
-      // hidden element distanceKm
       const el = document.getElementById('distanceKm');
       if(el){
         const val = parseFloat((el.value||el.textContent||'').replace(',','.'));
         if(!isNaN(val) && val>0) return val;
       }
-      // Distance Matrix si dispo
       if(window.google && google.maps && google.maps.DistanceMatrixService){
         return await new Promise((resolve)=>{
           const svc = new google.maps.DistanceMatrixService();
@@ -1734,88 +1715,44 @@ document.addEventListener('DOMContentLoaded', function(){
       return lines.join("\n");
     }
 
-    function encodeWA(msg){ return encodeURIComponent(msg); }
-    function encodeMail(msg){ return encodeURIComponent(msg); }
+    // === Global click guard (captures ALL clicks on page) ===
+    function isReserveAction(el){
+      if(!el) return false;
+      const txt = (el.textContent||'').toLowerCase();
+      const href = (el.getAttribute && el.getAttribute('href')) || '';
+      return /réserver par whatsapp|réserver par e-?mail/.test(txt) || (href.includes('wa.me') || href.startsWith('mailto:'));
+    }
 
-    // Attach handlers to WA / Email actions
-    const all = $$('a,button');
-    const waBtn   = all.find(el => /réserver par whatsapp/i.test((el.textContent||''))) || all.find(el => (el.href||'').includes('wa.me'));
-    const mailBtn = all.find(el => /réserver par e-?mail/i.test((el.textContent||''))) || all.find(el => (el.href||'').startsWith('mailto:'));
+    document.addEventListener('click', async function(e){
+      const target = e.target.closest('a,button');
+      if(!target) return;
+      if(!isReserveAction(target)) return;
 
-    async function handleReserveClick(e, kind){
-      // Always strict validate
-      const ok = (function validateNow(){
-        // reuse same logic as validateAllStrict in case present
-        return (function(){
-          let valid = true;
-          function must(input, holder, label){
-            const v = (input && input.value||'').trim();
-            if(!input || !v){ setErr(input, holder, `Veuillez renseigner ${label}.`); valid=false; }
-            else if(input.classList && input.classList.contains('input-invalid')){ valid=false; }
-            else { clearErr(input, holder); }
-          }
-          must(nameInput,  errName,  "votre nom et prénoms");
-          must(phoneInput, errPhone, "votre numéro de téléphone");
-          must(startInput, errStart, "le lieu de départ");
-          must(endInput,   errEnd,   "la destination");
-          if(dateInput){
-            const v = (dateInput.value||'').trim();
-            if(!v){ setErr(dateInput, errDate, "Veuillez sélectionner une date."); valid=false; }
-            else if(v < todayISO()){ setErr(dateInput, errDate, "Cette date est passée. Merci de choisir une date à partir d'aujourd'hui."); dateInput.value=todayISO(); valid=false; }
-            else { clearErr(dateInput, errDate); }
-          } else valid=false;
-          if(timeInput){
-            const v = (timeInput.value||'').trim();
-            if(!v){ setErr(timeInput, errTime, "Veuillez choisir une heure."); valid=false; }
-            else {
-              if(dateInput && dateInput.value === todayISO()){
-                const [hh,mm] = v.split(':').map(n=>parseInt(n,10));
-                const now = new Date();
-                const chosen = new Date();
-                chosen.setHours(hh||0, mm||0, 0, 0);
-                if(chosen.getTime() <= now.getTime()){
-                  setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
-                  timeInput.value = nowPlus1();
-                  valid=false;
-                }else{ clearErr(timeInput, errTime); }
-              }else{ clearErr(timeInput, errTime); }
-            }
-          } else valid=false;
-          return valid;
-        })();
-      })();
+      // Always validate strictly
+      const ok = validateAllStrict();
       if(!ok){ e.preventDefault(); e.stopPropagation(); return; }
 
+      // Compute estimate automatically even if user never clicked the "Estimation du prix" button
       e.preventDefault(); e.stopPropagation();
-
       const price = await computeEstimate();
-      const message = buildSummary(price);
+      const summary = buildSummary(price);
 
-      if(kind==='wa'){
-        // build WA link from existing href if present, else default to wa.me (without number -> will open WhatsApp app selector)
-        let base = (waBtn && waBtn.getAttribute('href')) || 'https://wa.me/';
-        // strip any existing ?text
+      // Determine destination from element
+      const href = (target.getAttribute('href')||'');
+      if(href.includes('wa.me') || /whatsapp/.test((target.textContent||'').toLowerCase())){
+        let base = href || 'https://wa.me/';
         base = base.replace(/(\?|&)text=[^&]*/,'').replace(/&$/,'');
         const sep = base.includes('?') ? '&' : '?';
-        const url = base + sep + 'text=' + encodeWA(message);
+        const url = base + sep + 'text=' + encodeURIComponent(summary);
         window.location.href = url;
-      } else {
-        // Email
-        let base = (mailBtn && mailBtn.getAttribute('href')) || 'mailto:taxili@laposte.net';
-        // subject/body
-        let sep = base.includes('?') ? '&' : '?';
+      }else{
+        let base = href || 'mailto:taxili@laposte.net';
+        const sep = base.includes('?') ? '&' : '?';
         const subject = 'Réservation Taxi Li – ' + (nameInput?nameInput.value.trim():'Client');
-        const url = base + sep + 'subject=' + encodeMail(subject) + '&body=' + encodeMail(message);
+        const url = base + sep + 'subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(summary);
         window.location.href = url;
       }
-    }
-
-    if(waBtn){
-      waBtn.addEventListener('click', function(e){ handleReserveClick(e, 'wa'); }, true);
-    }
-    if(mailBtn){
-      mailBtn.addEventListener('click', function(e){ handleReserveClick(e, 'mail'); }, true);
-    }
+    }, true); // capture
   });
 })();
 </script></body></html>
