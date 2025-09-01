@@ -122,7 +122,7 @@ contactez-nous."></textarea></div>
 </div>
 <script src="assets/app.js"></script>
 <script src="assets/wait_hours.patch.js"></script>
-<script async="" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&amp;libraries=places&amp;callback=initPlaces"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&libraries=places"></script>
 <script>
 // Dummy estimator just to keep layout identical; user can integrate real calc if needed.
 document.getElementById('estimateBtn').addEventListener('click', ()=>{
@@ -2597,4 +2597,17 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   });
 })();
-</script></body></html>
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var out = document.getElementById('estimateOut');
+  try{
+    if(!(window.google && google.maps)){
+      if(out && (!out.textContent || out.textContent.trim()==='—')){
+        out.textContent = '— (Google Maps non chargé)';
+      }
+    }
+  }catch(e){}
+});
+</script>
+</body></html>
