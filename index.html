@@ -505,7 +505,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // round to 2 decimals
         total = Math.round(total * 100) / 100;
         out.textContent = total.toFixed(2) + ' €';
-      });
+      }, true);
     });
   });
 })();
