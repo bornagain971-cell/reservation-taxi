@@ -505,7 +505,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // round to 2 decimals
         total = Math.round(total * 100) / 100;
         out.textContent = total.toFixed(2) + ' €';
-      }, true);
+      });
     });
   });
 })();
@@ -2716,5 +2716,102 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }, true); // capture: run before other listeners
 });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('estimateBtn');
+  if(!btn || btn.__strict) return; btn.__strict = true;
+  btn.addEventListener('click', function(ev){
+    try{
+      if(ev && ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+      if(ev && ev.preventDefault) ev.preventDefault();
+      var start = document.getElementById('start')?.value || '';
+      var end   = document.getElementById('end')?.value || '';
+      var rtVal = (document.getElementById('roundtrip')?.value || '').trim().toLowerCase();
+      var isRT  = (rtVal === 'oui');
+      var t     = document.getElementById('time')?.value || '';
+      var d     = document.getElementById('date')?.value || '';
+      var night = window.isNightStrict ? window.isNightStrict(d, t) : false;
+      var waitOn = ((document.getElementById('waitOnTrip')?.value || '').trim().toLowerCase()==='oui');
+      var waitH  = document.getElementById('waitHours')?.value || '0';
+      window.computeEstimateStrict({ start:start, end:end, isRoundTrip:isRT, night:night, waitOn:waitOn, waitHours:waitH });
+    }catch(_){
+      var out = document.getElementById('estimateOut');
+      if(out) out.textContent = '— (erreur estimation)';
+    }
+  }, true);
+});
+</script>
+
+<script>
+(function(){
+  const TARIF = { A:1.03, B:1.55, C:2.06, D:3.06 };
+  const BASE_PICKUP = 3.75;
+
+  function isNightStrict(dateStr, timeStr){
+    try{
+      const t = (timeStr||'').trim();
+      if(!t) return false;
+      const parts = t.split(':');
+      const hh = parseInt(parts[0]||'0',10)||0;
+      const mm = parseInt(parts[1]||'0',10)||0;
+      const mins = hh*60+mm;
+      return (mins >= 19*60) || (mins <= 6*60+59);
+    }catch(_){ return false; }
+  }
+
+  function chooseTariffPerKm(isRoundTrip, night){
+    if(isRoundTrip) return night ? TARIF.B : TARIF.A;
+    return night ? TARIF.D : TARIF.C;
+  }
+
+  function computeEstimateStrict(opts, cb){
+    const out = document.getElementById('estimateOut');
+    const start = (opts.start||'').trim();
+    const end   = (opts.end||'').trim();
+    if(!start || !end){
+      if(out) out.textContent = '— (saisir départ et destination)';
+      return cb && cb(null);
+    }
+    if(!(window.google && google.maps && google.maps.DistanceMatrixService)){
+      if(out) out.textContent = '— (Google Maps non chargé)';
+      return cb && cb(null);
+    }
+    const isRT   = !!opts.isRoundTrip;
+    const night  = !!opts.night;
+    const perKm  = chooseTariffPerKm(isRT, night);
+    const waitOn = !!opts.waitOn;
+    const waitH  = Math.max(0, Math.min(4, parseInt(opts.waitHours||'0',10)||0));
+    const waitPrice = waitOn ? (25 * waitH) : 0;
+
+    const svc = new google.maps.DistanceMatrixService();
+    svc.getDistanceMatrix({
+      origins: [start],
+      destinations: [end],
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.METRIC
+    }, function(res, status){
+      try{
+        if(status !== 'OK' || !res || !res.rows || !res.rows[0] || !res.rows[0].elements || !res.rows[0].elements[0] || !res.rows[0].elements[0].distance){
+          if(out) out.textContent = '— (itinéraire introuvable)';
+          return cb && cb(null);
+        }
+        const km = res.rows[0].elements[0].distance.value / 1000.0;
+        const totalKm = km * (isRT ? 2 : 1);
+        const price = BASE_PICKUP + perKm * totalKm + waitPrice;
+        const estText = Math.round(price) + ' €';
+        if(out) out.textContent = estText;
+        return cb && cb(estText);
+      }catch(e){
+        if(out) out.textContent = '— (erreur calcul)';
+        return cb && cb(null);
+      }
+    });
+  }
+
+  window.computeEstimateStrict = computeEstimateStrict;
+  window.isNightStrict = isNightStrict;
+})();
 </script>
 </body></html>

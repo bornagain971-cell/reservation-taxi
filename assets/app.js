@@ -67,15 +67,10 @@ function collectPayload(){
   };
 }
 
-function sendWhatsApp(){
-  // Collect basic fields
+
+function {FNAME}(){
   const get = (id)=>{ const el = document.getElementById(id); return el ? (el.value||'').trim() : ''; };
-  const getSel = (id)=>{
-    const el = document.getElementById(id);
-    if(!el) return '';
-    if(el.options && el.selectedIndex>=0){ return (el.options[el.selectedIndex].text||el.value||'').trim(); }
-    return (el.value||'').trim();
-  };
+  const getSel = (id)=>{ const el = document.getElementById(id); if(!el) return ''; if(el.options&&el.selectedIndex>=0){ return (el.options[el.selectedIndex].text||el.value||'').trim(); } return (el.value||'').trim(); };
 
   const p = {
     name:get('name'), phone:get('phone'), start:get('start'), end:get('end'),
@@ -88,8 +83,13 @@ function sendWhatsApp(){
     notes:get('notes')
   };
 
-  // Helper to finally open WhatsApp with a given estimation string
-  function openWA(estimationText){
+  const isRT  = (p.roundtrip||'').toLowerCase()==='oui';
+  const night = window.isNightStrict ? !!window.isNightStrict(p.date, p.time) : false;
+  const waitOn = (p.waitOnTrip||'').toLowerCase()==='oui';
+  const waitH = parseInt(p.waitHours||'0',10)||0;
+
+  function openOut(estimationText){
+    
     const to = '590691280005';
     const msg = [
       'Bonjour, je souhaite réserver.',
@@ -101,71 +101,37 @@ function sendWhatsApp(){
       `Passagers: ${p.pax}, Bagages: ${p.bags}`,
       `Aller/retour: ${p.roundtrip} | Attente: ${p.waitOnTrip} (${p.waitHours}h)`,
       `Siège enfant: ${p.child}`,
-      p.notes ? `Notes: ${p.notes}` : null,
+      (p.notes?`Notes: ${p.notes}`:null),
       `Estimation: ${estimationText}`
-    ].filter(Boolean).join('\n');
+    ].filter(Boolean).join('
+');
     window.location.href = 'https://wa.me/'+to+'?text='+encodeURIComponent(msg);
+    
   }
 
-  // Try to compute a fresh estimate if needed
   const outEl = document.getElementById('estimateOut');
-  let currentEst = outEl ? (outEl.textContent||'').trim() : '';
-  if(currentEst && currentEst !== '—'){
-    openWA(currentEst);
-    return;
-  }
+  const currentEst = outEl ? (outEl.textContent||'').trim() : '';
 
-  // If Maps not available or start/end missing, fallback to message
-  if(!(window.google && google.maps && google.maps.DistanceMatrixService) || !p.start || !p.end){
-    openWA(currentEst || '—');
-    return;
-  }
-
-  // Build same logic as estimator: A/R, night tariff, wait price
-  const isRoundTrip = (p.roundtrip||'').toLowerCase() === 'oui';
-  const night = (typeof isNight === 'function') ? !!isNight(get('date'), get('time')) : false;
-  const perKm = (typeof pickTariff === 'function') ? pickTariff(isRoundTrip, night) : 1;
-  const waitOn = (p.waitOnTrip||'').toLowerCase() === 'oui';
-  const waitH = parseInt(p.waitHours || '0', 10) || 0;
-  const waitPrice = waitOn ? (25 * waitH) : 0;
-  const pickup = (typeof basePickup === 'number') ? basePickup : 0;
+  if(currentEst && currentEst !== '—') return openOut(currentEst);
+  if(!(window.computeEstimateStrict)) return openOut(currentEst||'—');
+  if(!(p.start && p.end)) return openOut(currentEst||'—');
 
   try{
-    const svc = new google.maps.DistanceMatrixService();
-    svc.getDistanceMatrix({
-      origins: [p.start],
-      destinations: [p.end],
-      travelMode: google.maps.TravelMode.DRIVING,
-      unitSystem: google.maps.UnitSystem.METRIC
-    }, function(res, status){
-      try{
-        if(status !== 'OK' || !res || !res.rows || !res.rows[0] || !res.rows[0].elements || !res.rows[0].elements[0] || !res.rows[0].elements[0].distance){
-          openWA(currentEst || '—');
-          return;
-        }
-        const km = res.rows[0].elements[0].distance.value / 1000.0;
-        const totalKm = km * (isRoundTrip ? 2 : 1);
-        const price = pickup + perKm * totalKm + waitPrice;
-        const estText = Math.round(price) + ' €';
-        if(outEl) outEl.textContent = estText; // reflect on page too
-        openWA(estText);
-      }catch(e){
-        openWA(currentEst || '—');
-      }
-    });
-  }catch(e){
-    openWA(currentEst || '—');
+    window.computeEstimateStrict({
+      start:p.start, end:p.end,
+      isRoundTrip:isRT, night:night,
+      waitOn:waitOn, waitHours:waitH
+    }, function(estText){ openOut(estText || currentEst || '—'); });
+  }catch(_){
+    openOut(currentEst||'—');
   }
 }
 
-function sendEmail(){
+
+
+function {FNAME}(){
   const get = (id)=>{ const el = document.getElementById(id); return el ? (el.value||'').trim() : ''; };
-  const getSel = (id)=>{
-    const el = document.getElementById(id);
-    if(!el) return '';
-    if(el.options && el.selectedIndex>=0){ return (el.options[el.selectedIndex].text||el.value||'').trim(); }
-    return (el.value||'').trim();
-  };
+  const getSel = (id)=>{ const el = document.getElementById(id); if(!el) return ''; if(el.options&&el.selectedIndex>=0){ return (el.options[el.selectedIndex].text||el.value||'').trim(); } return (el.value||'').trim(); };
 
   const p = {
     name:get('name'), phone:get('phone'), start:get('start'), end:get('end'),
@@ -178,7 +144,13 @@ function sendEmail(){
     notes:get('notes')
   };
 
-  function openEmail(estimationText){
+  const isRT  = (p.roundtrip||'').toLowerCase()==='oui';
+  const night = window.isNightStrict ? !!window.isNightStrict(p.date, p.time) : false;
+  const waitOn = (p.waitOnTrip||'').toLowerCase()==='oui';
+  const waitH = parseInt(p.waitHours||'0',10)||0;
+
+  function openOut(estimationText){
+    
     const subject = `Demande de réservation - ${p.date} ${p.time}`;
     const body = [
       'Bonjour, je souhaite réserver.',
@@ -190,62 +162,35 @@ function sendEmail(){
       `Passagers: ${p.pax}, Bagages: ${p.bags}`,
       `Aller/retour: ${p.roundtrip} | Attente: ${p.waitOnTrip} (${p.waitHours}h)`,
       `Siège enfant: ${p.child}`,
-      p.notes ? `Notes: ${p.notes}` : null,
+      (p.notes?`Notes: ${p.notes}`:null),
       `Estimation: ${estimationText}`
-    ].filter(Boolean).join('\n');
+    ].filter(Boolean).join('
+');
     const mailto = 'mailto:taxili97100@gmail.com'
                  + '?subject=' + encodeURIComponent(subject)
                  + '&body=' + encodeURIComponent(body);
     window.location.href = mailto;
+    
   }
 
   const outEl = document.getElementById('estimateOut');
-  let currentEst = outEl ? (outEl.textContent||'').trim() : '';
-  if(currentEst && currentEst !== '—'){
-    openEmail(currentEst);
-    return;
-  }
+  const currentEst = outEl ? (outEl.textContent||'').trim() : '';
 
-  if(!(window.google && google.maps && google.maps.DistanceMatrixService) || !p.start || !p.end){
-    openEmail(currentEst || '—');
-    return;
-  }
-
-  const isRoundTrip = (p.roundtrip||'').toLowerCase() === 'oui';
-  const night = (typeof isNight === 'function') ? !!isNight(get('date'), get('time')) : false;
-  const perKm = (typeof pickTariff === 'function') ? pickTariff(isRoundTrip, night) : 1;
-  const waitOn = (p.waitOnTrip||'').toLowerCase() === 'oui';
-  const waitH = parseInt(p.waitHours || '0', 10) || 0;
-  const waitPrice = waitOn ? (25 * waitH) : 0;
-  const pickup = (typeof basePickup === 'number') ? basePickup : 0;
+  if(currentEst && currentEst !== '—') return openOut(currentEst);
+  if(!(window.computeEstimateStrict)) return openOut(currentEst||'—');
+  if(!(p.start && p.end)) return openOut(currentEst||'—');
 
   try{
-    const svc = new google.maps.DistanceMatrixService();
-    svc.getDistanceMatrix({
-      origins: [p.start],
-      destinations: [p.end],
-      travelMode: google.maps.TravelMode.DRIVING,
-      unitSystem: google.maps.UnitSystem.METRIC
-    }, function(res, status){
-      try{
-        if(status !== 'OK' || !res || !res.rows || !res.rows[0] || !res.rows[0].elements || !res.rows[0].elements[0] || !res.rows[0].elements[0].distance){
-          openEmail(currentEst || '—');
-          return;
-        }
-        const km = res.rows[0].elements[0].distance.value / 1000.0;
-        const totalKm = km * (isRoundTrip ? 2 : 1);
-        const price = pickup + perKm * totalKm + waitPrice;
-        const estText = Math.round(price) + ' €';
-        if(outEl) outEl.textContent = estText;
-        openEmail(estText);
-      }catch(e){
-        openEmail(currentEst || '—');
-      }
-    });
-  }catch(e){
-    openEmail(currentEst || '—');
+    window.computeEstimateStrict({
+      start:p.start, end:p.end,
+      isRoundTrip:isRT, night:night,
+      waitOn:waitOn, waitHours:waitH
+    }, function(estText){ openOut(estText || currentEst || '—'); });
+  }catch(_){
+    openOut(currentEst||'—');
   }
 }
+
 
 function setup(){
   buildGallery();
