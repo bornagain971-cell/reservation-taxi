@@ -2654,4 +2654,67 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('estimateBtn');
+  var out = document.getElementById('estimateOut');
+  if(!btn || !out) return;
+  if(btn.__fixedAR) return; btn.__fixedAR = true;
+
+  btn.addEventListener('click', function(e){
+    // Stop other handlers to avoid conflicting formulas
+    if(e && e.stopImmediatePropagation) e.stopImmediatePropagation();
+    if(e && e.preventDefault) e.preventDefault();
+
+    try{
+      if(!(window.google && google.maps && google.maps.DistanceMatrixService)){
+        out.textContent = '— (Google Maps non chargé)';
+        return;
+      }
+      var start = (document.getElementById('start')?.value || '').trim();
+      var end   = (document.getElementById('end')?.value   || '').trim();
+      if(!start || !end){
+        out.textContent = '— (saisir départ et destination)';
+        return;
+      }
+
+      var isRoundTrip = ((document.getElementById('roundtrip')?.value || '').trim().toLowerCase() === 'oui');
+      var dateStr = (document.getElementById('date')?.value || '').trim();
+      var timeStr = (document.getElementById('time')?.value || '').trim();
+      var night = (typeof isNight === 'function') ? !!isNight(dateStr, timeStr) : false;
+      var perKm = (typeof pickTariff === 'function') ? pickTariff(isRoundTrip, night) : 1;
+
+      var waitOn = ((document.getElementById('waitOnTrip')?.value || '').trim().toLowerCase() === 'oui');
+      var waitH  = parseInt((document.getElementById('waitHours')?.value || '0'), 10) || 0;
+      var waitPrice = waitOn ? (25 * waitH) : 0;
+
+      var pickup = (typeof basePickup === 'number') ? basePickup : 3.75;
+
+      var svc = new google.maps.DistanceMatrixService();
+      svc.getDistanceMatrix({
+        origins: [start],
+        destinations: [end],
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC
+      }, function(res, status){
+        try{
+          if(status !== 'OK' || !res?.rows?.[0]?.elements?.[0]?.distance){
+            out.textContent = '— (itinéraire introuvable)';
+            return;
+          }
+          var km = res.rows[0].elements[0].distance.value / 1000.0;
+          var totalKm = km * (isRoundTrip ? 2 : 1);
+          var price = pickup + (perKm * totalKm) + waitPrice;
+          out.textContent = Math.round(price) + ' €';
+        }catch(err){
+          out.textContent = '— (erreur calcul)';
+        }
+      });
+    }catch(err){
+      out.textContent = '— (erreur estimation)';
+    }
+  }, true); // capture: run before other listeners
+});
+</script>
 </body></html>
