@@ -56,6 +56,30 @@ function setupConfirmSplit(){
   });
 }
 
+
+// --- Ensures the estimate is computed before sending (works with async estimators) ---
+async function ensureEstimateComputed(){
+  const out = document.getElementById('estimateOut');
+  // If estimate already filled, keep it
+  const current = (out && out.textContent ? out.textContent.trim() : '');
+  if(current && current !== '—') return current;
+
+  // If a compute function exists globally, call it and wait
+  const compute = window.computeEstimate || window.calculateEstimate || window.calcEstimate;
+  if (typeof compute === 'function') {
+    try {
+      const val = await compute(); // allow promise or value
+      if (val) {
+        out.textContent = typeof val === 'string' ? val : String(val);
+        return out.textContent.trim();
+      }
+    } catch(e){
+      console.error('Estimation error:', e);
+    }
+  }
+  // Fallback: keep current placeholder
+  return (out && out.textContent ? out.textContent.trim() : '—');
+}
 function collectPayload(){
   const f = (id)=>document.getElementById(id).value.trim();
   return {
@@ -66,14 +90,35 @@ function collectPayload(){
   };
 }
 
-function sendWhatsApp(){
+
+async function sendWhatsApp(){
+  await ensureEstimateComputed();
   const p = collectPayload();
-  const to='590691280005';
-  const txt = `Bonjour, je souhaite réserver.\nNom: ${p.name}\nTéléphone: ${p.phone}\nDépart: ${p.start}\nDestination: ${p.end}\nDate: ${p.date} ${p.time}\nPassagers: ${p.pax}, Bagages: ${p.bags}\nAller/retour: ${p.roundtrip} | Attente: ${p.waitOnTrip} (${p.waitHours}h)\nSiège enfant: ${p.child}\nNotes: ${p.notes}\nEstimation: ${p.estimate}`;
+  // Normalize notes: collapse CRLF, trim, and limit to 500 chars to avoid wa.me truncation
+  let notes = (p.notes || '').replace(/\r\n?/g,'\n').trim();
+  if (notes.length > 500) notes = notes.slice(0,500) + '…';
+  const to='590691280005'; // Intl format without plus
+  const txt = [
+    'Bonjour, je souhaite réserver.',
+    `Nom: ${p.name}`,
+    `Téléphone: ${p.phone}`,
+    `Départ: ${p.start}`,
+    `Destination: ${p.end}`,
+    `Date: ${p.date} ${p.time}`,
+    `Passagers: ${p.pax}, Bagages: ${p.bags}`,
+    `Aller/retour: ${p.roundtrip} | Attente: ${p.waitOnTrip} (${p.waitHours}h)`,
+    `Siège enfant: ${p.child}`,
+    notes ? `Notes: ${notes}` : null,
+    `Estimation: ${p.estimate}`
+  ].filter(Boolean).join('\n');
+  window.location.href = 'https://wa.me/'+to+'?text='+encodeURIComponent(txt);
+}
+\nTéléphone: ${p.phone}\nDépart: ${p.start}\nDestination: ${p.end}\nDate: ${p.date} ${p.time}\nPassagers: ${p.pax}, Bagages: ${p.bags}\nAller/retour: ${p.roundtrip} | Attente: ${p.waitOnTrip} (${p.waitHours}h)\nSiège enfant: ${p.child}\nNotes: ${p.notes}\nEstimation: ${p.estimate}`;
   window.location.href = 'https://wa.me/'+to+'?text='+encodeURIComponent(txt);
 }
 
-function sendEmail(){
+async function sendEmail(){
+  await ensureEstimateComputed();
   const p = collectPayload();
   const subject = 'Demande de réservation taxi';
   const body = `Nom: ${p.name}\nTéléphone: ${p.phone}\nDépart: ${p.start}\nDestination: ${p.end}\nDate: ${p.date} ${p.time}\nPassagers: ${p.pax}, Bagages: ${p.bags}\nAller/retour: ${p.roundtrip} | Attente: ${p.waitOnTrip} (${p.waitHours}h)\nSiège enfant: ${p.child}\nNotes: ${p.notes}\nEstimation: ${p.estimate}`;
