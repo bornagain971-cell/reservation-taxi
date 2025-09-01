@@ -497,22 +497,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
       estimateWithDistanceMatrix(origin, destination, function(err, km){
         if(err){
-          out.textContent = 'Erreur';
-          return;
-        }
-        var totalKm = isRoundTrip ? (km * 2) : km;
-        var total = pickup + (totalKm * perKm) + waitPrice;
-        // round to 2 decimals
-        total = Math.round(total * 100) / 100;
-        out.textContent = total.toFixed(2) + ' €';
-      });
-    });
-  });
-})();
-</script>
-<script>
-(function(){
-  function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+          
+        } else {
+          var kmFactor = isRoundTrip ? 2 : 1;
+          var totalKm = (km||0) * kmFactor;
+        document.addEventListener('DOMContentLoaded', fn); } }
   ready(function(){
     var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
     var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
