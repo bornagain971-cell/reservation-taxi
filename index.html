@@ -406,6 +406,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if(!btn) return;
 
     var out = document.getElementById('estimateOut');
+    try{ if(typeof lockWaitIfNeeded==='function'){ lockWaitIfNeeded(); } }catch(e){}
     if(!out){
       // fallback: create an output pill next to button if missing
       out = document.createElement('div'); out.id='estimateOut';
