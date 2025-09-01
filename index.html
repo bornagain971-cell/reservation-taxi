@@ -122,7 +122,7 @@ contactez-nous."></textarea></div>
 </div>
 <script src="assets/app.js"></script>
 <script src="assets/wait_hours.patch.js"></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&libraries=places&region=GP&language=fr&callback=initMaps"></script>
+<script async="" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&amp;libraries=places&amp;callback=initPlaces"></script>
 <script>
 // Dummy estimator just to keep layout identical; user can integrate real calc if needed.
 document.getElementById('estimateBtn').addEventListener('click', ()=>{
@@ -497,11 +497,22 @@ document.addEventListener("DOMContentLoaded", function() {
 
       estimateWithDistanceMatrix(origin, destination, function(err, km){
         if(err){
-          
-        } else {
-          var kmFactor = isRoundTrip ? 2 : 1;
-          var totalKm = (km||0) * kmFactor;
-        document.addEventListener('DOMContentLoaded', fn); } }
+          out.textContent = 'Erreur';
+          return;
+        }
+        var totalKm = isRoundTrip ? (km * 2) : km;
+        var total = pickup + (totalKm * perKm) + waitPrice;
+        // round to 2 decimals
+        total = Math.round(total * 100) / 100;
+        out.textContent = total.toFixed(2) + ' €';
+      });
+    });
+  });
+})();
+</script>
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
   ready(function(){
     var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
     var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
@@ -2589,32 +2600,58 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('estimateBtn');
   var out = document.getElementById('estimateOut');
-  try{
-    if(!(window.google && google.maps)){
-      if(out && (!out.textContent || out.textContent.trim()==='—')){
-        out.textContent = '— (Google Maps non chargé)';
-      }
-    }
-  }catch(e){}
-});
-</script>
+  if(!btn || !out) return;
+  if(btn.__arFixed) return; btn.__arFixed = true;
 
-<script>
-window.mapsReady = false;
-function initMaps(){
-  try{
-    window.mapsReady = true;
-    // Init Places Autocomplete if inputs exist
-    if (window.google && google.maps && google.maps.places){
-      var s = document.getElementById('start');
-      var e = document.getElementById('end');
-      if (s) { try { new google.maps.places.Autocomplete(s, { types: ['geocode'] }); } catch(_){} }
-      if (e) { try { new google.maps.places.Autocomplete(e, { types: ['geocode'] }); } catch(_){} }
+  btn.addEventListener('click', function(){
+    try{
+      if(!(window.google && google.maps && google.maps.DistanceMatrixService)){
+        out.textContent = '— (Google Maps non chargé)';
+        return;
+      }
+      var start = (document.getElementById('start')?.value || '').trim();
+      var end   = (document.getElementById('end')?.value   || '').trim();
+      if(!start || !end){
+        out.textContent = '— (saisir départ et destination)';
+        return;
+      }
+
+      var isRoundTrip = ((document.getElementById('roundtrip')?.value || '').trim().toLowerCase() === 'oui');
+      var night = (typeof isNight === 'function') ? !!isNight() : false;
+      var perKm = (typeof pickTariff === 'function') ? pickTariff(isRoundTrip, night) : 1;
+
+      var waitOn = ((document.getElementById('waitOnTrip')?.value || '').trim().toLowerCase() === 'oui');
+      var waitH  = parseInt(document.getElementById('waitHours')?.value || '0', 10) || 0;
+      var waitPrice = waitOn ? (25 * waitH) : 0;
+
+      var pickup = (typeof basePickup === 'number') ? basePickup : 0;
+
+      var svc = new google.maps.DistanceMatrixService();
+      svc.getDistanceMatrix({
+        origins: [start],
+        destinations: [end],
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC
+      }, function(res, status){
+        try{
+          if(status !== 'OK' || !res?.rows?.[0]?.elements?.[0]?.distance){
+            out.textContent = '— (itinéraire introuvable)';
+            return;
+          }
+          var km = res.rows[0].elements[0].distance.value / 1000.0;
+          var totalKm = km * (isRoundTrip ? 2 : 1);
+          var price = pickup + perKm * totalKm + waitPrice;
+          out.textContent = Math.round(price) + ' €';
+        }catch(e){
+          out.textContent = '— (erreur calcul)';
+        }
+      });
+    }catch(e){
+      out.textContent = '— (erreur estimation)';
     }
-  }catch(e){
-    console.error('initMaps error', e);
-  }
-}
+  });
+});
 </script>
 </body></html>
