@@ -62,7 +62,7 @@ function collectPayload(){
     name:f('name'), phone:f('phone'), start:f('start'), end:f('end'),
     date:f('date'), time:f('time'), pax:f('pax'), bags:f('bags'),
     roundtrip:f('roundtrip'), waitOnTrip:f('waitOnTrip'), waitHours:f('waitHours'),
-    child:f('child'), notes:document.getElementById('notes').value.trim(), estimate: document.getElementById('estimateOut').textContent.trim()
+    child:f('child'), notes:f('notes'), estimate: document.getElementById('estimateOut').textContent.trim()
   };
 }
 
