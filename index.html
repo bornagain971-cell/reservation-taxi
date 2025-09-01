@@ -122,7 +122,7 @@ contactez-nous."></textarea></div>
 </div>
 <script src="assets/app.js"></script>
 <script src="assets/wait_hours.patch.js"></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&libraries=places"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&libraries=places&callback=initMaps"></script>
 <script>
 // Dummy estimator just to keep layout identical; user can integrate real calc if needed.
 document.getElementById('estimateBtn').addEventListener('click', ()=>{
@@ -2609,5 +2609,23 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }catch(e){}
 });
+</script>
+
+<script>
+window.mapsReady = false;
+function initMaps(){
+  try{
+    window.mapsReady = true;
+    // Init Places Autocomplete if inputs exist
+    if (window.google && google.maps && google.maps.places){
+      var s = document.getElementById('start');
+      var e = document.getElementById('end');
+      if (s) { try { new google.maps.places.Autocomplete(s, { types: ['geocode'] }); } catch(_){} }
+      if (e) { try { new google.maps.places.Autocomplete(e, { types: ['geocode'] }); } catch(_){} }
+    }
+  }catch(e){
+    console.error('initMaps error', e);
+  }
+}
 </script>
 </body></html>
