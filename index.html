@@ -2344,53 +2344,24 @@ document.addEventListener('DOMContentLoaded', function(){
     }, 0);
   }, true);
 })();
-</script><script id="wa-quick-greeting-summary">
+</script><script id="wa-quick-plain-only">
 (function(){
   function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
   ready(function(){
-    const WA_NUMBER = '590691280005';
-    const $ = s=>document.querySelector(s);
-    function val(sel){ const el=document.querySelector(sel); return el? (el.value||'').trim():''; }
-    function buildSummary(){
-      const L=[];
-      const name  = val('#name') || val('#nom') || val('input[autocomplete="name"]') || val('input[name="name"]');
-      const tel   = val('#phone')|| val('#tel') || val('input[type="tel"]');
-      const date  = val('#date') || val('input[type="date"]');
-      const time  = val('#time') || val('input[type="time"]');
-      const dep   = val('#start')|| val('#depart')|| val('#origin');
-      const dst   = val('#end')  || val('#dest')  || val('#destination');
-      L.push("Bonjour Taxi Li, je souhaite réserver une course.");
-      L.push("");
-      L.push("Nouvelle réservation Taxi Li 🚕");
-      if(name) L.push("Nom: "+name);
-      if(tel)  L.push("Téléphone: "+tel);
-      if(date) L.push("Date: "+date);
-      if(time) L.push("Heure: "+time);
-      if(dep)  L.push("Départ: "+dep);
-      if(dst)  L.push("Destination: "+dst);
-      L.push("—");
-      L.push("Message envoyé depuis le formulaire en ligne.");
-      return L.join("\n");
-    }
-    function isQuickWA(el){
-      if(!el) return false;
-      const txt = (el.textContent||'').toLowerCase();
-      const href = (el.getAttribute && el.getAttribute('href')) || '';
-      // quick: mentions whatsapp but not "réserver par whatsapp"
-      if(txt.includes('whatsapp') && !(txt.includes('réserver par whatsapp') || txt.includes('reserver par whatsapp'))) return true;
-      // or a wa.me link in header/footer
-      if(href && href.startsWith('https://wa.me/')) return true;
-      return false;
-    }
+    // For any top/header quick WhatsApp link, force plain navigation and stop other handlers
     document.addEventListener('click', function(ev){
       const el = ev.target.closest('a');
       if(!el) return;
-      if(!isQuickWA(el)) return;
-      // force link to our number + greeting+summary
-      ev.preventDefault(); ev.stopPropagation();
-      const msg = buildSummary();
-      const url = 'https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(msg);
-      window.location.href = url;
+      const txt = (el.textContent||'').toLowerCase();
+      const href = (el.getAttribute('href')||'');
+      const isQuick = href.startsWith('https://wa.me/590691280005') && !(txt.includes('réserver par whatsapp')||txt.includes('reserver par whatsapp'));
+      if(isQuick){
+        // Let the browser just follow the plain link; prevent other capture listeners
+        // but do NOT preventDefault so navigation proceeds
+        // Trick: stopImmediatePropagation by adding a no-op listener and calling it?
+        // We can stop propagation without preventing default
+        ev.stopPropagation();
+      }
     }, true);
   });
 })();
