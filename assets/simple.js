@@ -63,6 +63,54 @@
     waitPerH: 25.00 // heure d'attente optionnelle
   });
 
+  async function getKm(){
+    // 1) Global cache
+    if(typeof window.__distanceKM === 'number' && isFinite(window.__distanceKM) && window.__distanceKM>0){
+      return window.__distanceKM;
+    }
+    // 2) Explicit field
+    const el = document.getElementById('distanceKm');
+    if(el){
+      const raw = (el.value || el.textContent || '').trim();
+      const val = parseFloat(raw.replace(',','.'));
+      if(isFinite(val) && val>0){
+        window.__distanceKM = val;
+        return val;
+      }
+    }
+    // 3) Google DistanceMatrix
+    try{
+      const start = val(els.start);
+      const end   = val(els.end);
+      if(start && end && window.google && google.maps && google.maps.DistanceMatrixService){
+        const svc = new google.maps.DistanceMatrixService();
+        const km = await new Promise((resolve)=>{
+          svc.getDistanceMatrix({
+            origins:[start],
+            destinations:[end],
+            travelMode: google.maps.TravelMode.DRIVING,
+            unitSystem: google.maps.UnitSystem.METRIC
+          }, (res, status)=>{
+            if(status==='OK'){
+              const r = res?.rows?.[0]?.elements?.[0];
+              if(r && r.status==='OK'){
+                resolve((r.distance.value||0)/1000);
+                return;
+              }
+            }
+            resolve(null);
+          });
+        });
+        if(km && km>0){
+          window.__distanceKM = km;
+          return km;
+        }
+      }
+    }catch(e){ /* ignore */ }
+    return 0;
+  }
+
+
   function isNight(hh){
     return (hh < 7 || hh >= 19);
   }
@@ -90,12 +138,8 @@
   }
 
   function collectParams(){
-    const hh = selectedHour();
-    if(!isFinite(hh)) return { invalidTime: true };
-    const km = num(els.km);
     return {
-      km,
-      roundtrip: boolFrom(els.round),
+      roundtrip: boolFrom(els.round) || (/^oui$/i.test((els.round && els.round.value)||'')),
       night: isNight(selectedHour()),
       waitOn: boolFrom(els.waitOn),
       waitH: num(els.waitH)
@@ -106,19 +150,21 @@
     return v.toFixed(2).replace('.', ',') + ' €';
   }
 
-  function ensureEstimate(){
+  async function ensureEstimate(){
     // Require time
     const hh = selectedHour();
     if(!isFinite(hh)){
-      // Try to show inline error if an element with id=errTime exists; otherwise alert
       var errEl = document.getElementById('errTime') || document.querySelector('[data-error-for="time"]');
       if(errEl){ errEl.textContent = "Veuillez choisir une heure."; errEl.style.display='block'; }
       if(els.time){ els.time.classList.add('input-invalid'); els.time.focus(); }
       if(els.estOut){ els.estOut.textContent = ""; els.estOut.dataset.value = ""; }
       return null;
     }
-    const price = computeFare(collectParams());
-    if(els.estOut){
+    if(els.estOut){ els.estOut.textContent = "Calcul..."; }
+    const params = collectParams();
+    const km = await getKm();
+    const price = computeFare({ ...params, km });
+    if(els.estOut && price!=null){
       els.estOut.textContent = formatEUR(price);
       els.estOut.dataset.value = String(price);
     }
@@ -161,16 +207,17 @@
   }
 
   // Intercept WhatsApp/mailto clicks to inject estimate even if not computed before
-  function handleAnchor(e){
+  async function handleAnchor(e){
     const a = e.target.closest('a');
     if(!a) return;
     const href = a.getAttribute('href') || '';
     const isWA = /wa\.me|whatsapp/.test(href);
     const isMail = /^mailto:/i.test(href);
     if(!isWA && !isMail) return;
+    e.preventDefault();
 
-    const price = ensureEstimate();
-    if(price === null){ e.preventDefault(); return; }
+    const price = await ensureEstimate();
+    if(price === null){ return; }
     const msg = buildSummary(price);
 
     if(isWA){
@@ -189,7 +236,8 @@
       params.set('body', msg);
       a.setAttribute('href', mailto + '?' + params.toString());
     }
-    // allow navigation to continue with updated href
+    // navigate now that href is updated
+    window.location.href = a.getAttribute('href');
   }
 
   document.addEventListener('click', handleAnchor, true);
