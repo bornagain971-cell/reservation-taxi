@@ -6,14 +6,34 @@
   function num(el){ const v = parseFloat(val(el).replace(',','.')); return isFinite(v) ? v : 0; }
   function boolFrom(el){
     if(!el) return false;
-    if(el.tagName === 'SELECT'){
-      return (val(el).toLowerCase().startsWith('o') || val(el).toLowerCase()==='yes' || val(el)==='1' );
+    const tag = (el.tagName||'').toUpperCase();
+
+    // SELECT: value "oui"/"non", "yes"/"no", "1"/"0"
+    if(tag === 'SELECT'){
+      const v = val(el).toLowerCase();
+      return (v.startsWith('o') || v==='yes' || v==='1' || v==='true');
     }
+
+    // Inputs
     if(el.type === 'checkbox' || el.type === 'radio'){
       return !!el.checked;
     }
-    const v = val(el).toLowerCase();
-    return (v==='oui'||v==='yes'||v==='1'||v==='true');
+
+    // Button/toggle patterns
+    const aria = (el.getAttribute && el.getAttribute('aria-pressed')) || '';
+    if(aria){ return String(aria).toLowerCase() === 'true'; }
+
+    const ds = el.dataset || {};
+    if(ds.active){ return String(ds.active).toLowerCase() === 'true'; }
+    if(ds.state){  return String(ds.state).toLowerCase() === 'on'; }
+    if(ds.on){     return ['1','true','yes','oui','on'].includes(String(ds.on).toLowerCase()); }
+
+    // Class-based (e.g., .active)
+    if(el.classList && el.classList.contains('active')) return true;
+
+    // Fallback to textual value
+    const v = (val(el) || (el.textContent||'')).trim().toLowerCase();
+    return (v==='oui'||v==='yes'||v==='1'||v==='true'||v==='on');
   }
 
   // ids fallbacks
@@ -25,7 +45,7 @@
     start: $('#start') || $('#depart') || $('#origin'),
     end:   $('#end')   || $('#dest')   || $('#destination'),
     km:    $('#distanceKm') || document.querySelector('input[name="km"]'),
-    round: $('#ar') || $('#allerRetour') || document.querySelector('select#ar, select#allerRetour'),
+    round: $('#ar') || $('#allerRetour') || $('#roundtrip') || document.querySelector('select#ar, select#allerRetour') || document.querySelector('[data-role="roundtrip"]'),
     waitOn: $('#waitOnTrip') || $('#attente') || $('#waitDuring') || $('#attente_trajet'),
     waitH:  $('#waitHours')  || $('#attenteHeures') || $('#dureeAttente'),
     notes:  $('#notes'),
@@ -120,6 +140,19 @@
   }
 
   // Bind estimate button
+  // Recalculate when round-trip control changes/clicks
+  if(els.round){
+    const recalc = function(){ ensureEstimate(); };
+    ['change','click','input','keyup'].forEach(evt => {
+      els.round.addEventListener(evt, recalc, true);
+      document.addEventListener(evt, function(e){
+        if(e.target === els.round || (e.target && e.target.closest && e.target.closest('#roundtrip,[data-role=roundtrip]'))) {
+          ensureEstimate();
+        }
+      }, true);
+    });
+  }
+
   if(els.estBtn){
     els.estBtn.addEventListener('click', function(ev){
       ev.preventDefault();
