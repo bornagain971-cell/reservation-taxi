@@ -247,3 +247,101 @@
     RATE, isNight, computeFare, ensureEstimate, buildSummary
   };
 })();
+
+
+/** Minimal Google Places init to keep autocomplete + callback working if available */
+(function(){
+  function attachAutocomplete(id){
+    try{
+      if(!window.google || !google.maps || !google.maps.places || !document.getElementById(id)) return;
+      new google.maps.places.Autocomplete(document.getElementById(id), { types: ['geocode'] });
+    }catch(e){ /* ignore */ }
+  }
+  window.initPlaces = function(){
+    attachAutocomplete('start'); attachAutocomplete('depart'); attachAutocomplete('origin');
+    attachAutocomplete('end');   attachAutocomplete('dest');   attachAutocomplete('destination');
+  };
+})();
+
+
+// === High-priority interception to avoid legacy conflicts ===
+(function(){
+  if(window.__TAXILI_OVERRIDE__) return;
+  window.__TAXILI_OVERRIDE__ = true;
+
+  // Intercept anchor clicks first: capture phase
+  function captureAnchor(e){
+    const a = e.target && e.target.closest && e.target.closest('a');
+    if(!a) return;
+    const href = a.getAttribute('href')||'';
+    const isWA = /wa\.me|whatsapp/.test(href);
+    const isMail = /^mailto:/i.test(href);
+    if(!isWA && !isMail) return;
+    // We'll handle navigation ourselves
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    e.stopPropagation();
+    (async function(){
+      const price = await ensureEstimate();
+      if(price===null) return;
+      const msg = buildSummary(price);
+      if(isWA){
+        let base = href.split('?')[0];
+        const sep = href.includes('?') ? '&' : '?';
+        a.setAttribute('href', base + sep + 'text=' + encodeURIComponent(msg));
+      } else {
+        const parts = href.split('?');
+        const mailto = parts[0];
+        const params = new URLSearchParams(parts[1]||'');
+        if(!params.has('subject')) params.set('subject','Demande de réservation taxi');
+        params.set('body', msg);
+        a.setAttribute('href', mailto + '?' + params.toString());
+      }
+      window.location.href = a.getAttribute('href');
+    })();
+  }
+
+  // Intercept estimate button
+  function captureEstimate(e){
+    const btn = e.target && e.target.closest && e.target.closest('#estimateBtn');
+    if(!btn) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    e.stopPropagation();
+    ensureEstimate();
+  }
+
+  ['click','pointerdown','touchstart'].forEach(evt=>{
+    document.addEventListener(evt, captureAnchor, true); // capture
+    document.addEventListener(evt, captureEstimate, true);
+    window.addEventListener(evt, captureAnchor, true);
+    window.addEventListener(evt, captureEstimate, true);
+  });
+})();
+
+
+  // === Simple gallery builder (no dependency) ===
+  const GALLERY_IMAGES = ["images/veh_1B76F14E-A50C-4300-A8BB-5DB482B35BCC.jpeg", "images/veh_41DB433F-0805-4CF2-92A5-8B453E1FDD9D.jpeg", "images/veh_626A3A30-5D57-41F3-B34E-835EE4BD7EF5.jpeg", "images/veh_64A1AFEF-9183-478D-9C8C-C29A40B7D667.jpeg", "images/veh_68513BAA-E2B0-4E44-9EE1-7D5A84952B58.jpeg", "images/veh_6968DD8D-D761-4FAD-AD3A-FE35380E5602.jpeg", "images/veh_88561D03-6E6B-42A6-82A1-1E65C4855744.jpeg", "images/veh_93477B9D-93DD-4F9E-9D95-8A563048775E.jpeg", "images/veh_A6974BD9-DA63-460D-AED8-780AAA371847.jpeg", "images/veh_C9131168-9059-41FB-B69C-57851A6F7F8D.jpeg"];
+  function buildGallery(){ 
+    const track = document.getElementById('slides');
+    const dots  = document.getElementById('dots');
+    if(!track) return;
+    if(dots) dots.innerHTML = '';
+    track.innerHTML = '';
+    GALLERY_IMAGES.forEach((src,i)=>{
+      const s=document.createElement('div'); s.className='slide'+(i===0?' active':'');
+      const img=document.createElement('img'); img.src=src; img.alt='Photo véhicule '+(i+1);
+      s.appendChild(img); track.appendChild(s);
+      if(dots){
+        const d=document.createElement('div'); d.className='dot'+(i===0?' active':'');
+        d.addEventListener('click',()=>showSlide(i)); dots.appendChild(d);
+      }
+    });
+  }
+  function showSlide(i){
+    const slides = Array.from(document.querySelectorAll('#slides .slide'));
+    const dots   = Array.from(document.querySelectorAll('#dots .dot'));
+    slides.forEach((el,idx)=> el.classList.toggle('active', idx===i));
+    dots.forEach((el,idx)=> el.classList.toggle('active', idx===i));
+  }
+  document.addEventListener('DOMContentLoaded', buildGallery);
