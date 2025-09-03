@@ -1,7 +1,7 @@
 
-/* TaxiLI — Force compute estimate on "Réserver par e-mail" before opening mail client */
+/* TaxiLI — Force compute estimate on "Réserver par WhatsApp" before opening WA */
 (function(){
-  if (window.__EMAIL_FORCE__) return; window.__EMAIL_FORCE__ = true;
+  if (window.__WA_FORCE__) return; window.__WA_FORCE__ = true;
   function $(sel){ return document.querySelector(sel); }
   function tv(el){ return (el && (el.value||el.textContent)||'').trim(); }
   function formatEUR(n){ return n.toFixed(2).replace('.',',')+' €'; }
@@ -54,25 +54,23 @@
     return L.join("\\n");
   }
 
-  async function maybeHandleMailto(e){
-    const a = e.target && e.target.closest && e.target.closest('a[href^=\"mailto:\"]');
+  async function maybeHandleWA(e){
+    const a = e.target && e.target.closest && e.target.closest('a[href*=\"wa.me\"], a[href*=\"whatsapp\"]');
     if(!a) return;
     e.preventDefault();
     let price = NaN;
     try { price = await getEstimate(); } catch(e){}
     const msg = buildMessage(price);
-    const href = a.getAttribute('href') || 'mailto:';
-    const parts = href.split('?'); const mailto = parts[0];
-    const params = new URLSearchParams(parts[1]||'');
-    if(!params.has('subject')) params.set('subject','Demande de réservation taxi');
-    params.set('body', msg);
-    const updated = mailto + '?' + params.toString();
+    const href = a.getAttribute('href') || 'https://wa.me/';
+    const base = href.split('?')[0];
+    const sep  = href.includes('?') ? '&' : '?';
+    const updated = base + sep + 'text=' + encodeURIComponent(msg);
     a.setAttribute('href', updated);
     window.location.href = updated;
   }
 
   ['click','pointerdown','touchstart'].forEach(evt => {
-    document.addEventListener(evt, maybeHandleMailto, true);
-    window.addEventListener(evt, maybeHandleMailto, true);
+    document.addEventListener(evt, maybeHandleWA, true);
+    window.addEventListener(evt, maybeHandleWA, true);
   });
 })();
