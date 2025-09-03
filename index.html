@@ -120,25 +120,2483 @@ contactez-nous."></textarea></div>
         <a href="mailto:taxili@laposte.net">taxili@laposte.net</a> — <a href="tel:+590691280005">0691 28 00 05</a>
 </div>
 </div>
-
-
+<script src="assets/app.js"></script>
+<script src="assets/wait_hours.patch.js"></script>
 <script async="" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0neqw7tsdowV0wm4gYPOEIGye7m3TgnE&amp;libraries=places&amp;callback=initPlaces"></script>
+<script>
+// Dummy estimator just to keep layout identical; user can integrate real calc if needed.
+document.getElementById('estimateBtn').addEventListener('click', ()=>{
+  document.getElementById('estimateOut').textContent = '—';
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const dateInput = document.getElementById("date");
+  const timeInput = document.getElementById("time");
+  const now = new Date();
 
+  if (dateInput) {
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2,"0");
+    const dd = String(now.getDate()).padStart(2,"0");
+    dateInput.value = `${yyyy}-${mm}-${dd}`;
+  }
 
+  if (timeInput) {
+    const hh = String(now.getHours()).padStart(2,"0");
+    const mm2 = String(now.getMinutes()).padStart(2,"0");
+    timeInput.value = `${hh}:${mm2}`;
+  }
+});
+</script>
+<script>
+(function () {
+  const estimateBtn = document.querySelector('#estimateBtn, button[data-role="estimate"], .btn-estimate');
+  const depart = document.querySelector('#start, #depart, #origin, input[name="origin"], input[name="start"]');
+  const dest = document.querySelector('#end, #destination, #dest, input[name="destination"]');
 
+  if (!estimateBtn || !depart || !dest) return;
 
+  let errorEl = document.createElement('div');
+  errorEl.id = 'estimate-error';
+  errorEl.style.display = 'none';
+  errorEl.style.color = '#c53030';
+  errorEl.style.marginTop = '8px';
+  errorEl.style.fontSize = '0.9rem';
+  errorEl.setAttribute('aria-live', 'polite');
 
+  const priceBox = document.querySelector('#priceBox, .price-box, #estimatePriceBox') || estimateBtn.parentElement;
+  priceBox.appendChild(errorEl);
 
+  function clearError() {
+    errorEl.style.display = 'none';
+    errorEl.textContent = '';
+  }
 
+  function validate() {
+    const d = depart.value.trim();
+    const a = dest.value.trim();
+    if (!d || !a) {
+      errorEl.textContent = "Oups ! Pour obtenir votre estimation, indiquez d’abord le lieu de départ et la destination.";
+      errorEl.style.display = 'block';
+      return false;
+    }
+    clearError();
+    return true;
+  }
 
+  estimateBtn.addEventListener('click', function (e) {
+    if (!validate()) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
 
+  depart.addEventListener('input', clearError);
+  dest.addEventListener('input', clearError);
+})();
+</script>
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=="loading"){fn();} else {document.addEventListener("DOMContentLoaded", fn);} }
 
+  ready(function(){
+    var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+    if(!confirmBtn) return;
 
+    // Helpers to find fields with tolerant selectors
+    var nameEl  = document.querySelector('#name, input[name="name"], #fullname, #fullName');
+    var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+    var depEl   = document.querySelector('#start, #depart, #origin, input[name="origin"], input[name="start"]');
+    var dstEl   = document.querySelector('#end, #destination, #dest, input[name="destination"]');
 
+    function getOrCreateError(el, idSuffix, msg){
+      if(!el) return null;
+      var id = el.id ? el.id + '-err' : ('field-' + idSuffix + '-err');
+      var err = document.getElementById(id);
+      if(!err){
+        err = document.createElement('div');
+        err.id = id;
+        err.className = 'field-error';
+        err.textContent = msg;
+        // insert right after the input
+        if(el.parentNode){
+          el.parentNode.appendChild(err);
+        } else {
+          el.insertAdjacentElement('afterend', err);
+        }
+      }else{
+        err.textContent = msg;
+      }
+      return err;
+    }
 
+    // Prepare error elements (created once)
+    var errName  = getOrCreateError(nameEl,  'name',  'Merci d’indiquer vos nom et prénom.');
+    var errPhone = getOrCreateError(phoneEl, 'phone', 'Merci de renseigner votre numéro de téléphone.');
+    var errDep   = getOrCreateError(depEl,   'start', 'Merci de préciser le lieu de départ.');
+    var errDst   = getOrCreateError(dstEl,   'end',   'Merci de préciser la destination.');
 
+    function show(el, err){
+      if(!el || !err) return;
+      err.style.display = 'block';
+      el.classList.add('input-error');
+    }
+    function hide(el, err){
+      if(!el || !err) return;
+      err.style.display = 'none';
+      el.classList.remove('input-error');
+    }
+    function isEmpty(el){
+      return !el || !String(el.value||'').trim();
+    }
 
-  
-  <script src="assets/simple.js"></script>
+    // Validate on confirm click
+    confirmBtn.addEventListener('click', function(e){
+      var anyError = false;
+      if(isEmpty(nameEl)){ show(nameEl, errName); anyError = true; } else { hide(nameEl, errName); }
+      if(isEmpty(phoneEl)){ show(phoneEl, errPhone); anyError = true; } else { hide(phoneEl, errPhone); }
+      if(isEmpty(depEl)){ show(depEl, errDep); anyError = true; } else { hide(depEl, errDep); }
+      if(isEmpty(dstEl)){ show(dstEl, errDst); anyError = true; } else { hide(dstEl, errDst); }
+
+      if(anyError){
+        e.preventDefault();
+        e.stopPropagation();
+        // Focus the first invalid field
+        try{
+          (isEmpty(nameEl)&&nameEl || isEmpty(phoneEl)&&phoneEl || isEmpty(depEl)&&depEl || isEmpty(dstEl)&&dstEl).focus();
+        }catch(_){}
+        return false;
+      }
+      // else: proceed normally (no change to your flow)
+    });
+
+    // Clear per-field error on input
+    [nameEl, phoneEl, depEl, dstEl].forEach(function(el, idx){
+      if(!el) return;
+      el.addEventListener('input', function(){
+        if(el===nameEl) hide(nameEl, errName);
+        else if(el===phoneEl) hide(phoneEl, errPhone);
+        else if(el===depEl) hide(depEl, errDep);
+        else if(el===dstEl) hide(dstEl, errDst);
+      });
+    });
+  });
+})();
+</script>
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+  ready(function(){
+    var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+    if(!confirmBtn) return;
+
+    var nameEl  = document.querySelector('#name, input[name="name"], #fullname, #fullName');
+    var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+    var depEl   = document.querySelector('#start, #depart, #origin, input[name="origin"], input[name="start"]');
+    var dstEl   = document.querySelector('#end, #destination, #dest, input[name="destination"]');
+    var dateEl  = document.querySelector('#date, input[type="date"]');
+
+    function isEmpty(el){ return !el || !String(el.value||'').trim(); }
+
+    function ensureErr(el, idSuffix, msg){
+      if(!el) return null;
+      var id = el.id ? (el.id + '-err') : ('field-' + idSuffix + '-err');
+      var err = document.getElementById(id);
+      if(!err){
+        err = document.createElement('div');
+        err.id = id;
+        err.className = 'field-error';
+        err.textContent = msg;
+        if(el.parentNode){ el.parentNode.appendChild(err); }
+      } else {
+        err.textContent = msg;
+      }
+      return err;
+    }
+
+    var errName  = ensureErr(nameEl,  'name',  'Merci d’indiquer vos nom et prénom.');
+    var errPhone = ensureErr(phoneEl, 'phone', 'Merci de renseigner votre numéro de téléphone.');
+    var errDep   = ensureErr(depEl,   'start', 'Merci de préciser le lieu de départ.');
+    var errDst   = ensureErr(dstEl,   'end',   'Merci de préciser la destination.');
+    var errDate  = ensureErr(dateEl,  'date',  'Merci de sélectionner une date valide à partir d’aujourd’hui.');
+
+    function show(el, err){ if(el&&err){ err.style.display='block'; el.classList.add('input-error'); } }
+    function hide(el, err){ if(el&&err){ err.style.display='none'; el.classList.remove('input-error'); } }
+
+    function isPastDate(el){
+      if(!el || !el.value) return false; // no value: handled by native "required" if present; we focus on "inférieure à aujourd'hui"
+      var v = String(el.value).trim();
+      // Expecting YYYY-MM-DD
+      var parts = v.split('-');
+      if(parts.length !== 3) return true; // invalid format -> treat as invalid
+      var y = parseInt(parts[0],10), m = parseInt(parts[1],10)-1, d = parseInt(parts[2],10);
+      if(isNaN(y)||isNaN(m)||isNaN(d)) return true;
+      var chosen = new Date(y, m, d);
+      chosen.setHours(0,0,0,0);
+      var today = new Date();
+      today.setHours(0,0,0,0);
+      return chosen < today;
+    }
+
+    function validateRequired(){
+      var any=false;
+      if(isEmpty(nameEl)){ show(nameEl, errName); any=true; } else { hide(nameEl, errName); }
+      if(isEmpty(phoneEl)){ show(phoneEl, errPhone); any=true; } else { hide(phoneEl, errPhone); }
+      if(isEmpty(depEl)){ show(depEl, errDep); any=true; } else { hide(depEl, errDep); }
+      if(isEmpty(dstEl)){ show(dstEl, errDst); any=true; } else { hide(dstEl, errDst); }
+
+      // Date check: show error if date < today (even if filled)
+      if(dateEl){
+        if(isPastDate(dateEl)){ show(dateEl, errDate); any=true; } else { hide(dateEl, errDate); }
+      }
+      return !any;
+    }
+
+    // Clear per-field error as user types/changes
+    [nameEl, phoneEl, depEl, dstEl].forEach(function(el){
+      if(!el) return;
+      el.addEventListener('input', function(){
+        var err = document.getElementById(el.id ? (el.id + '-err') : '');
+        if(err){ err.style.display='none'; }
+        el.classList.remove('input-error');
+      });
+    });
+    if(dateEl){
+      dateEl.addEventListener('change', function(){
+        var id = dateEl.id ? (dateEl.id + '-err') : 'field-date-err';
+        var err = document.getElementById(id);
+        if(err){ err.style.display='none'; }
+        dateEl.classList.remove('input-error');
+      });
+    }
+
+    // Guard confirm
+    confirmBtn.addEventListener('click', function(e){
+      if(!validateRequired()){
+        e.preventDefault();
+        if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+        e.stopPropagation();
+        return false;
+      }
+    }, true);
+
+    // Also guard WA/Mail buttons if present
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
+      var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
+      if(waBtn || mailBtn){
+        if(!validateRequired()){
+          e.preventDefault();
+          if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+          e.stopPropagation();
+          return false;
+        }
+      }
+    }, true);
+  });
+})();
+</script>
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+  ready(function(){
+    var btn = document.getElementById('estimateBtn') || document.querySelector('.estimate-btn, button[data-action="estimate"]');
+    if(!btn) return;
+
+    var out = document.getElementById('estimateOut');
+    if(!out){
+      // fallback: create an output pill next to button if missing
+      out = document.createElement('div'); out.id='estimateOut';
+      out.style.display='inline-block'; out.style.marginLeft='10px'; out.style.padding='10px 12px';
+      out.style.borderRadius='10px'; out.style.background='#f0f0f0'; out.style.minWidth='80px'; out.style.textAlign='center';
+      btn.parentNode && btn.parentNode.appendChild(out);
+    }
+
+    function getVal(sel){
+      var el = document.querySelector(sel);
+      return el ? (el.value||'').trim() : '';
+    }
+    function getSelect(sel){
+      var el = document.querySelector(sel);
+      return el ? (el.value||'').trim() : '';
+    }
+    function parseWaitHours(){
+      var waitSel = document.getElementById('waitOnTrip') || document.getElementById('waitDuring');
+      var hoursSel = document.getElementById('waitHours');
+      if(!waitSel || !hoursSel) return 0;
+      if(hoursSel.disabled) return 0;
+      return (String(waitSel.value).toLowerCase()==='oui') ? parseInt(hoursSel.value||'0',10)||0 : 0;
+    }
+    function isNight(dateStr, timeStr){
+      // night if 19:00..23:59 or 00:00..06:59
+      try{
+        var parts = (timeStr||'').split(':');
+        var h = parseInt(parts[0]||'0',10);
+        if(isNaN(h)) return false;
+        return (h >= 19 || h < 7);
+      }catch(e){ return false; }
+    }
+
+    function pickTariff(isRoundTrip, night){
+      // €/km based on rules provided earlier
+      // A=1.03 (roundtrip day), B=1.55 (roundtrip night/holiday)
+      // C=2.06 (one-way day), D=3.06 (one-way night/holiday)
+      if(isRoundTrip){
+        return night ? 1.55 : 1.03;
+      }else{
+        return night ? 3.06 : 2.06;
+      }
+    }
+
+    function estimateWithDistanceMatrix(origin, destination, cb){
+      if(!(window.google && google.maps && google.maps.DistanceMatrixService)){
+        cb(new Error('Google DistanceMatrix non disponible'), null);
+        return;
+      }
+      var service = new google.maps.DistanceMatrixService();
+      service.getDistanceMatrix({
+        origins: [origin],
+        destinations: [destination],
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC
+      }, function(response, status){
+        if(status !== 'OK' || !response || !response.rows || !response.rows[0] || !response.rows[0].elements || !response.rows[0].elements[0]){
+          cb(new Error('DistanceMatrix status: '+status), null);
+          return;
+        }
+        var el = response.rows[0].elements[0];
+        if(el.status !== 'OK'){
+          cb(new Error('Element status: '+el.status), null);
+          return;
+        }
+        var meters = el.distance && el.distance.value;
+        cb(null, (meters||0)/1000.0);
+      });
+    }
+
+    btn.addEventListener('click', function(e){
+      // If other validators block (missing fields), let them show errors;
+      // we only proceed if origin & destination are present.
+      var origin = getVal('#start, #depart, #origin, input[name="origin"], input[name="start"]');
+      var destination = getVal('#end, #destination, #dest, input[name="destination"]');
+      if(!origin || !destination){ return; }
+
+      out.textContent = '…';
+
+      var dateStr = getVal('#date, input[type="date"]');
+      var timeStr = getVal('#time, input[type="time"]');
+      var roundtripVal = getSelect('#roundtrip, #roundTrip');
+      var isRoundTrip = (String(roundtripVal).toLowerCase()==='oui');
+      var night = isNight(dateStr, timeStr);
+      var perKm = pickTariff(isRoundTrip, night);
+      var pickup = 3.75; // prise en charge
+      var waitH = parseWaitHours();
+      var waitPrice = (waitH>0 ? (25 * waitH) : 0);
+
+      estimateWithDistanceMatrix(origin, destination, function(err, km){
+        if(err){
+          out.textContent = 'Erreur';
+          return;
+        }
+        var totalKm = isRoundTrip ? (km * 2) : km;
+        var total = pickup + (totalKm * perKm) + waitPrice;
+        // round to 2 decimals
+        total = Math.round(total * 100) / 100;
+        out.textContent = total.toFixed(2) + ' €';
+      });
+    });
+  });
+})();
+</script>
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+  ready(function(){
+    var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+    var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+    var dateEl  = document.querySelector('#date, input[type="date"]');
+    var timeEl  = document.querySelector('#time, input[type="time"]');
+
+    function ensureErr(el, idSuffix, msg){
+      if(!el) return null;
+      var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+      var box = document.getElementById(id);
+      if(!box){
+        box = document.createElement('div');
+        box.id = id;
+        box.className = 'field-error';
+        box.style.display = 'none';
+        box.textContent = msg;
+        if(el.parentNode){ el.parentNode.appendChild(box); }
+      } else {
+        box.textContent = msg;
+      }
+      return box;
+    }
+
+    var errPhone = ensureErr(phoneEl, 'phone', 'Merci de renseigner un numéro de téléphone valide (chiffres uniquement).');
+    var errTime  = ensureErr(timeEl,  'time',  'Merci de choisir une heure à partir de maintenant.');
+
+    function show(el, box, msg){
+      if(!el||!box) return;
+      if(msg) box.textContent = msg;
+      box.style.display = 'block';
+      el.classList.add('input-error');
+    }
+    function hide(el, box){
+      if(!el||!box) return;
+      box.style.display = 'none';
+      el.classList.remove('input-error');
+    }
+
+    function parseDate(val){
+      if(!val) return null;
+      var p = String(val).split('-'); if(p.length!==3) return null;
+      var y=+p[0], m=+p[1]-1, d=+p[2]; if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+      return new Date(y,m,d);
+    }
+    function parseTime(val){
+      if(!val) return null;
+      var p = String(val).split(':');
+      var h=+p[0], mi=+p[1]||0; if(isNaN(h)||isNaN(mi)) return null;
+      return {h:h, m:mi};
+    }
+    function isToday(d){
+      var now=new Date();
+      return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+    }
+    function invalidTime(){
+      if(!timeEl) return false;
+      var t=parseTime(timeEl.value); if(!t) return false;
+      var d=parseDate(dateEl && dateEl.value);
+      if(d && isToday(d)){
+        var now=new Date();
+        var input=new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
+        return input < now;
+      }
+      return false;
+    }
+    function invalidPhone(){
+      if(!phoneEl) return false;
+      var v=(phoneEl.value||'').trim();
+      if(!v) return false;
+      return /[A-Za-z]/.test(v);
+    }
+
+    function hasBlockingErrors(){
+      var blocked=false;
+      if(invalidPhone()){ show(phoneEl, errPhone); blocked=true; } else { hide(phoneEl, errPhone); }
+      if(invalidTime()){ show(timeEl, errTime); blocked=true; } else { hide(timeEl, errTime); }
+      return blocked;
+    }
+
+    function guard(e){
+      if(hasBlockingErrors()){
+        e.preventDefault();
+        if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+        e.stopPropagation();
+        return false;
+      }
+    }
+
+    if(confirmBtn){ confirmBtn.addEventListener('click', guard, true); }
+    document.addEventListener('click', function(e){
+      var t=e.target;
+      var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
+      var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
+      if(waBtn || mailBtn){ guard(e); }
+    }, true);
+
+    // Clear errors on edits
+    if(phoneEl) phoneEl.addEventListener('input', function(){ if(!invalidPhone()) hide(phoneEl, errPhone); });
+    if(timeEl)  timeEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, errTime); });
+    if(dateEl)  dateEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, errTime); });
+  });
+})();
+</script>
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+  ready(function(){
+    // Tolerant selectors (do not change layout/ids)
+    var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+    var dateEl  = document.querySelector('#date, input[name="date"], input[type="date"]');
+    var timeEl  = document.querySelector('#time, input[name="time"], input[type="time"]');
+    var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+
+    function ensureErr(el, idSuffix, msg){
+      if(!el) return null;
+      var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+      var box = document.getElementById(id);
+      if(!box){
+        box = document.createElement('div');
+        box.id = id;
+        box.className = 'field-error';
+        box.style.display = 'none';
+        box.textContent = msg;
+        if(el.parentNode){ el.parentNode.appendChild(box); }
+      } else {
+        box.textContent = msg;
+      }
+      return box;
+    }
+    var phoneErr = ensureErr(phoneEl, 'phone', 'Merci de renseigner un numéro de téléphone valide (chiffres uniquement).');
+    var timeErr  = ensureErr(timeEl,  'time',  'Merci de choisir une heure à partir de maintenant.');
+
+    function show(el, box, msg){
+      if(!el||!box) return;
+      if(msg) box.textContent = msg;
+      box.style.display = 'block';
+      el.classList.add('input-error');
+    }
+    function hide(el, box){
+      if(!el||!box) return;
+      box.style.display = 'none';
+      el.classList.remove('input-error');
+    }
+
+    function invalidPhone(){
+      if(!phoneEl) return false;
+      var v = (phoneEl.value||'').trim();
+      if(!v) return false; // empty handled by other "required" validators
+      // Reject any letter, allow digits, spaces, +, -, (), .
+      return /[A-Za-z]/.test(v);
+    }
+
+    function parseDate(val){
+      if(!val) return null;
+      var p = String(val).split('-');
+      if(p.length!==3) return null;
+      var y=+p[0], m=+p[1]-1, d=+p[2];
+      if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+      return new Date(y,m,d);
+    }
+    function parseTime(val){
+      if(!val) return null;
+      var p = String(val).split(':');
+      var h=+p[0], mi=+p[1]||0;
+      if(isNaN(h)||isNaN(mi)) return null;
+      return {h:h, m:mi};
+    }
+    function isToday(d){
+      var now = new Date();
+      return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+    }
+    function invalidTime(){
+      if(!timeEl) return false;
+      var t = parseTime(timeEl.value);
+      if(!t) return false; // no time => other required validators handle it
+      var d = parseDate(dateEl && dateEl.value);
+      var now = new Date();
+      if(d && isToday(d)){
+        var input = new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
+        return input < now;
+      }
+      return false;
+    }
+
+    function validateAndShow(){
+      var bad = false;
+      if(invalidPhone()){ show(phoneEl, phoneErr); bad = true; } else { hide(phoneEl, phoneErr); }
+      if(invalidTime()){ show(timeEl, timeErr); bad = true; } else { hide(timeEl, timeErr); }
+      return !bad;
+    }
+
+    // Real-time clearing of messages
+    if(phoneEl){ phoneEl.addEventListener('input', function(){ if(!invalidPhone()) hide(phoneEl, phoneErr); }); }
+    if(timeEl){ timeEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, timeErr); }); }
+    if(dateEl){ dateEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, timeErr); }); }
+
+    // Also validate on confirm click so the user sees errors even without interacting
+    if(confirmBtn){
+      confirmBtn.addEventListener('click', function(){
+        validateAndShow();
+      });
+    }
+  });
+})();
+</script>
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+  ready(function(){
+    var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+    var dateEl  = document.querySelector('#date, input[name="date"], input[type="date"]');
+    var timeEl  = document.querySelector('#time, input[name="time"], input[type="time"]');
+    var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+
+    function getErr(el, idSuffix){
+      if(!el) return null;
+      var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+      return document.getElementById(id);
+    }
+    function hasLettersPhone(){
+      if(!phoneEl) return false;
+      var v=(phoneEl.value||'').trim();
+      if(!v) return false;
+      return /[A-Za-z]/.test(v);
+    }
+    function parseDate(val){
+      if(!val) return null;
+      var p=String(val).split('-'); if(p.length!==3) return null;
+      var y=+p[0], m=+p[1]-1, d=+p[2]; if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+      return new Date(y,m,d);
+    }
+    function parseTime(val){
+      if(!val) return null;
+      var p=String(val).split(':');
+      var h=+p[0], mi=+p[1]||0; if(isNaN(h)||isNaN(mi)) return null;
+      return {h:h, m:mi};
+    }
+    function isToday(d){
+      var now=new Date();
+      return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+    }
+    function timeInPast(){
+      if(!timeEl) return false;
+      var t=parseTime(timeEl.value); if(!t) return false;
+      var d=parseDate(dateEl && dateEl.value);
+      if(d && isToday(d)){
+        var now=new Date();
+        var input=new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
+        return input < now;
+      }
+      return false;
+    }
+
+    function hasBlockingErrors(){
+      var phoneErr = getErr(phoneEl,'phone');
+      var timeErr  = getErr(timeEl,'time');
+      var blocked=false;
+      if(hasLettersPhone()){ if(phoneErr){ phoneErr.style.display='block'; } phoneEl && phoneEl.classList.add('input-error'); blocked=true; }
+      if(timeInPast()){ if(timeErr){ timeErr.style.display='block'; } timeEl && timeEl.classList.add('input-error'); blocked=true; }
+      return blocked;
+    }
+
+    function blockIfErrors(e){
+      if(hasBlockingErrors()){
+        e.preventDefault();
+        if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+        e.stopPropagation();
+        return false;
+      }
+    }
+
+    if(confirmBtn){ confirmBtn.addEventListener('click', blockIfErrors, true); }
+
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
+      var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
+      if(waBtn || mailBtn){ blockIfErrors(e); }
+    }, true);
+  });
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+  var dateEl  = document.querySelector('#date, input[name="date"], input[type="date"]');
+  var timeEl  = document.querySelector('#time, input[name="time"], input[type="time"]');
+  var confirmBtn = document.getElementById('confirmBtn') || document.querySelector('button[data-role="confirm"], .btn-confirm');
+
+  function ensureErr(el, idSuffix, msg){
+    if(!el) return null;
+    var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+    var box = document.getElementById(id);
+    if(!box){
+      box = document.createElement('div');
+      box.id = id;
+      box.className = 'field-error';
+      box.style.display = 'none';
+      box.textContent = msg;
+      if(el.parentNode){ el.parentNode.appendChild(box); }
+    } else {
+      box.textContent = msg;
+    }
+    return box;
+  }
+
+  var phoneErr = ensureErr(phoneEl, 'phone', 'Merci de renseigner un numéro de téléphone valide (chiffres uniquement).');
+  var timeErr  = ensureErr(timeEl,  'time',  'Merci de choisir une heure à partir de maintenant.');
+
+  function show(el, box){ if(el&&box){ box.style.display='block'; el.classList.add('input-error'); } }
+  function hide(el, box){ if(el&&box){ box.style.display='none'; el.classList.remove('input-error'); } }
+
+  function invalidPhone(){
+    if(!phoneEl) return false;
+    var v=(phoneEl.value||'').trim();
+    if(!v) return false;
+    return /[A-Za-z]/.test(v);
+  }
+
+  function parseDate(val){
+    if(!val) return null;
+    var p = String(val).split('-'); if(p.length!==3) return null;
+    var y=+p[0], m=+p[1]-1, d=+p[2]; if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+    return new Date(y,m,d);
+  }
+  function parseTime(val){
+    if(!val) return null;
+    var p = String(val).split(':');
+    var h=+p[0], mi=+p[1]||0; if(isNaN(h)||isNaN(mi)) return null;
+    return {h:h, m:mi};
+  }
+  function isToday(d){
+    var now=new Date();
+    return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+  }
+  function invalidTime(){
+    if(!timeEl) return false;
+    var t=parseTime(timeEl.value); if(!t) return false;
+    var d=parseDate(dateEl && dateEl.value);
+    if(d && isToday(d)){
+      var now=new Date();
+      var input=new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
+      return input < now;
+    }
+    return false;
+  }
+
+  function showErrors(){
+    if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
+    if(invalidTime()){ show(timeEl, timeErr); } else { hide(timeEl, timeErr); }
+  }
+
+  // Hook events
+  if(confirmBtn){ confirmBtn.addEventListener('click', showErrors); }
+  if(phoneEl){ phoneEl.addEventListener('input', function(){ if(!invalidPhone()) hide(phoneEl, phoneErr); }); }
+  if(timeEl){ timeEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, timeErr); }); }
+  if(dateEl){ dateEl.addEventListener('change', function(){ if(!invalidTime()) hide(timeEl, timeErr); }); }
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var phoneEl = document.querySelector('#phone, input[name="phone"], #tel, input[type="tel"]');
+  var dateEl  = document.querySelector('#date, input[name="date"], input[type="date"]');
+  var timeEl  = document.querySelector('#time, input[name="time"], input[type="time"]');
+
+  function ensureErr(el, idSuffix, msg){
+    if(!el) return null;
+    var id = el.id ? el.id + '-err' : 'field-' + idSuffix + '-err';
+    var box = document.getElementById(id);
+    if(!box){
+      box = document.createElement('div');
+      box.id = id;
+      box.className = 'field-error';
+      box.style.display = 'none';
+      box.textContent = msg;
+      if(el.parentNode){ el.parentNode.appendChild(box); }
+    }
+    return box;
+  }
+  var phoneErr = ensureErr(phoneEl, 'phone', 'Merci de renseigner un numéro de téléphone valide (chiffres uniquement).');
+  var timeErr  = ensureErr(timeEl,  'time',  'Merci de choisir une heure à partir de maintenant.');
+
+  function show(el, box){ if(el&&box){ box.style.display='block'; el.classList.add('input-error'); } }
+  function hide(el, box){ if(el&&box){ box.style.display='none'; el.classList.remove('input-error'); } }
+
+  function invalidPhone(){
+    if(!phoneEl) return false;
+    var v=(phoneEl.value||'').trim();
+    if(!v) return false;
+    return /[A-Za-z]/.test(v);
+  }
+  function parseDate(val){
+    if(!val) return null;
+    var p=String(val).split('-'); if(p.length!==3) return null;
+    var y=+p[0], m=+p[1]-1, d=+p[2]; if(isNaN(y)||isNaN(m)||isNaN(d)) return null;
+    return new Date(y,m,d);
+  }
+  function parseTime(val){
+    if(!val) return null;
+    var p=String(val).split(':');
+    var h=+p[0], mi=+p[1]||0; if(isNaN(h)||isNaN(mi)) return null;
+    return {h:h, m:mi};
+  }
+  function isToday(d){
+    var now=new Date();
+    return d && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+  }
+  function invalidTime(){
+    if(!timeEl) return false;
+    var t=parseTime(timeEl.value); if(!t) return false;
+    var d=parseDate(dateEl && dateEl.value);
+    if(d && isToday(d)){
+      var now=new Date();
+      var input=new Date(d.getFullYear(), d.getMonth(), d.getDate(), t.h, t.m, 0, 0);
+      return input < now;
+    }
+    return false;
+  }
+
+  // Live validation
+  if(phoneEl){
+    phoneEl.addEventListener('input', function(){
+      if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
+    });
+  }
+  function checkTime(){ if(invalidTime()){ show(timeEl, timeErr); } else { hide(timeEl, timeErr); } }
+  if(timeEl){ timeEl.addEventListener('input', checkTime); timeEl.addEventListener('change', checkTime); }
+  if(dateEl){ dateEl.addEventListener('change', checkTime); }
+
+  // Initial check on load in case fields are prefilled
+  checkTime();
+  if(invalidPhone()){ show(phoneEl, phoneErr); } else { hide(phoneEl, phoneErr); }
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  function scrollToFirstError(){
+    // 1) Prefer a visible .field-error
+    var err = Array.from(document.querySelectorAll('.field-error')).find(function(n){
+      return n && n.style && n.style.display !== 'none' && n.offsetParent !== null;
+    });
+    if(err && err.scrollIntoView){ err.scrollIntoView({behavior:'smooth', block:'center'}); return true; }
+    // 2) Fallback to first input with .input-error
+    var bad = document.querySelector('.input-error');
+    if(bad && bad.scrollIntoView){ bad.scrollIntoView({behavior:'smooth', block:'center'}); return true; }
+    return false;
+  }
+
+  function hookClick(sel){
+    var el = document.querySelector(sel);
+    if(!el) return;
+    el.addEventListener('click', function(){
+      // Wait a tick so validators can show messages, then scroll
+      setTimeout(scrollToFirstError, 50);
+    }, true);
+  }
+
+  // Hook main actions
+  hookClick('#confirmBtn');
+  hookClick('button[data-role="confirm"]');
+  hookClick('.btn-confirm');
+  // Also hook possible WhatsApp / Mail
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    var waBtn = t.closest && (t.closest('#waBtn') || t.closest('[data-action="wa"]'));
+    var mailBtn = t.closest && (t.closest('#mailBtn') || t.closest('[data-action="mail"]'));
+    if(waBtn || mailBtn){
+      setTimeout(scrollToFirstError, 50);
+    }
+  }, true);
+});
+</script>
+<script id="wait-ar-robust-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    const NORM = s => (s||'').toLowerCase()
+      .normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/\s+/g,' ').trim();
+
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const byId = id => document.getElementById(id);
+
+    function findByLabelContains(words){
+      // words: ["aller","retour"] matches label text containing both
+      const labs = $$('label');
+      for(const lb of labs){
+        const t = NORM(lb.textContent);
+        if(words.every(w => t.includes(NORM(w)))){
+          // associated control by for= or nearest input/select
+          if(lb.htmlFor){
+            const el = byId(lb.htmlFor);
+            if(el) return el;
+          }
+          const el = lb.parentElement && lb.parentElement.querySelector('select,input');
+          if(el) return el;
+        }
+      }
+      return null;
+    }
+
+    function guessRoundTripControl(){
+      return byId('ar') || byId('allerRetour') ||
+        document.querySelector('select#ar, select#allerRetour, input[name="roundTrip"], input[name="allerRetour"]') ||
+        findByLabelContains(['aller','retour']) ||
+        // fallback: a group containing the phrase
+        $$('*').find(el => NORM(el.textContent).includes('aller/retour'));
+    }
+
+    function guessAttenteYN(){
+      return byId('attente') || byId('attente_trajet') ||
+        document.querySelector('select#attente, input[name="attente"]') ||
+        findByLabelContains(['attente','trajet']) ||
+        $$('*').find(el => NORM(el.textContent).includes('attente pendant le trajet'));
+    }
+
+    function guessDureeSelect(){
+      return byId('attenteHeures') || byId('dureeAttente') ||
+        document.querySelector('select#attenteHeures, select#dureeAttente') ||
+        findByLabelContains(['duree','attente']) ||
+        // any select near a label containing both words
+        (function(){
+          const labs = $$('label');
+          for(const lb of labs){
+            const t = NORM(lb.textContent);
+            if(t.includes('duree') && t.includes('attente')){
+              const s = lb.parentElement && lb.parentElement.querySelector('select');
+              if(s) return s;
+            }
+          }
+          // last resort: the only select with numeric options incl. 0
+          const selects = $$('select');
+          for(const s of selects){
+            const vals = $$('#option', s).map(o=>o.value);
+          }
+          return $$('select').find(s => s.options && s.options.length <= 5);
+        })();
+    }
+
+    function isYes(el){
+      if(!el) return false;
+      // Select
+      if(el.tagName && el.tagName.toLowerCase()==='select'){
+        return /oui|yes/gi.test((el.value||''));
+      }
+      // Checkbox
+      if(el.type==='checkbox') return !!el.checked;
+      // Radio
+      if(el.type==='radio'){
+        const yes = el.form && el.form.querySelector('input[name="'+el.name+'"][value="oui"], input[name="'+el.name+'"][value="yes"]');
+        return yes ? !!yes.checked : false;
+      }
+      // Button-group with aria-pressed or .active
+      const grp = el.closest('.btn-group,[role="group"]') || el;
+      if(grp){
+        const active = grp.querySelector('[aria-pressed="true"], .active');
+        if(active) return /oui|yes/i.test(active.textContent||'');
+      }
+      // Text content fallback
+      const txt = NORM(el.textContent);
+      if(txt.includes('oui') && (el.getAttribute('aria-pressed')==='true' || el.classList.contains('active'))) return true;
+      return false;
+    }
+
+    const arCtrl = guessRoundTripControl();
+    const attCtrl = guessAttenteYN();
+    const dureeSel = guessDureeSelect();
+
+    if(!dureeSel) return; // nothing to do
+
+    function rebuildOptions(enabled){
+      // wipe
+      while(dureeSel.firstChild) dureeSel.removeChild(dureeSel.firstChild);
+      if(enabled){
+        for(let i=1;i<=4;i++){
+          const o=document.createElement('option'); o.value=String(i); o.textContent=String(i);
+          dureeSel.appendChild(o);
+        }
+        dureeSel.removeAttribute('disabled');
+        if(!dureeSel.value || dureeSel.value==="0"){ dureeSel.value="1"; }
+      }else{
+        const o0=document.createElement('option'); o0.value="0"; o0.textContent="0";
+        dureeSel.appendChild(o0);
+        dureeSel.value="0";
+        dureeSel.setAttribute('disabled','disabled');
+      }
+    }
+
+    function applyState(){
+      const enable = isYes(arCtrl) && isYes(attCtrl);
+      rebuildOptions(enable);
+    }
+
+    applyState();
+
+    // Bind changes robustly
+    [arCtrl, attCtrl].forEach(el=>{
+      if(!el) return;
+      el.addEventListener('change', ()=> setTimeout(applyState, 30));
+      const grp = el.closest('.btn-group,[role="group"]') || document;
+      grp.addEventListener('click', ()=> setTimeout(applyState, 30), true);
+      grp.addEventListener('keydown', ()=> setTimeout(applyState, 30), true);
+    });
+
+    // MutationObserver pour capter un changement de .active / aria-pressed
+    const obsTargets = [];
+    if(arCtrl){ obsTargets.push(arCtrl.closest('.btn-group,[role="group"]') || arCtrl); }
+    if(attCtrl){ obsTargets.push(attCtrl.closest('.btn-group,[role="group"]') || attCtrl); }
+    const mo = new MutationObserver(()=> setTimeout(applyState, 10));
+    obsTargets.forEach(t => t && mo.observe(t, {attributes:true, subtree:true, attributeFilter:['class','aria-pressed','value']}));
+
+    // Fallback: re-appliquer toutes les 500ms pendant 2s (au cas où composants async)
+    let n=0; const it = setInterval(()=>{ applyState(); if(++n>4) clearInterval(it); }, 500);
+  });
+})();
+</script>
+<script id="validation-guard-v1-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    const $ = sel => document.querySelector(sel);
+    const $all = sel => Array.from(document.querySelectorAll(sel));
+
+    // ---- Helpers to find fields (id, label, placeholder) ----
+    const N = s => (s||'').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'');
+
+    function findByLabel(txt){
+      txt = N(txt);
+      const labels = $all('label');
+      for(const lb of labels){
+        const t = N(lb.textContent);
+        if(t.includes(txt)){
+          if(lb.htmlFor){
+            const el = document.getElementById(lb.htmlFor);
+            if(el) return el;
+          }
+          const el = lb.querySelector('input,textarea,select') || lb.parentElement && lb.parentElement.querySelector('input,textarea,select');
+          if(el) return el;
+        }
+      }
+      return null;
+    }
+    function findByPlaceholder(part){
+      part = N(part);
+      const inputs = $all('input,textarea');
+      return inputs.find(el => N(el.getAttribute('placeholder')||'').includes(part)) || null;
+    }
+
+    // Core fields
+    const nameInput  = $('#name') || findByLabel('nom') || findByPlaceholder('nom');
+    const phoneInput = $('#phone') || findByLabel('tele') || findByPlaceholder('tel') || findByPlaceholder('phone');
+    const dateInput  = $('#date') || document.querySelector('input[type="date"]') || findByLabel('date');
+    const timeInput  = $('#time') || document.querySelector('input[type="time"]') || findByLabel('heure');
+    const startInput = $('#start') || findByLabel('lieu de depart') || findByPlaceholder('depart') || $('#depart') || $('#origin');
+    const endInput   = $('#end')   || findByLabel('destination')   || findByPlaceholder('destination') || $('#dest') || $('#destination');
+
+    // Buttons WhatsApp / Email (find by text or href)
+    function findActions(){
+      const all = $all('a,button');
+      const wa = all.find(el => /réserver par whatsapp/i.test((el.textContent||''))) || all.find(el => (el.href||'').includes('wa.me'));
+      const mail = all.find(el => /réserver par e-?mail/i.test((el.textContent||''))) || all.find(el => (el.href||'').startsWith('mailto:'));
+      return {wa, mail};
+    }
+    const actions = findActions();
+
+    // Utility: create error holder under a field if missing
+    function ensureErrorHolder(input){
+      if(!input) return null;
+      const next = input.nextElementSibling;
+      if(next && next.classList && next.classList.contains('field-error')) return next;
+      const d = document.createElement('div');
+      d.className = 'field-error';
+      d.style.display = 'none';
+      input.insertAdjacentElement('afterend', d);
+      return d;
+    }
+
+    const errName  = ensureErrorHolder(nameInput);
+    const errPhone = ensureErrorHolder(phoneInput);
+    const errDate  = ensureErrorHolder(dateInput);
+    const errTime  = ensureErrorHolder(timeInput);
+    const errStart = ensureErrorHolder(startInput);
+    const errEnd   = ensureErrorHolder(endInput);
+
+    function setErr(input, holder, msg){
+      if(!input || !holder) return;
+      holder.textContent = msg;
+      holder.style.display = 'block';
+      input.classList.add('input-invalid');
+    }
+    function clearErr(input, holder){
+      if(holder){ holder.textContent=''; holder.style.display='none'; }
+      if(input){ input.classList.remove('input-invalid'); }
+    }
+
+    // ---- Name: alphabetic with accents, spaces, hyphens, apostrophes ----
+    if(nameInput){
+      nameInput.addEventListener('input', () => {
+        const before = nameInput.value;
+        const cleaned = before.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ' -]/g, '');
+        nameInput.value = cleaned;
+        if(before !== cleaned){
+          setErr(nameInput, errName, "Veuillez saisir un nom et des prénoms sans chiffres ni caractères spéciaux. Merci !");
+        } else if(cleaned.trim()===''){
+          setErr(nameInput, errName, "Veuillez saisir votre nom et prénoms.");
+        } else {
+          clearErr(nameInput, errName);
+        }
+      });
+    }
+
+    // ---- Phone: numeric; allow '+' only (preferably at first char) ----
+    if(phoneInput){
+      phoneInput.addEventListener('input', () => {
+        const before = phoneInput.value;
+        // keep digits; allow a single leading '+'
+        let cleaned = before.replace(/[^\d+]/g, '');
+        if(cleaned.indexOf('+') > 0){ cleaned = cleaned.replace(/\+/g,''); } // '+' only at start
+        if((cleaned.match(/\+/g)||[]).length > 1){ cleaned = cleaned.replace(/\+/g,''); }
+        phoneInput.value = cleaned;
+        if(before !== cleaned){
+          setErr(phoneInput, errPhone, "Veuillez saisir un numéro valide (chiffres uniquement, « + » autorisé en début).");
+        } else if(cleaned.trim()===''){
+          setErr(phoneInput, errPhone, "Veuillez saisir votre numéro de téléphone.");
+        } else {
+          clearErr(phoneInput, errPhone);
+        }
+      });
+    }
+
+    // ---- Date: min = today; past dates disabled visually ----
+    function todayISO(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    if(dateInput){
+      try{
+        dateInput.min = todayISO();
+      }catch(_){}
+      dateInput.addEventListener('change', () => {
+        const v = dateInput.value;
+        if(!v){
+          setErr(dateInput, errDate, "Veuillez sélectionner une date.");
+          return;
+        }
+        if(v < todayISO()){
+          setErr(dateInput, errDate, "Cette date est passée. Merci de choisir une date à partir d'aujourd'hui.");
+          // Auto-correct to today
+          dateInput.value = todayISO();
+        } else {
+          clearErr(dateInput, errDate);
+        }
+      });
+    }
+
+    // ---- Time: default now + 1 minute; if <= now when date = today -> reset and error ----
+    function nowPlus1(){
+      const d = new Date();
+      d.setMinutes(d.getMinutes()+1);
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      return `${hh}:${mm}`;
+    }
+    function isTodaySelected(){
+      if(!dateInput || !dateInput.value) return false;
+      return dateInput.value === todayISO();
+    }
+    if(timeInput){
+      // init default
+      if(!timeInput.value){ timeInput.value = nowPlus1(); }
+      // validate on change
+      timeInput.addEventListener('change', () => {
+        const v = timeInput.value;
+        if(!v){ setErr(timeInput, errTime, "Veuillez choisir une heure."); return; }
+        if(isTodaySelected()){
+          const now = new Date();
+          const [hh, mm] = v.split(':').map(n=>parseInt(n,10));
+          const chosen = new Date();
+          chosen.setHours(hh||0, mm||0, 0, 0);
+          if(chosen.getTime() <= now.getTime()){
+            setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
+            // reset to now + 1
+            timeInput.value = nowPlus1();
+            return;
+          }
+        }
+        clearErr(timeInput, errTime);
+      });
+    }
+
+    // ---- Start/End empty errors on input ----
+    function bindRequired(input, holder, label){
+      if(!input) return;
+      input.addEventListener('input', () => {
+        const v = (input.value||'').trim();
+        if(!v){ setErr(input, holder, "Veuillez renseigner " + label + "."); }
+        else { clearErr(input, holder); }
+      });
+    }
+    bindRequired(startInput, errStart, "le lieu de départ");
+    bindRequired(endInput, errEnd, "la destination");
+
+    // ---- Guard on WhatsApp / Email buttons ----
+    function validateAll(showMessages){
+      const missing = [];
+
+      function req(input, holder, label, test){
+        const v = (input && input.value||'').trim();
+        if(!input){
+          return;
+        }
+        if(!v){ missing.push(label); if(showMessages) setErr(input, holder, "Veuillez renseigner " + label + "."); return; }
+        if(test && !test()){ missing.push(label); }
+      }
+
+      req(nameInput,  errName,  "nom et prénoms", () => !nameInput.classList.contains('input-invalid'));
+      req(phoneInput, errPhone, "téléphone", () => !phoneInput.classList.contains('input-invalid'));
+      req(dateInput,  errDate,  "date", () => !dateInput.classList.contains('input-invalid'));
+      req(timeInput,  errTime,  "heure", () => !timeInput.classList.contains('input-invalid'));
+      req(startInput, errStart, "le lieu de départ");
+      req(endInput,   errEnd,   "la destination");
+
+      // Si heure aujourd'hui <= maintenant, marquer erreur
+      if(timeInput && dateInput && dateInput.value === todayISO()){
+        const v = timeInput.value||'';
+        if(v){
+          const [hh,mm] = v.split(':').map(n=>parseInt(n,10));
+          const now = new Date();
+          const chosen = new Date();
+          chosen.setHours(hh||0, mm||0, 0, 0);
+          if(chosen.getTime() <= now.getTime()){
+            setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
+            missing.push("heure");
+          }
+        }
+      }
+
+      return missing;
+    }
+
+    function guardClick(e){
+      const miss = validateAll(true);
+      if(miss.length){
+        e.preventDefault(); e.stopPropagation();
+      }
+    }
+
+    const allBtns = $all('a,button');
+    const wa = allBtns.find(el => /réserver par whatsapp/i.test((el.textContent||''))) || allBtns.find(el => (el.href||'').includes('wa.me'));
+    const mail = allBtns.find(el => /réserver par e-?mail/i.test((el.textContent||''))) || allBtns.find(el => (el.href||'').startsWith('mailto:'));
+    if(wa)   wa.addEventListener('click', guardClick, true);
+    if(mail) mail.addEventListener('click', guardClick, true);
+
+    // Initial clean of hour error
+    if(errTime){ errTime.style.display='none'; errTime.textContent=''; }
+  });
+})();
+</script>
+<script id="strict-validate-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    const $ = sel => document.querySelector(sel);
+    const $all = sel => Array.from(document.querySelectorAll(sel));
+    const dateInput  = $('#date') || document.querySelector('input[type="date"]');
+    const timeInput  = $('#time') || document.querySelector('input[type="time"]');
+
+    // Force heure actuelle + 1 minute dès le démarrage
+    function nowPlus1(){
+      const d = new Date();
+      d.setMinutes(d.getMinutes()+1);
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      return `${hh}:${mm}`;
+    }
+    if(timeInput){
+      timeInput.value = nowPlus1();
+    }
+
+    // Helper today ISO
+    function todayISO(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    if(dateInput){
+      try{ dateInput.min = todayISO(); }catch(_){}
+    }
+
+    // Error helpers
+    function ensureHolder(input){
+      if(!input) return null;
+      let next = input.nextElementSibling;
+      if(next && next.classList && next.classList.contains('field-error')) return next;
+      const d = document.createElement('div');
+      d.className = 'field-error';
+      d.style.color = '#c1121f';
+      d.style.fontWeight = '600';
+      d.style.marginTop = '6px';
+      d.style.display = 'none';
+      input.insertAdjacentElement('afterend', d);
+      return d;
+    }
+    function setErr(input, holder, msg){
+      if(!input || !holder) return;
+      holder.textContent = msg;
+      holder.style.display = 'block';
+      input.classList.add('input-invalid');
+    }
+    function clearErr(input, holder){
+      if(holder){ holder.textContent=''; holder.style.display='none'; }
+      if(input){ input.classList.remove('input-invalid'); }
+    }
+
+    // Locate fields robustly
+    const nameInput  = $('#name') || $('#nom') || document.querySelector('input[name="name"]') || document.querySelector('input[autocomplete="name"]');
+    const phoneInput = $('#phone') || $('#tel') || document.querySelector('input[type="tel"]');
+    const startInput = $('#start') || $('#depart') || $('#origin');
+    const endInput   = $('#end')   || $('#dest')   || $('#destination');
+
+    const errName  = ensureHolder(nameInput);
+    const errPhone = ensureHolder(phoneInput);
+    const errDate  = ensureHolder(dateInput);
+    const errTime  = ensureHolder(timeInput);
+    const errStart = ensureHolder(startInput);
+    const errEnd   = ensureHolder(endInput);
+
+    // Strict validator used on every click
+    function validateAllStrict(){
+      let ok = true;
+
+      function requireFilled(input, holder, label){
+        const v = (input && input.value || '').trim();
+        if(!input || !v){
+          setErr(input, holder, `Veuillez renseigner ${label}.`);
+          ok = false;
+        } else if (input.classList && input.classList.contains('input-invalid')){
+          // déjà marqué invalide par les règles live
+          ok = false;
+        } else {
+          clearErr(input, holder);
+        }
+      }
+
+      requireFilled(nameInput,  errName,  "votre nom et prénoms");
+      requireFilled(phoneInput, errPhone, "votre numéro de téléphone");
+      requireFilled(startInput, errStart, "le lieu de départ");
+      requireFilled(endInput,   errEnd,   "la destination");
+
+      // Date
+      if(dateInput){
+        const v = (dateInput.value||'').trim();
+        if(!v){
+          setErr(dateInput, errDate, "Veuillez sélectionner une date.");
+          ok = false;
+        } else if(v < todayISO()){
+          setErr(dateInput, errDate, "Cette date est passée. Merci de choisir une date à partir d'aujourd'hui.");
+          dateInput.value = todayISO();
+          ok = false;
+        } else {
+          clearErr(dateInput, errDate);
+        }
+      }else{ ok = false; }
+
+      // Time
+      if(timeInput){
+        const v = (timeInput.value||'').trim();
+        if(!v){
+          setErr(timeInput, errTime, "Veuillez choisir une heure.");
+          ok = false;
+        } else {
+          // si aujourd'hui : v doit être > maintenant
+          const today = todayISO();
+          if(dateInput && dateInput.value === today){
+            const now = new Date();
+            const [hh, mm] = v.split(':').map(n=>parseInt(n,10));
+            const chosen = new Date();
+            chosen.setHours(hh||0, mm||0, 0, 0);
+            if(chosen.getTime() <= now.getTime()){
+              setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
+              timeInput.value = nowPlus1();
+              ok = false;
+            }else{
+              clearErr(timeInput, errTime);
+            }
+          }else{
+            clearErr(timeInput, errTime);
+          }
+        }
+      }else{ ok = false; }
+
+      return ok;
+    }
+
+    // Bind on every click (capture) for WA + Mail buttons
+    const all = $all('a,button');
+    const isReserveAction = (el) => /réserver par whatsapp|réserver par e-?mail/i.test((el.textContent||'')) || 
+                                    (el.href||'').includes('wa.me') || 
+                                    (el.href||'').startsWith('mailto:');
+    all.forEach(el=>{
+      if(!isReserveAction(el)) return;
+      el.addEventListener('click', function(e){
+        const ok = validateAllStrict();
+        if(!ok){ e.preventDefault(); e.stopPropagation(); }
+      }, true); // capture
+    });
+  });
+})();
+</script>
+<script id="reserve-with-estimate-v2-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    // === Locate fields ===
+    const nameInput  = $('#name') || $('#nom') || document.querySelector('input[autocomplete="name"]') || document.querySelector('input[name="name"]');
+    const phoneInput = $('#phone') || $('#tel') || document.querySelector('input[type="tel"]');
+    const dateInput  = $('#date')  || document.querySelector('input[type="date"]');
+    const timeInput  = $('#time')  || document.querySelector('input[type="time"]');
+    const startInput = $('#start') || $('#depart') || $('#origin');
+    const endInput   = $('#end')   || $('#dest')   || $('#destination');
+
+    const arSel      = document.getElementById('ar') || document.getElementById('allerRetour') || document.querySelector('select#ar, select#allerRetour');
+    const attenteYN  = document.getElementById('attente') || document.getElementById('attente_trajet') || document.querySelector('select#attente');
+    const attenteH   = document.getElementById('attenteHeures') || document.getElementById('dureeAttente') || document.querySelector('select#attenteHeures, select#dureeAttente');
+
+    // Error helpers
+    function ensureHolder(input){
+      if(!input) return null;
+      let next = input.nextElementSibling;
+      if(next && next.classList && (next.classList.contains('field-error') || /error/i.test(next.className))) return next;
+      const d = document.createElement('div');
+      d.className = 'field-error';
+      d.style.color = '#c1121f';
+      d.style.fontWeight = '600';
+      d.style.marginTop = '6px';
+      d.style.display = 'none';
+      input.insertAdjacentElement('afterend', d);
+      return d;
+    }
+    const errName  = ensureHolder(nameInput);
+    const errPhone = ensureHolder(phoneInput);
+    const errDate  = ensureHolder(dateInput);
+    const errTime  = ensureHolder(timeInput);
+    const errStart = ensureHolder(startInput);
+    const errEnd   = ensureHolder(endInput);
+
+    function setErr(input, holder, msg){
+      if(!input || !holder) return;
+      holder.textContent = msg;
+      holder.style.display = 'block';
+      input.classList.add('input-invalid');
+    }
+    function clearErr(input, holder){
+      if(holder){ holder.textContent=''; holder.style.display='none'; }
+      if(input){ input.classList.remove('input-invalid'); }
+    }
+
+    // Helpers time/date
+    function todayISO(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    function nowPlus1(){
+      const d = new Date();
+      d.setMinutes(d.getMinutes()+1);
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      return `${hh}:${mm}`;
+    }
+
+    // === Strict validate (no empty + no invalid) ===
+    function validateAllStrict(){
+      let ok = true;
+      function must(input, holder, label){
+        const v = (input && input.value||'').trim();
+        if(!input || !v){
+          setErr(input, holder, `Veuillez renseigner ${label}.`);
+          ok = false;
+        } else if(input.classList && input.classList.contains('input-invalid')){
+          ok = false;
+        } else {
+          clearErr(input, holder);
+        }
+      }
+      must(nameInput,  errName,  "votre nom et prénoms");
+      must(phoneInput, errPhone, "votre numéro de téléphone");
+      must(startInput, errStart, "le lieu de départ");
+      must(endInput,   errEnd,   "la destination");
+      if(dateInput){
+        const v = (dateInput.value||'').trim();
+        if(!v){ setErr(dateInput, errDate, "Veuillez sélectionner une date."); ok=false; }
+        else if(v < todayISO()){ setErr(dateInput, errDate, "Cette date est passée. Merci de choisir une date à partir d'aujourd'hui."); dateInput.value=todayISO(); ok=false; }
+        else { clearErr(dateInput, errDate); }
+      } else ok=false;
+
+      if(timeInput){
+        const v = (timeInput.value||'').trim();
+        if(!v){ setErr(timeInput, errTime, "Veuillez choisir une heure."); ok=false; }
+        else {
+          if(dateInput && dateInput.value === todayISO()){
+            const [hh,mm] = v.split(':').map(n=>parseInt(n,10));
+            const now = new Date();
+            const chosen = new Date();
+            chosen.setHours(hh||0, mm||0, 0, 0);
+            if(chosen.getTime() <= now.getTime()){
+              setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
+              timeInput.value = nowPlus1();
+              ok=false;
+            }else{ clearErr(timeInput, errTime); }
+          }else{ clearErr(timeInput, errTime); }
+        }
+      } else ok=false;
+      return ok;
+    }
+
+    // === Estimation (auto si bouton non cliqué) ===
+    const RATE = { base:3.75, A:1.03, B:1.55, C:2.06, D:3.06, waitPerH:25 };
+    function isNightOrHoliday(dateStr, timeStr){
+      if(!timeStr) return false;
+      const [h, m] = timeStr.split(':').map(x=>parseInt(x,10));
+      const minutes = (h||0)*60 + (m||0);
+      const night = (minutes >= 19*60) || (minutes < 7*60);
+      if(night) return true;
+      const d = new Date(dateStr + 'T' + timeStr);
+      const md = (d.getMonth()+1) + '-' + d.getDate();
+      const feries = new Set(['1-1','5-1','5-8','7-14','8-15','11-1','11-11','12-25']);
+      return feries.has(md);
+    }
+    function roundTripOn(){ return !!(arSel && /oui/i.test(arSel.value||'')); }
+    function waitOn(){ return !!(attenteYN && /oui/i.test(attenteYN.value||'')); }
+    function waitHours(){ if(!waitOn()) return 0; const n = parseInt((attenteH && attenteH.value)||'0',10); return (isNaN(n)?0:n); }
+
+    async function getDistanceKm(){
+      if(typeof window.__distanceKM === 'number'){ return window.__distanceKM; }
+      const el = document.getElementById('distanceKm');
+      if(el){
+        const val = parseFloat((el.value||el.textContent||'').replace(',','.'));
+        if(!isNaN(val) && val>0) return val;
+      }
+      if(window.google && google.maps && google.maps.DistanceMatrixService){
+        return await new Promise((resolve)=>{
+          const svc = new google.maps.DistanceMatrixService();
+          svc.getDistanceMatrix({
+            origins:[startInput.value],
+            destinations:[endInput.value],
+            travelMode: google.maps.TravelMode.DRIVING,
+            unitSystem: google.maps.UnitSystem.METRIC
+          }, (res, status)=>{
+            if(status==='OK'){
+              const r = res.rows?.[0]?.elements?.[0];
+              if(r && r.status==='OK'){
+                resolve((r.distance.value||0)/1000);
+                return;
+              }
+            }
+            resolve(null);
+          });
+        });
+      }
+      return null;
+    }
+
+    async function computeEstimate(){
+      const km = await getDistanceKm();
+      if(km==null || !(km>0)) return null;
+      const rt = roundTripOn();
+      const night = isNightOrHoliday(dateInput.value, timeInput.value);
+      const perKm = rt ? (night ? RATE.B : RATE.A) : (night ? RATE.D : RATE.C);
+      const kmTotal = rt ? km*2 : km;
+      const waitCost = waitOn() ? (waitHours() * RATE.waitPerH) : 0;
+      const price = RATE.base + (kmTotal * perKm) + waitCost;
+      return Math.round(price*100)/100;
+    }
+
+    function buildSummary(price){
+      const lines = [];
+      lines.push("Nouvelle réservation Taxi Li 🚕");
+      if(nameInput)  lines.push("Nom: " + nameInput.value.trim());
+      if(phoneInput) lines.push("Téléphone: " + phoneInput.value.trim());
+      if(dateInput)  lines.push("Date: " + dateInput.value);
+      if(timeInput)  lines.push("Heure: " + timeInput.value);
+      if(startInput) lines.push("Départ: " + startInput.value.trim());
+      if(endInput)   lines.push("Destination: " + endInput.value.trim());
+      lines.push("Aller/retour: " + (roundTripOn() ? "Oui" : "Non"));
+      if(waitOn())  lines.push("Attente: Oui (" + waitHours() + " h)");
+      if(price!=null) lines.push("Estimation: " + price.toFixed(2) + " €");
+      else lines.push("Estimation: (indisponible)");
+      lines.push("—");
+      lines.push("Message envoyé depuis le formulaire en ligne.");
+      return lines.join("\n");
+    }
+
+    // === Global click guard (captures ALL clicks on page) ===
+    function isReserveAction(el){
+      if(!el) return false;
+      const txt = (el.textContent||'').toLowerCase();
+      const href = (el.getAttribute && el.getAttribute('href')) || '';
+      return /réserver par whatsapp|réserver par e-?mail/.test(txt) || (href.includes('wa.me') || href.startsWith('mailto:'));
+    }
+
+    document.addEventListener('click', async function(e){
+      const target = e.target.closest('a,button');
+      if(!target) return;
+      if(!isReserveAction(target)) return;
+
+      // Always validate strictly
+      const ok = validateAllStrict();
+      if(!ok){ e.preventDefault(); e.stopPropagation(); return; }
+
+      // Compute estimate automatically even if user never clicked the "Estimation du prix" button
+      e.preventDefault(); e.stopPropagation();
+      const price = await computeEstimate();
+      const summary = buildSummary(price);
+
+      // Determine destination from element
+      const href = (target.getAttribute('href')||'');
+      if(href.includes('wa.me') || /whatsapp/.test((target.textContent||'').toLowerCase())){
+        let base = href || 'https://wa.me/';
+        base = base.replace(/(\?|&)text=[^&]*/,'').replace(/&$/,'');
+        const sep = base.includes('?') ? '&' : '?';
+        const url = base + sep + 'text=' + encodeURIComponent(summary);
+        window.location.href = url;
+      }else{
+        let base = href || 'mailto:taxili@laposte.net';
+        const sep = base.includes('?') ? '&' : '?';
+        const subject = 'Réservation Taxi Li – ' + (nameInput?nameInput.value.trim():'Client');
+        const url = base + sep + 'subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(summary);
+        window.location.href = url;
+      }
+    }, true); // capture
+  });
+})();
+</script><script id="email-hardening-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    // Reuse detection from previous script if present
+    function isReserveAction(el){
+      if(!el) return false;
+      const txt = (el.textContent||'').toLowerCase();
+      const href = (el.getAttribute && el.getAttribute('href')) || '';
+      return /réserver par whatsapp|réserver par e-?mail/.test(txt) || (href.includes('wa.me') || href.startsWith('mailto:'));
+    }
+
+    // Force-stabilize the email anchor: ensure it's an <a href="mailto:..."> even if the DOM puts a <button>
+    const actions = $$('a,button');
+    let mailBtn = actions.find(el => /réserver par e-?mail/i.test((el.textContent||'')));
+    if(!mailBtn){
+      mailBtn = actions.find(el => {
+        const href=(el.getAttribute && el.getAttribute('href'))||'';
+        return href && href.startsWith('mailto:');
+      });
+    }
+
+    if(mailBtn){
+      // If it's a button, convert its click into opening a mailto URL we build
+      mailBtn.addEventListener('click', function(e){
+        // If some earlier script already prevented default because of validation errors, we let that win.
+        // We'll only act if the event is not canceled.
+        if(e.defaultPrevented) return;
+
+        // Build a minimal subject/body if upstream script hasn't already redirected
+        const nameInput  = document.getElementById('name') || document.getElementById('nom') || document.querySelector('input[autocomplete="name"]') || document.querySelector('input[name="name"]');
+        const startInput = document.getElementById('start') || document.getElementById('depart') || document.getElementById('origin');
+        const endInput   = document.getElementById('end')   || document.getElementById('dest')   || document.getElementById('destination');
+        const dateInput  = document.getElementById('date')  || document.querySelector('input[type="date"]');
+        const timeInput  = document.getElementById('time')  || document.querySelector('input[type="time"]');
+
+        const subject = 'Réservation Taxi Li – ' + (nameInput? (nameInput.value||'Client'): 'Client');
+        const lines = [];
+        lines.push("Nouvelle réservation Taxi Li 🚕");
+        if(nameInput) lines.push("Nom: " + (nameInput.value||''));
+        if(dateInput) lines.push("Date: " + (dateInput.value||''));
+        if(timeInput) lines.push("Heure: " + (timeInput.value||''));
+        if(startInput)lines.push("Départ: " + (startInput.value||''));
+        if(endInput)  lines.push("Destination: " + (endInput.value||''));
+        lines.push("—");
+        lines.push("Message envoyé depuis le formulaire en ligne.");
+        const body = lines.join("\n");
+
+        // Destination email (fallback to taxili@laposte.net)
+        let href = (mailBtn.getAttribute('href')||'').trim();
+        if(!href || !href.startsWith('mailto:')){
+          href = 'mailto:taxili@laposte.net';
+        }
+        // Strip old params
+        href = href.replace(/\?(.*)$/,'');
+        const url = href + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+
+        // Use window.location to trigger default mail client
+        // But only if upstream logic didn't already craft a URL
+        e.preventDefault();
+        e.stopPropagation();
+        window.location.href = url;
+      }, true);
+    }
+
+    // As a final fallback, capture the document-level click on any mailto link to ensure body/subject presence.
+    document.addEventListener('click', function(ev){
+      const a = ev.target.closest('a[href^="mailto:"]');
+      if(!a) return;
+      // If already has subject & body, we keep it; else add minimal placeholders
+      const href = a.getAttribute('href');
+      if(/\bsubject=/.test(href) && /\bbody=/.test(href)) return;
+      ev.preventDefault();
+      const url = href + (href.includes('?')?'&':'?') + 'subject=' + encodeURIComponent('Réservation Taxi Li') + '&body=' + encodeURIComponent('Nouvelle réservation Taxi Li');
+      window.location.href = url;
+    }, true);
+  });
+})();
+</script><script id="email-alllink-strict-estimate-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    // === Fields (robust find) ===
+    const nameInput  = $('#name') || $('#nom') || document.querySelector('input[autocomplete="name"]') || document.querySelector('input[name="name"]');
+    const phoneInput = $('#phone') || $('#tel') || document.querySelector('input[type="tel"]');
+    const dateInput  = $('#date')  || document.querySelector('input[type="date"]');
+    const timeInput  = $('#time')  || document.querySelector('input[type="time"]');
+    const startInput = $('#start') || $('#depart') || $('#origin');
+    const endInput   = $('#end')   || $('#dest')   || $('#destination');
+
+    const arSel      = document.getElementById('ar') || document.getElementById('allerRetour') || document.querySelector('select#ar, select#allerRetour');
+    const attenteYN  = document.getElementById('attente') || document.getElementById('attente_trajet') || document.querySelector('select#attente');
+    const attenteH   = document.getElementById('attenteHeures') || document.getElementById('dureeAttente') || document.querySelector('select#attenteHeures, select#dureeAttente');
+
+    // Ensure error holders
+    function ensureHolder(input){
+      if(!input) return null;
+      let next = input.nextElementSibling;
+      if(next && next.classList && (next.classList.contains('field-error') || /error/i.test(next.className))) return next;
+      const d = document.createElement('div');
+      d.className = 'field-error';
+      d.style.color = '#c1121f';
+      d.style.fontWeight = '600';
+      d.style.marginTop = '6px';
+      d.style.display = 'none';
+      input.insertAdjacentElement('afterend', d);
+      return d;
+    }
+    const errName  = ensureHolder(nameInput);
+    const errPhone = ensureHolder(phoneInput);
+    const errDate  = ensureHolder(dateInput);
+    const errTime  = ensureHolder(timeInput);
+    const errStart = ensureHolder(startInput);
+    const errEnd   = ensureHolder(endInput);
+
+    function setErr(input, holder, msg){
+      if(!input || !holder) return;
+      holder.textContent = msg;
+      holder.style.display = 'block';
+      input.classList.add('input-invalid');
+    }
+    function clearErr(input, holder){
+      if(holder){ holder.textContent=''; holder.style.display='none'; }
+      if(input){ input.classList.remove('input-invalid'); }
+    }
+
+    // Helpers
+    function todayISO(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    function nowPlus1(){
+      const d = new Date();
+      d.setMinutes(d.getMinutes()+1);
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      return `${hh}:${mm}`;
+    }
+
+    function validateAllStrict(){
+      let ok = true;
+      function must(input, holder, label){
+        const v = (input && input.value||'').trim();
+        if(!input || !v){
+          setErr(input, holder, `Veuillez renseigner ${label}.`);
+          ok = false;
+        } else if (input.classList && input.classList.contains('input-invalid')){
+          ok = false;
+        } else {
+          clearErr(input, holder);
+        }
+      }
+      must(nameInput,  errName,  "votre nom et prénoms");
+      must(phoneInput, errPhone, "votre numéro de téléphone");
+      must(startInput, errStart, "le lieu de départ");
+      must(endInput,   errEnd,   "la destination");
+      if(dateInput){
+        const v = (dateInput.value||'').trim();
+        if(!v){ setErr(dateInput, errDate, "Veuillez sélectionner une date."); ok=false; }
+        else if(v < todayISO()){ setErr(dateInput, errDate, "Cette date est passée. Merci de choisir une date à partir d'aujourd'hui."); dateInput.value=todayISO(); ok=false; }
+        else { clearErr(dateInput, errDate); }
+      } else ok=false;
+
+      if(timeInput){
+        const v = (timeInput.value||'').trim();
+        if(!v){ setErr(timeInput, errTime, "Veuillez choisir une heure."); ok=false; }
+        else {
+          if(dateInput && dateInput.value === todayISO()){
+            const [hh,mm] = v.split(':').map(n=>parseInt(n,10));
+            const now = new Date();
+            const chosen = new Date();
+            chosen.setHours(hh||0, mm||0, 0, 0);
+            if(chosen.getTime() <= now.getTime()){
+              setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
+              timeInput.value = nowPlus1();
+              ok=false;
+            }else{ clearErr(timeInput, errTime); }
+          }else{ clearErr(timeInput, errTime); }
+        }
+      } else ok=false;
+      return ok;
+    }
+
+    // Estimation
+    const RATE = { base:3.75, A:1.03, B:1.55, C:2.06, D:3.06, waitPerH:25 };
+    function isNightOrHoliday(dateStr, timeStr){
+      if(!timeStr) return false;
+      const [h, m] = timeStr.split(':').map(x=>parseInt(x,10));
+      const minutes = (h||0)*60 + (m||0);
+      const night = (minutes >= 19*60) || (minutes < 7*60);
+      if(night) return true;
+      const d = new Date(dateStr + 'T' + timeStr);
+      const md = (d.getMonth()+1) + '-' + d.getDate();
+      const feries = new Set(['1-1','5-1','5-8','7-14','8-15','11-1','11-11','12-25']);
+      return feries.has(md);
+    }
+    function roundTripOn(){ return !!(arSel && /oui/i.test(arSel.value||'')); }
+    function waitOn(){ return !!(attenteYN && /oui/i.test(attenteYN.value||'')); }
+    function waitHours(){ if(!waitOn()) return 0; const n = parseInt((attenteH && attenteH.value)||'0',10); return (isNaN(n)?0:n); }
+
+    async function getDistanceKm(){
+      if(typeof window.__distanceKM === 'number'){ return window.__distanceKM; }
+      const el = document.getElementById('distanceKm');
+      if(el){
+        const val = parseFloat((el.value||el.textContent||'').replace(',','.'));
+        if(!isNaN(val) && val>0) return val;
+      }
+      if(window.google && google.maps && google.maps.DistanceMatrixService && startInput && endInput){
+        return await new Promise((resolve)=>{
+          const svc = new google.maps.DistanceMatrixService();
+          svc.getDistanceMatrix({
+            origins:[startInput.value],
+            destinations:[endInput.value],
+            travelMode: google.maps.TravelMode.DRIVING,
+            unitSystem: google.maps.UnitSystem.METRIC
+          }, (res, status)=>{
+            if(status==='OK'){
+              const r = res.rows?.[0]?.elements?.[0];
+              if(r && r.status==='OK'){
+                resolve((r.distance.value||0)/1000);
+                return;
+              }
+            }
+            resolve(null);
+          });
+        });
+      }
+      return null;
+    }
+
+    async function computeEstimate(){
+      const km = await getDistanceKm();
+      if(km==null || !(km>0)) return null;
+      const rt = roundTripOn();
+      const night = isNightOrHoliday(dateInput.value, timeInput.value);
+      const perKm = rt ? (night ? RATE.B : RATE.A) : (night ? RATE.D : RATE.C);
+      const kmTotal = rt ? km*2 : km;
+      const waitCost = waitOn() ? (waitHours() * RATE.waitPerH) : 0;
+      const price = RATE.base + (kmTotal * perKm) + waitCost;
+      return Math.round(price*100)/100;
+    }
+
+    function buildSummary(price){
+      const lines = [];
+      lines.push("Nouvelle réservation Taxi Li 🚕");
+      if(nameInput)  lines.push("Nom: " + nameInput.value.trim());
+      if(phoneInput) lines.push("Téléphone: " + phoneInput.value.trim());
+      if(dateInput)  lines.push("Date: " + dateInput.value);
+      if(timeInput)  lines.push("Heure: " + timeInput.value);
+      if(startInput) lines.push("Départ: " + startInput.value.trim());
+      if(endInput)   lines.push("Destination: " + endInput.value.trim());
+      lines.push("Aller/retour: " + (roundTripOn() ? "Oui" : "Non"));
+      if(waitOn())  lines.push("Attente: Oui (" + waitHours() + " h)");
+      if(price!=null) lines.push("Estimation: " + price.toFixed(2) + " €");
+      else lines.push("Estimation: (indisponible)");
+      lines.push("—");
+      lines.push("Message envoyé depuis le formulaire en ligne.");
+      return lines.join("\n");
+    }
+
+    // Intercept ALL clicks document-wide to any email action
+    function isEmailAction(target){
+      if(!target) return false;
+      const el = target.closest('a,button');
+      if(!el) return false;
+      const txt = (el.textContent||'').toLowerCase();
+      const href = (el.getAttribute && el.getAttribute('href')) || '';
+      return txt.includes('réserver par e-mail') || txt.includes('reserver par e-mail') || href.startsWith('mailto:');
+    }
+
+    document.addEventListener('click', async function(e){
+      const el = e.target.closest('a,button');
+      if(!el) return;
+      if(!isEmailAction(el)) return;
+
+      // Always validate strictly before any navigation
+      const ok = validateAllStrict();
+      if(!ok){ e.preventDefault(); e.stopPropagation(); return; }
+
+      // Build email with auto estimate
+      e.preventDefault(); e.stopPropagation();
+      const price = await computeEstimate();
+      const summary = buildSummary(price);
+
+      // determine base mailto
+      let href = (el.getAttribute('href')||'').trim();
+      if(!href || !href.startsWith('mailto:')){
+        href = 'mailto:taxili@laposte.net';
+      }
+      // strip old params
+      href = href.replace(/\?(.*)$/,'').trim();
+
+      const subject = 'Réservation Taxi Li – ' + (nameInput?nameInput.value.trim():'Client');
+      const url = href + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(summary);
+      window.location.href = url;
+    }, true);
+  });
+})();
+</script><script id="hardguard-mail-wa-js">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    // === FIELD FINDERS (robust) ===
+    const nameInput  = $('#name') || $('#nom') || document.querySelector('input[autocomplete="name"]') || document.querySelector('input[name="name"]');
+    const phoneInput = $('#phone') || $('#tel') || document.querySelector('input[type="tel"]');
+    const dateInput  = $('#date')  || document.querySelector('input[type="date"]');
+    const timeInput  = $('#time')  || document.querySelector('input[type="time"]');
+    const startInput = $('#start') || $('#depart') || $('#origin');
+    const endInput   = $('#end')   || $('#dest')   || $('#destination');
+
+    const arSel      = document.getElementById('ar') || document.getElementById('allerRetour') || document.querySelector('select#ar, select#allerRetour');
+    const attenteYN  = document.getElementById('attente') || document.getElementById('attente_trajet') || document.querySelector('select#attente');
+    const attenteH   = document.getElementById('attenteHeures') || document.getElementById('dureeAttente') || document.querySelector('select#attenteHeures, select#dureeAttente');
+
+    // === ERROR UI HELPERS ===
+    function ensureHolder(input){
+      if(!input) return null;
+      let next = input.nextElementSibling;
+      if(next && next.classList && (next.classList.contains('field-error') || /error/i.test(next.className))) return next;
+      const d = document.createElement('div');
+      d.className = 'field-error';
+      d.style.color = '#c1121f';
+      d.style.fontWeight = '600';
+      d.style.marginTop = '6px';
+      d.style.display = 'none';
+      input.insertAdjacentElement('afterend', d);
+      return d;
+    }
+    const errName  = ensureHolder(nameInput);
+    const errPhone = ensureHolder(phoneInput);
+    const errDate  = ensureHolder(dateInput);
+    const errTime  = ensureHolder(timeInput);
+    const errStart = ensureHolder(startInput);
+    const errEnd   = ensureHolder(endInput);
+
+    function setErr(input, holder, msg){
+      if(!input || !holder) return;
+      holder.textContent = msg;
+      holder.style.display = 'block';
+      input.classList.add('input-invalid');
+    }
+    function clearErr(input, holder){
+      if(holder){ holder.textContent=''; holder.style.display='none'; }
+      if(input){ input.classList.remove('input-invalid'); }
+    }
+
+    // === HELPERS ===
+    function todayISO(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    function nowPlus1(){
+      const d = new Date();
+      d.setMinutes(d.getMinutes()+1);
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      return `${hh}:${mm}`;
+    }
+
+    // === STRICT VALIDATION (no empty + no existing invalid) ===
+    function validateAllStrict(show=true){
+      let ok = true;
+      function must(input, holder, label){
+        const v = (input && input.value||'').trim();
+        if(!input || !v){
+          if(show) setErr(input, holder, `Veuillez renseigner ${label}.`);
+          ok = false;
+        } else if (input.classList && input.classList.contains('input-invalid')){
+          ok = false;
+        } else {
+          if(show) clearErr(input, holder);
+        }
+      }
+      must(nameInput,  errName,  "votre nom et prénoms");
+      must(phoneInput, errPhone, "votre numéro de téléphone");
+      must(startInput, errStart, "le lieu de départ");
+      must(endInput,   errEnd,   "la destination");
+
+      if(dateInput){
+        const v = (dateInput.value||'').trim();
+        if(!v){ if(show) setErr(dateInput, errDate, "Veuillez sélectionner une date."); ok=false; }
+        else if(v < todayISO()){ if(show) setErr(dateInput, errDate, "Cette date est passée. Merci de choisir une date à partir d'aujourd'hui."); dateInput.value=todayISO(); ok=false; }
+        else { if(show) clearErr(dateInput, errDate); }
+      } else ok=false;
+
+      if(timeInput){
+        const v = (timeInput.value||'').trim();
+        if(!v){ if(show) setErr(timeInput, errTime, "Veuillez choisir une heure."); ok=false; }
+        else {
+          if(dateInput && dateInput.value === todayISO()){
+            const [hh,mm] = v.split(':').map(n=>parseInt(n,10));
+            const now = new Date();
+            const chosen = new Date();
+            chosen.setHours(hh||0, mm||0, 0, 0);
+            if(chosen.getTime() <= now.getTime()){
+              if(show) setErr(timeInput, errTime, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension.");
+              timeInput.value = nowPlus1();
+              ok=false;
+            }else{ if(show) clearErr(timeInput, errTime); }
+          }else{ if(show) clearErr(timeInput, errTime); }
+        }
+      } else ok=false;
+
+      return ok;
+    }
+
+    // === ESTIMATION ===
+    const RATE = { base:3.75, A:1.03, B:1.55, C:2.06, D:3.06, waitPerH:25 };
+    function isNightOrHoliday(dateStr, timeStr){
+      if(!timeStr) return false;
+      const [h, m] = timeStr.split(':').map(x=>parseInt(x,10));
+      const minutes = (h||0)*60 + (m||0);
+      const night = (minutes >= 19*60) || (minutes < 7*60);
+      if(night) return true;
+      const d = new Date(dateStr + 'T' + timeStr);
+      const md = (d.getMonth()+1) + '-' + d.getDate();
+      const feries = new Set(['1-1','5-1','5-8','7-14','8-15','11-1','11-11','12-25']);
+      return feries.has(md);
+    }
+    function roundTripOn(){ const el = arSel; return !!(el && /oui/i.test(el.value||'')); }
+    function waitOn(){ const el = attenteYN; return !!(el && /oui/i.test(el.value||'')); }
+    function waitHours(){ if(!waitOn()) return 0; const n = parseInt((attenteH && attenteH.value)||'0',10); return (isNaN(n)?0:n); }
+
+    async function getDistanceKm(){
+      if(typeof window.__distanceKM === 'number'){ return window.__distanceKM; }
+      const el = document.getElementById('distanceKm');
+      if(el){
+        const val = parseFloat((el.value||el.textContent||'').replace(',','.'));
+        if(!isNaN(val) && val>0) return val;
+      }
+      if(window.google && google.maps && google.maps.DistanceMatrixService && startInput && endInput){
+        return await new Promise((resolve)=>{
+          const svc = new google.maps.DistanceMatrixService();
+          svc.getDistanceMatrix({
+            origins:[startInput.value],
+            destinations:[endInput.value],
+            travelMode: google.maps.TravelMode.DRIVING,
+            unitSystem: google.maps.UnitSystem.METRIC
+          }, (res, status)=>{
+            if(status==='OK'){
+              const r = res.rows?.[0]?.elements?.[0];
+              if(r && r.status==='OK'){
+                resolve((r.distance.value||0)/1000);
+                return;
+              }
+            }
+            resolve(null);
+          });
+        });
+      }
+      return null;
+    }
+
+    async function computeEstimate(){
+      const km = await getDistanceKm();
+      if(km==null || !(km>0)) return null;
+      const rt = roundTripOn();
+      const night = isNightOrHoliday(dateInput.value, timeInput.value);
+      const perKm = rt ? (night ? RATE.B : RATE.A) : (night ? RATE.D : RATE.C);
+      const kmTotal = rt ? km*2 : km;
+      const waitCost = waitOn() ? (waitHours() * RATE.waitPerH) : 0;
+      const price = RATE.base + (kmTotal * perKm) + waitCost;
+      return Math.round(price*100)/100;
+    }
+
+    function buildSummary(price){
+      const lines = [];
+      lines.push("Nouvelle réservation Taxi Li 🚕");
+      if(nameInput)  lines.push("Nom: " + nameInput.value.trim());
+      if(phoneInput) lines.push("Téléphone: " + phoneInput.value.trim());
+      if(dateInput)  lines.push("Date: " + dateInput.value);
+      if(timeInput)  lines.push("Heure: " + timeInput.value);
+      if(startInput) lines.push("Départ: " + startInput.value.trim());
+      if(endInput)   lines.push("Destination: " + endInput.value.trim());
+      lines.push("Aller/retour: " + (roundTripOn() ? "Oui" : "Non"));
+      if(waitOn())  lines.push("Attente: Oui (" + waitHours() + " h)");
+      if(price!=null) lines.push("Estimation: " + price.toFixed(2) + " €");
+      else lines.push("Estimation: (indisponible)");
+      lines.push("—");
+      lines.push("Message envoyé depuis le formulaire en ligne.");
+      return lines.join("\n");
+    }
+
+    // === DETECTION ===
+    const isWAReserve = (el)=>{
+      if(!el) return false;
+      const txt = (el.textContent||'').toLowerCase();
+      return txt.includes('réserver par whatsapp') || txt.includes('reserver par whatsapp');
+    };
+    const isWAAny = (el)=>{
+      if(!el) return false;
+      const href = (el.getAttribute && el.getAttribute('href')) || '';
+      const txt = (el.textContent||'').toLowerCase();
+      return href.includes('wa.me') || txt.includes('whatsapp');
+    };
+    const isMailAny = (el)=>{
+      if(!el) return false;
+      const href = (el.getAttribute && el.getAttribute('href')) || '';
+      const txt = (el.textContent||'').toLowerCase();
+      return href.startsWith('mailto:') || txt.includes('réserver par e-mail') || txt.includes('reserver par e-mail');
+    };
+
+    // === ACTIONS ===
+    async function handleWAReserve(el, e){
+      const ok = validateAllStrict(true);
+      if(!ok){ e.preventDefault(); e.stopPropagation(); return; }
+      e.preventDefault(); e.stopPropagation();
+      const price = await computeEstimate();
+      const summary = buildSummary(price);
+      let base = (el.getAttribute('href')||'') || 'https://wa.me/';
+      base = base.replace(/(\?|&)text=[^&]*/,'').replace(/&$/,'');
+      const sep = base.includes('?') ? '&' : '?';
+      const url = base + sep + 'text=' + encodeURIComponent(summary);
+      window.location.href = url;
+    }
+    function handleWAQuick(el, e){
+      // contact rapide : pas de validation, pas d'estimation
+      // ouvre le wa.me tel/lien tel quel
+      const href = (el.getAttribute('href')||'').trim();
+      if(!href){ return; }
+      // laisser le navigateur suivre le lien (pas de preventDefault)
+    }
+    async function handleMailAny(el, e){
+      const ok = validateAllStrict(true);
+      if(!ok){ e.preventDefault(); e.stopPropagation(); return; }
+      e.preventDefault(); e.stopPropagation();
+      const price = await computeEstimate();
+      const summary = buildSummary(price);
+      let href = (el.getAttribute('href')||'').trim();
+      if(!href || !href.startsWith('mailto:')) href = 'mailto:taxili@laposte.net';
+      href = href.replace(/\?(.*)$/,'').trim();
+      const subject = 'Réservation Taxi Li – ' + (nameInput?nameInput.value.trim():'Client');
+      const url = href + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(summary);
+      window.location.href = url;
+    }
+
+    function universalListener(ev){
+      const el = ev.target.closest('a,button');
+      if(!el) return;
+      if(isWAReserve(el)){ handleWAReserve(el, ev); }
+      else if(isWAAny(el)){ handleWAQuick(el, ev); }
+      else if(isMailAny(el)){ handleMailAny(el, ev); }
+    }
+
+    // Bind capture
+    ['click','touchstart','pointerdown'].forEach(evt=>{
+      document.addEventListener(evt, universalListener, true);
+      window.addEventListener(evt, universalListener, true);
+    });
+  });
+})();
+</script><script id="force-wa-number-greeting-override">
+(function(){
+  document.addEventListener('click', function(ev){
+    const el = ev.target.closest('a,button');
+    if(!el) return;
+    const txt = (el.textContent||'').toLowerCase();
+    if(!(txt.includes('réserver par whatsapp') || txt.includes('reserver par whatsapp'))) return;
+    setTimeout(function(){
+      try{
+        if(location.href.startsWith('https://wa.me/')){
+          const url = new URL(location.href);
+          const params = new URLSearchParams(url.search);
+          const old = params.get('text') || '';
+          const greeting = 'Bonjour Taxi Li, je souhaite réserver une course.';
+          const merged = greeting + '\n\n' + old;
+          params.set('text', merged);
+          url.search = params.toString();
+          location.replace(url.toString());
+        }
+      }catch(e){}
+    }, 0);
+  }, true);
+})();
+</script><script id="wa-lockin-behavior-js">
+(function(){
+  function onReady(fn){ if(document.readyState!=='loading'){fn()} else document.addEventListener('DOMContentLoaded',fn,{once:true}); }
+
+  onReady(function(){
+    const WA_NUMBER = '590691280005';
+    const q  = (s)=>document.querySelector(s);
+    const qq = (s)=>Array.from(document.querySelectorAll(s));
+
+    // Helpers to build summary (no estimation here; only for quick button simple greeting if needed)
+    function v(sel){ const el=document.querySelector(sel); return el? (el.value||'').trim():''; }
+    function buildSummary(){
+      const L=[];
+      const name  = v('#name') || v('#nom') || v('input[autocomplete="name"]') || v('input[name="name"]');
+      const tel   = v('#phone')|| v('#tel') || v('input[type="tel"]');
+      const date  = v('#date') || v('input[type="date"]');
+      const time  = v('#time') || v('input[type="time"]');
+      const dep   = v('#start')|| v('#depart')|| v('#origin');
+      const dst   = v('#end')  || v('#dest')  || v('#destination');
+      // Quick contact should be plain; no summary
+      return "";
+    }
+
+    // 1) QUICK BUTTON: always plain link to number, no validation, no text
+    function isQuick(el){
+      if(!el) return false;
+      const txt = (el.textContent||'').toLowerCase();
+      const href = (el.getAttribute('href')||'');
+      return (el.dataset && el.dataset.plainWa==='1') || (href.startsWith('https://wa.me/') && !(txt.includes('réserver par whatsapp')||txt.includes('reserver par whatsapp')));
+    }
+    function quickHandler(ev){
+      const el = ev.target.closest('a');
+      if(!el || !isQuick(el)) return;
+      // open plain number, remove any ?text
+      ev.stopImmediatePropagation();
+      ev.preventDefault(); // we'll navigate ourselves to strip any query
+      const base = 'https://wa.me/'+WA_NUMBER;
+      window.location.href = base;
+    }
+
+    // 2) RESERVE BY WA: strict validation + estimation + greeting + summary to your number
+    function isReserve(el){
+      if(!el) return false;
+      const txt = (el.textContent||'').toLowerCase();
+      return txt.includes('réserver par whatsapp') || txt.includes('reserver par whatsapp');
+    }
+
+    function todayISO(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    function nowPlus1(){
+      const d = new Date();
+      d.setMinutes(d.getMinutes()+1);
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      return `${hh}:${mm}`;
+    }
+
+    function ensureHolder(input){
+      if(!input) return null;
+      let next = input.nextElementSibling;
+      if(next && next.classList && (next.classList.contains('field-error') || /error/i.test(next.className))) return next;
+      const d = document.createElement('div');
+      d.className = 'field-error';
+      d.style.color = '#c1121f';
+      d.style.fontWeight = '600';
+      d.style.marginTop = '6px';
+      d.style.display = 'none';
+      input.insertAdjacentElement('afterend', d);
+      return d;
+    }
+    function setErr(input, holder, msg){
+      if(!input || !holder) return;
+      holder.textContent = msg;
+      holder.style.display = 'block';
+      input.classList.add('input-invalid');
+    }
+    function clearErr(input, holder){
+      if(holder){ holder.textContent=''; holder.style.display='none'; }
+      if(input){ input.classList.remove('input-invalid'); }
+    }
+
+    function validateAllStrict(){
+      const name  = q('#name') || q('#nom') || document.querySelector('input[autocomplete="name"], input[name="name"]');
+      const phone = q('#phone')|| q('#tel') || document.querySelector('input[type="tel"]');
+      const dateI = q('#date') || document.querySelector('input[type="date"]');
+      const timeI = q('#time') || document.querySelector('input[type="time"]');
+      const start = q('#start')|| q('#depart')|| q('#origin');
+      const end   = q('#end')  || q('#dest')  || q('#destination');
+
+      let ok = true;
+      const pairs = [
+        [name,  ensureHolder(name),  "votre nom et prénoms"],
+        [phone, ensureHolder(phone), "votre numéro de téléphone"],
+        [start, ensureHolder(start), "le lieu de départ"],
+        [end,   ensureHolder(end),   "la destination"],
+      ];
+      pairs.forEach(([el,h,label])=>{
+        const v = el && (el.value||'').trim();
+        if(!el || !v){ setErr(el,h,`Veuillez renseigner ${label}.`); ok=false; }
+        else if(el.classList && el.classList.contains('input-invalid')) ok=false;
+        else clearErr(el,h);
+      });
+
+      const errD = ensureHolder(dateI), errT = ensureHolder(timeI);
+      if(dateI){
+        const v=(dateI.value||'').trim();
+        if(!v){ setErr(dateI, errD, "Veuillez sélectionner une date."); ok=false; }
+        else if(v < todayISO()){ setErr(dateI, errD, "Cette date est passée. Merci de choisir une date à partir d'aujourd'hui."); dateI.value=todayISO(); ok=false; }
+        else clearErr(dateI, errD);
+      } else ok=false;
+      if(timeI){
+        const v=(timeI.value||'').trim();
+        if(!v){ setErr(timeI, errT, "Veuillez choisir une heure."); ok=false; }
+        else if(dateI && dateI.value === todayISO()){
+          const [hh,mm] = v.split(':').map(x=>parseInt(x||'0',10));
+          const now = new Date(), chosen = new Date(); chosen.setHours(hh||0, mm||0, 0, 0);
+          if(chosen <= now){ setErr(timeI, errT, "Veuillez choisir une heure plus en avance que l'heure actuelle. Merci pour votre compréhension."); timeI.value=nowPlus1(); ok=false; }
+          else clearErr(timeI, errT);
+        } else clearErr(timeI, errT);
+      } else ok=false;
+      return ok;
+    }
+
+    const RATE = { base:3.75, A:1.03, B:1.55, C:2.06, D:3.06, waitPerH:25 };
+    function isNightOrHoliday(dateStr, timeStr){
+      if(!timeStr) return false;
+      const [h, m] = timeStr.split(':').map(x=>parseInt(x,10));
+      const minutes = (h||0)*60 + (m||0);
+      const night = (minutes >= 19*60) || (minutes < 7*60);
+      if(night) return true;
+      const d = new Date(dateStr + 'T' + timeStr);
+      const md = (d.getMonth()+1) + '-' + d.getDate();
+      const feries = new Set(['1-1','5-1','5-8','7-14','8-15','11-1','11-11','12-25']);
+      return feries.has(md);
+    }
+    function roundTripOn(){
+      const arSel = document.getElementById('ar') || document.getElementById('allerRetour') || document.querySelector('select#ar, select#allerRetour');
+      const v = arSel && (arSel.value||''); return /oui/i.test(v||'');
+    }
+    function waitOn(){
+      const att = document.getElementById('attente') || document.getElementById('attente_trajet') || document.querySelector('select#attente');
+      const v = att && (att.value||''); return /oui/i.test(v||'');
+    }
+    function waitHours(){
+      if(!waitOn()) return 0;
+      const sel = document.getElementById('attenteHeures') || document.getElementById('dureeAttente') || document.querySelector('select#attenteHeures, select#dureeAttente');
+      const n = parseInt((sel && sel.value)||'0',10);
+      return isNaN(n)?0:n;
+    }
+
+    async function getDistanceKm(){
+      if(typeof window.__distanceKM === 'number') return window.__distanceKM;
+      const el = document.getElementById('distanceKm');
+      if(el){
+        const val = parseFloat((el.value||el.textContent||'').replace(',','.'));
+        if(!isNaN(val) && val>0) return val;
+      }
+      if(window.google && google.maps && google.maps.DistanceMatrixService){
+        const origin = v('#start')||v('#depart')||v('#origin');
+        const dest   = v('#end')  ||v('#dest')  ||v('#destination');
+        if(origin && dest){
+          return await new Promise((resolve)=>{
+            const svc = new google.maps.DistanceMatrixService();
+            svc.getDistanceMatrix({
+              origins:[origin],
+              destinations:[dest],
+              travelMode: google.maps.TravelMode.DRIVING,
+              unitSystem: google.maps.UnitSystem.METRIC
+            }, (res, status)=>{
+              if(status==='OK'){
+                const r = res.rows?.[0]?.elements?.[0];
+                if(r && r.status==='OK'){
+                  resolve((r.distance.value||0)/1000);
+                  return;
+                }
+              }
+              resolve(null);
+            });
+          });
+        }
+      }
+      return null;
+    }
+
+    async function computeEstimate(){
+      const km = await getDistanceKm();
+      if(!(km>0)) return null;
+      const night = isNightOrHoliday(v('#date')||'', v('#time')||'');
+      const perKm = roundTripOn() ? (night ? RATE.B : RATE.A) : (night ? RATE.D : RATE.C);
+      const kmTotal = roundTripOn() ? km*2 : km;
+      const waitCost = waitOn() ? (waitHours()*RATE.waitPerH) : 0;
+      const price = RATE.base + kmTotal*perKm + waitCost;
+      return Math.round(price*100)/100;
+    }
+
+    function buildReserveSummary(price){
+      const L=[];
+      L.push("Bonjour Taxi Li, je souhaite réserver une course.");
+      L.push("");
+      L.push("Nouvelle réservation Taxi Li 🚕");
+      const name  = v('#name') || v('#nom') || v('input[autocomplete="name"]') || v('input[name="name"]');
+      const tel   = v('#phone')|| v('#tel') || v('input[type="tel"]');
+      const date  = v('#date') || v('input[type="date"]');
+      const time  = v('#time') || v('input[type="time"]');
+      const dep   = v('#start')|| v('#depart')|| v('#origin');
+      const dst   = v('#end')  || v('#dest')  || v('#destination');
+      if(name) L.push("Nom: "+name);
+      if(tel)  L.push("Téléphone: "+tel);
+      if(date) L.push("Date: "+date);
+      if(time) L.push("Heure: "+time);
+      if(dep)  L.push("Départ: "+dep);
+      if(dst)  L.push("Destination: "+dst);
+      L.push("Aller/retour: " + (roundTripOn() ? "Oui" : "Non"));
+      if(waitOn()) L.push("Attente: Oui ("+ waitHours() +" h)");
+      if(price!=null) L.push("Estimation: " + price.toFixed(2) + " €");
+      else L.push("Estimation: (indisponible)");
+      L.push("—");
+      L.push("Message envoyé depuis le formulaire en ligne.");
+      return L.join("\n");
+    }
+
+    function quickListener(ev){
+      const el = ev.target.closest('a');
+      if(!el) return;
+      if(isQuick(el)) quickHandler(ev);
+    }
+    async function reserveListener(ev){
+      const el = ev.target.closest('a,button');
+      if(!el) return;
+      if(!isReserve(el)) return;
+      ev.stopImmediatePropagation();
+      ev.preventDefault();
+      if(!validateAllStrict()) return;
+      const price = await computeEstimate();
+      const msg = buildReserveSummary(price);
+      const url = 'https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(msg);
+      window.location.href = url;
+    }
+
+    // Attach listeners EARLY and in capture
+    ['click','pointerdown','touchstart'].forEach(evt=>{
+      document.addEventListener(evt, quickListener, true);
+      document.addEventListener(evt, reserveListener, true);
+      window.addEventListener(evt, quickListener, true);
+      window.addEventListener(evt, reserveListener, true);
+    });
+  });
+})();
+</script>  <script src="assets/force_roundtrip.js"></script>
 </body>
 </html>
