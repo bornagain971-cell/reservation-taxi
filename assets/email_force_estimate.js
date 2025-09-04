@@ -47,7 +47,7 @@
     const rtEl = $('#roundtrip') || $('#allerRetour') || $('#ar') || document.querySelector('[name=\"roundtrip\"]');
     const rtV  = (rtEl && (rtEl.value||rtEl.textContent)||''); 
     L.push("Aller/retour: " + (/oui/i.test(rtV) ? "Oui" : "Non"));
-    if(notes) L.push("Notes: " + notes);
+    if(notes) L.push("Notes utiles: " + notes);
     L.push("Estimation: " + (isFinite(price) ? formatEUR(price) : "(indisponible)"));
     L.push("—");
     L.push("Message envoyé depuis le formulaire en ligne.");
