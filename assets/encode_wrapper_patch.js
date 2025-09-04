@@ -8,17 +8,17 @@
 
   function insertNotes(text){
     try{
-      if (/Notes utiles:/i.test(text)) return text;
+      if (/Notes:/i.test(text)) return text;
       var notes = tv($('#notes')) || tv(document.querySelector('textarea[name="notes"]')) ||
                   tv(document.querySelector('textarea[placeholder*="note" i]'));
       if(!notes) return text;
       if (/Estimation:/i.test(text)){
-        return text.replace(/(Estimation:[^\n]*\n?)/i, 'Notes utiles: '+notes+'\n$1');
+        return text.replace(/(Estimation:[^\n]*\n?)/i, 'Notes: '+notes+'\n$1');
       }
       if (/\n—/.test(text)){
-        return text.replace(/\n—/, '\nNotes utiles: '+notes+'\n—');
+        return text.replace(/\n—/, '\nNotes: '+notes+'\n—');
       }
-      return text + '\nNotes utiles: '+notes;
+      return text + '\nNotes: '+notes;
     }catch(e){ return text; }
   }
 
