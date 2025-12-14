@@ -60,6 +60,11 @@
               </div>
 
               <div class="field">
+                <label for="arrivalTime">Heure d’arrivée</label>
+                <input id="arrivalTime" name="arrivalTime" type="text" placeholder="Ex : 15:10 (ou estimée)" required />
+              </div>
+
+              <div class="field">
                 <label for="info">Informations complémentaires</label>
                 <textarea id="info" name="info" placeholder="Nb de passagers, bagages, vol/bateau, etc."></textarea>
               </div>
@@ -74,7 +79,7 @@
             </form>
 
             <div class="footer">
-              © <span id="year"></span> Taxi Li — 06 91 28 00 05
+              © <span id="year"></span> Taxi Li — Le Gosier, Guadeloupe • Tél : 06 91 28 00 05 • SIRET : 901 676 106 00015
             </div>
           </section>
 
@@ -128,6 +133,7 @@
         "Départ : " + (data.pickup || ""),
         "Heure : " + (data.time || ""),
         "Arrivée : " + (data.dropoff || ""),
+        "Heure d’arrivée : " + (data.arrivalTime || ""),
         "Infos : " + (data.info || "—")
       ];
       return lines.join("\n");
@@ -140,12 +146,13 @@
         pickup: document.getElementById('pickup').value.trim(),
         time: document.getElementById('time').value.trim(),
         dropoff: document.getElementById('dropoff').value.trim(),
+        arrivalTime: document.getElementById('arrivalTime').value.trim(),
         info: document.getElementById('info').value.trim()
       };
 
       // Validation simple
-      if(!data.name || !data.pickup || !data.time || !data.dropoff){
-        alert("Merci de remplir au minimum : Nom/Prénom, départ, heure, arrivée.");
+      if(!data.name || !data.pickup || !data.time || !data.dropoff || !data.arrivalTime){
+        alert("Merci de remplir au minimum : Nom/Prénom, départ, heure de départ, arrivée, heure d’arrivée.");
         return;
       }
 
