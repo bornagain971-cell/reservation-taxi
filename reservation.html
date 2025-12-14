@@ -9,7 +9,45 @@
   function gtag(){dataLayer.push(arguments);} 
   gtag('js', new Date());
   
-  gtag('config', 'G-EJVCD3T25');
+  
+<script>
+(function() {
+  // Consent Mode v2 - default denied until user choice
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  // If gtag isn't defined yet (because this runs before the gtag snippet), expose it
+  window.gtag = window.gtag || gtag;
+
+  var stored = null;
+  try { stored = localStorage.getItem('taxili_consent'); } catch(e) {}
+
+  if (stored === 'granted') {
+    gtag('consent', 'default', {
+      'ad_storage': 'granted',
+      'analytics_storage': 'granted',
+      'ad_user_data': 'granted',
+      'ad_personalization': 'granted'
+    });
+  } else if (stored === 'denied') {
+    gtag('consent', 'default', {
+      'ad_storage': 'denied',
+      'analytics_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'wait_for_update': 500
+    });
+  } else {
+    gtag('consent', 'default', {
+      'ad_storage': 'denied',
+      'analytics_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'wait_for_update': 500
+    });
+  }
+})();
+</script>
+gtag('config', 'G-EJVCD3T25');
 </script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -170,5 +208,74 @@
       window.open(url, "_blank");
     });
   </script>
+<!-- Consent banner (simple) -->
+<div id="taxili-consent-banner" class="taxili-consent-banner" role="dialog" aria-live="polite" aria-label="Consentement cookies">
+  <div class="taxili-consent-inner">
+    <div class="taxili-consent-text">
+      Nous utilisons des cookies pour mesurer l’audience et améliorer le service (Google). Vous pouvez accepter ou refuser.
+    </div>
+    <div class="taxili-consent-actions">
+      <button type="button" id="taxili-consent-refuse" class="taxili-consent-btn taxili-consent-refuse">Refuser</button>
+      <button type="button" id="taxili-consent-accept" class="taxili-consent-btn taxili-consent-accept">Accepter</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.taxili-consent-banner{position:fixed;left:0;right:0;bottom:0;z-index:9999;background:rgba(10,10,10,.92);color:#fff;padding:14px 16px;backdrop-filter:saturate(180%) blur(8px);border-top:1px solid rgba(255,255,255,.12);font-family:inherit}
+.taxili-consent-inner{max-width:980px;margin:0 auto;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.taxili-consent-text{font-size:14px;line-height:1.4;opacity:.95}
+.taxili-consent-actions{display:flex;gap:10px;align-items:center}
+.taxili-consent-btn{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+.taxili-consent-accept{border-color:rgba(0,200,120,.6);background:rgba(0,200,120,.18)}
+.taxili-consent-refuse{border-color:rgba(255,255,255,.22)}
+.taxili-consent-btn:hover{filter:brightness(1.08)}
+@media (max-width:520px){.taxili-consent-actions{width:100%}.taxili-consent-btn{flex:1}}
+</style>
+
+<script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading'){fn();} else {document.addEventListener('DOMContentLoaded', fn);} }
+  ready(function(){
+    var banner = document.getElementById('taxili-consent-banner');
+    if(!banner) return;
+
+    var stored = null;
+    try { stored = localStorage.getItem('taxili_consent'); } catch(e) {}
+
+    if(stored === 'granted' || stored === 'denied'){
+      banner.style.display = 'none';
+      return;
+    }
+
+    function setConsent(state){
+      try { localStorage.setItem('taxili_consent', state); } catch(e) {}
+      if (typeof window.gtag === 'function') {
+        if(state === 'granted'){
+          window.gtag('consent', 'update', {
+            'ad_storage': 'granted',
+            'analytics_storage': 'granted',
+            'ad_user_data': 'granted',
+            'ad_personalization': 'granted'
+          });
+        } else {
+          window.gtag('consent', 'update', {
+            'ad_storage': 'denied',
+            'analytics_storage': 'denied',
+            'ad_user_data': 'denied',
+            'ad_personalization': 'denied'
+          });
+        }
+      }
+      banner.style.display = 'none';
+    }
+
+    var a = document.getElementById('taxili-consent-accept');
+    var r = document.getElementById('taxili-consent-refuse');
+    if(a) a.addEventListener('click', function(){ setConsent('granted'); });
+    if(r) r.addEventListener('click', function(){ setConsent('denied'); });
+  });
+})();
+</script>
 </body>
 </html>
