@@ -6,49 +6,35 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16605679078"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);} 
-  gtag('js', new Date());
-  
-  
-<script>
-(function() {
-  // Consent Mode v2 - default denied until user choice
-  window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  // If gtag isn't defined yet (because this runs before the gtag snippet), expose it
-  window.gtag = window.gtag || gtag;
 
-  var stored = null;
-  try { stored = localStorage.getItem('taxili_consent'); } catch(e) {}
+  // Consent Mode v2: default denied until user choice
+  (function(){
+    var stored = null;
+    try { stored = localStorage.getItem('taxili_consent'); } catch(e) {}
+    if (stored === 'granted') {
+      gtag('consent', 'default', {
+        ad_storage: 'granted',
+        analytics_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted'
+      });
+    } else {
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        analytics_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        wait_for_update: 500
+      });
+    }
+  })();
 
-  if (stored === 'granted') {
-    gtag('consent', 'default', {
-      'ad_storage': 'granted',
-      'analytics_storage': 'granted',
-      'ad_user_data': 'granted',
-      'ad_personalization': 'granted'
-    });
-  } else if (stored === 'denied') {
-    gtag('consent', 'default', {
-      'ad_storage': 'denied',
-      'analytics_storage': 'denied',
-      'ad_user_data': 'denied',
-      'ad_personalization': 'denied',
-      'wait_for_update': 500
-    });
-  } else {
-    gtag('consent', 'default', {
-      'ad_storage': 'denied',
-      'analytics_storage': 'denied',
-      'ad_user_data': 'denied',
-      'ad_personalization': 'denied',
-      'wait_for_update': 500
-    });
-  }
-})();
+  gtag('js', new Date());
+  gtag('config', 'AW-16605679078');
+  gtag('config', 'G-EJVCD3T25');
 </script>
-gtag('config', 'G-EJVCD3T25');
-</script>
+
 
 <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Réservation — Taxi Li (WhatsApp)</title>
